@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cronentries>
+  <cron>
+    <url>/collector</url>
+    <description>Check and collect images every couple of minutes.</description>
+    <schedule>every 30 minutes</schedule>
+  </cron>
+  <cron>
+      <url>/mailer</url>
+      <description>Sends email to mailList if new images are found.</description>
+      <schedule>every 60 minutes</schedule>
+  </cron>
+</cronentries>

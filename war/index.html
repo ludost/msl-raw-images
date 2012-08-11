@@ -1,0 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- The HTML 4.01 Transitional DOCTYPE declaration-->
+<!-- above set at the top of the file will set     -->
+<!-- the browser's rendering engine into           -->
+<!-- "Quirks Mode". Replacing this declaration     -->
+<!-- with a "Standards Mode" doctype is supported, -->
+<!-- but may lead to some differences in layout.   -->
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>MSL Raw Image Listing</title>
+  </head>
+
+  <body>
+    <h1>Welcome at the MSL Raw Image Listing</h1>
+	<br>
+    I've put an automatically up-to-date JSON listing of all RAW images online, as a more convenient listing for (web)developers or as input for wget scripts.<br>
+(With the lack of folder listings in the raw-images CDN, I've done the same HTML parsing as all of you:)<br>
+<br>
+You can find the JSON list at: <a href="http://msl-raw-images.appspot.com/landing" target="_blank">http://msl-raw-images.appspot.com/landing</a><br>
+There are a couple of parameters:<br>
+<br>
+counts -> Only list image counts per sol/camera.<br>
+cam -> Only list specific camera<br>
+sol -> Only list specific sol<br>
+<br>
+Examples:<br>
+<a href="http://msl-raw-images.appspot.com/landing?sol=0&cam=MD&counts" target="_blank">http://msl-raw-images.appspot.com/landing?sol=0&cam=MD&counts</a> (will list the count of descent images: 1522)<br>
+<a href="http://msl-raw-images.appspot.com/landing?sol=1&cam=NRA" target="_blank">http://msl-raw-images.appspot.com/landing?sol=1&cam=NRA</a> (will list all right Navcam images for sol 1)<br>
+<br>
+The site will automatically update every 30 minutes, so expect a ~15 minutes delay compared to the original site.<br>
+  </body>
+</html>
