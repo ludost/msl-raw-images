@@ -17,6 +17,19 @@ public class SiteParser {
 			return start;
 		}
 	}
+	public static String getType(String filename){
+		if (filename.charAt(16) == '_'){
+			if (filename.charAt(17) == 'T') return "thumbnail";
+			if (filename.charAt(17) == 'D') return "downschaled";
+			if (filename.charAt(17) == 'F') return "full";
+			return "unknown";
+		} else {
+			if (filename.charAt(16) == 'I') return "thumbnail";
+			if (filename.charAt(16) == 'E') return "full/subframe";
+			return "unknown";
+		}
+	}
+	
 	public static boolean fetch(String s_url, int sol) {
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
 		try {
@@ -30,7 +43,8 @@ public class SiteParser {
 			while ((line = reader.readLine()) != null) {
 				if (line.contains("./?rawid=")) {
 					String filename = line.split("./?rawid=")[1].split("&s")[0];
-					String res = line.split("img src=\"")[1].split("(-thm)?.jpg")[0];
+					String res = line.split("img src=\"")[1].split("\"")[0].replaceFirst("-thm","");
+					String thumbnail = line.split("src=\"")[1].split("\"")[0];
 					if (solNode == null) {
 						solNode = baseNode.getChildByStringValue("sols").getChildByStringValue("sol"+sol);
 						if (solNode == null) solNode = baseNode.getChildByStringValue("sols").addChild(new MemoNode("sol"+sol));
@@ -53,8 +67,10 @@ public class SiteParser {
 						containerNode = solcamNode.addChild(new MemoNode("images"));
 						containerNode.addParent(camsolNode);
 					}
-					if (containerNode.getChildByStringValue(res+".JPG") == null){
-						containerNode.addChild(new MemoNode(res+".JPG"));
+					if (containerNode.getChildByStringValue(res) == null){
+						containerNode.addChild(new MemoNode(res)).
+						setPropertyValue("type",getType(filename)).
+						setPropertyValue("thumbnail",thumbnail);
 						MemoNode.getRootNode().getChildByStringValue("newImagesFlag").setPropertyValue("new","true");
 					}
 					found = true;

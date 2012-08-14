@@ -39,9 +39,14 @@ public class LandingPageServlet extends HttpServlet {
 		if (req.getParameter("counts") != null) {
 			countsOnly = true;
 		}
+		boolean flat = false;
+		if (req.getParameter("flat") != null) {
+			flat = true;
+		}
+		
 		resp.setContentType("application/json");
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
-		
+				
 		ArrayList<MemoNode> cameras = baseNode.getChildren();
 		Iterator<MemoNode> iter = cameras.iterator();
 		ArrayNode result = om.createArrayNode();
@@ -56,30 +61,46 @@ public class LandingPageServlet extends HttpServlet {
 			} else {
 				sols = cam.getChildren();
 			}
-			if (sols.size()>0){ 
+			if (sols.size()>0){
 				ObjectNode cameraNode = om.createObjectNode();
-				result.add(cameraNode);
-				cameraNode.put("camera", cam.getStringValue());
 				ObjectNode solNodes = om.createObjectNode();
-				cameraNode.put("sols", solNodes);
+				if (!flat){
+					result.add(cameraNode);					
+					cameraNode.put("camera", cam.getStringValue());
+					cameraNode.put("sols", solNodes);
+				}
 				Iterator<MemoNode> soliter = sols.iterator();
 				while (soliter.hasNext()){
-					MemoNode node_sol = soliter.next();					
+					MemoNode node_sol = soliter.next();	
 					int nofc = node_sol.getChildByStringValue("images").getChildren().size();
 					if (nofc > 0){
 						ObjectNode solNode = om.createObjectNode();
-						solNodes.put(node_sol.getStringValue().replace("sol", ""),solNode);
-						solNode.put("count", nofc);
+						if (!flat){
+							solNodes.put(node_sol.getStringValue().replace("sol", ""),solNode);
+							solNode.put("count", nofc);
+						}
 						if (!countsOnly){
 							ArrayList<MemoNode> images = node_sol.getChildByStringValue("images").getChildren();
 							Iterator<MemoNode> image_iter = images.iterator();
 							ArrayNode imagesNode = om.createArrayNode();
-							solNode.put("images", imagesNode);
+							if (!flat){
+								solNode.put("images", imagesNode);
+							}
 							while(image_iter.hasNext()){
 								MemoNode image = image_iter.next();
 								ObjectNode imageNode = om.createObjectNode();
-								imageNode.put("url", image.getStringValue());
-								imagesNode.add(imageNode);
+								String url = image.getStringValue();
+								imageNode.put("name", url.substring(url.lastIndexOf('/')+1));
+								imageNode.put("url", url);
+								imageNode.put("thumbnailUrl", image.getPropertyValue("thumbnail"));
+								imageNode.put("type", image.getPropertyValue("type"));
+								if (flat){
+									imageNode.put("camera", cam.getStringValue());
+									imageNode.put("sol", node_sol.getStringValue().replace("sol", ""));
+									result.add(imageNode);
+								} else {
+									imagesNode.add(imageNode);
+								}
 							}
 						}
 					}

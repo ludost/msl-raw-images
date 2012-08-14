@@ -13,6 +13,10 @@ public class InitListener  implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
+		initDemoData();
+	}
+
+	public static void initDemoData(){
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
 		if (baseNode == null){
 			baseNode = MemoNode.getRootNode().addChild(new MemoNode("msl-raw-images"));
@@ -43,5 +47,4 @@ public class InitListener  implements ServletContextListener {
 		}
 		
 	}
-
 }

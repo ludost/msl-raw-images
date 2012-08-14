@@ -3,6 +3,7 @@ package org.stwerff.mslraws;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import javax.mail.Message;
 import javax.mail.Session;
@@ -17,7 +18,8 @@ import com.chap.memo.memoNodes.MemoNode;
 
 public class MailServlet extends HttpServlet {
 	private static final long serialVersionUID = -4215556699052474459L;
-
+	private static final Logger log = Logger.getLogger("msl-raw-images");
+	
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("mailList");
@@ -39,13 +41,15 @@ public class MailServlet extends HttpServlet {
             msg.setSubject("New MSL raw images have been posted!");
             msg.setText(msgBody);
             msg.addRecipient(Message.RecipientType.TO,
-                    new InternetAddress("no-reply@example.com", "MSL-Raw-Images Recipients"));
+                    new InternetAddress("ludo@stwerff.xs4all.nl", "MSL-Raw-Images Recipients"));
             for (MemoNode address : addresses){
             	String addr = address.getStringValue();
             	msg.addRecipient(Message.RecipientType.BCC,
             		new InternetAddress(addr,addr));
+            	log.warning("Adding:"+addr);
             }
             Transport.send(msg);
+            log.warning("Sent mail!");
         } catch (Exception e) {
            System.out.println("Error sending mail!");
         }
