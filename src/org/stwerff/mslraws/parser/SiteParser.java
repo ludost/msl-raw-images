@@ -3,11 +3,16 @@ package org.stwerff.mslraws.parser;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Logger;
 
 import com.chap.memo.memoNodes.MemoNode;
 
 public class SiteParser {
-
+	private static final Logger log = Logger.getLogger("msl-raw-images");
+	
 	public static String getCamera(String filename){
 		String start = filename.substring(0, 3);
 		if (start.matches("[0-9]+")){
@@ -40,6 +45,7 @@ public class SiteParser {
 			boolean found = false;
 
 			MemoNode solNode = null;
+			MemoNode imageNode = null;
 			while ((line = reader.readLine()) != null) {
 				if (line.contains("./?rawid=")) {
 					String filename = line.split("./?rawid=")[1].split("&s")[0];
@@ -68,12 +74,28 @@ public class SiteParser {
 						containerNode.addParent(camsolNode);
 					}
 					if (containerNode.getChildByStringValue(res) == null){
-						containerNode.addChild(new MemoNode(res)).
+						imageNode=containerNode.addChild(new MemoNode(res)).
 						setPropertyValue("type",getType(filename)).
 						setPropertyValue("thumbnail",thumbnail);
 						MemoNode.getRootNode().getChildByStringValue("newImagesFlag").setPropertyValue("new","true");
 					}
 					found = true;
+				}
+				if (imageNode != null && line.contains("RawImageUTC")) {
+					String stringDate = line.split("RawImageUTC\">")[1].split("</div>")[0];
+					imageNode.setPropertyValue("stringDate", stringDate);
+					//2012-08-09 05:34:05&nbsp;UTC
+					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss'&nbsp;'z");
+					try {
+						Date date = formatter.parse(stringDate);
+						if (date != null){
+							imageNode.setPropertyValue("timestamp",new Long(date.getTime()).toString());
+						} else {
+							log.warning("Couldn't parse date:"+stringDate);
+						}
+					} catch (ParseException e){
+						log.warning("Couldn't parse date:"+stringDate);						
+					}
 				}
 			}
 			reader.close();

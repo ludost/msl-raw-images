@@ -94,6 +94,8 @@ public class LandingPageServlet extends HttpServlet {
 								imageNode.put("url", url);
 								imageNode.put("thumbnailUrl", image.getPropertyValue("thumbnail"));
 								imageNode.put("type", image.getPropertyValue("type"));
+								imageNode.put("unixTimeStamp", image.getPropertyValue("timestamp"));
+								imageNode.put("date", image.getPropertyValue("stringDate"));
 								if (flat){
 									imageNode.put("camera", cam.getStringValue());
 									imageNode.put("sol", node_sol.getStringValue().replace("sol", ""));
