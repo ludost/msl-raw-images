@@ -17,9 +17,6 @@
 	</style>
 	<script>
 		max_show = 20;
-		
-		//------------------------------
-		//Make this a params structure:
 		settings = {
 			show_count: max_show,
 			show_thumbs: false,
@@ -33,10 +30,12 @@
 		}
 		conf = $.extend({},settings,conf);		
 
+		
 		highest_sol=0;
 		count = 0;
 		data = {};
 		camList="";
+		
 		function filter(a){
 			if (a.item.sol > highest_sol) highest_sol=a.item.sol;
 			if (conf.filter_sol >= 0 && a.item.sol != conf.filter_sol) return false;
@@ -84,6 +83,8 @@
 					}
 				}
 			}).render(data).removeClass('tab-template').addClass('tab-target'));
+			
+			//Revert input fields to conf values:
 			if (conf.filter_sol<0){ 
 				$(".solInput").val(highest_sol);
 			} else {
@@ -93,6 +94,7 @@
 			$(".more,.all").toggle(count>=conf.show_count);
 			$(".tab-target .camSelectMulti").val(conf.filter_cam);
 			$(".tab-target .camSelectMulti").chosen();
+			//Done
 		}
 		function reload(){
 			$.ajax({
@@ -168,7 +170,7 @@
 			<td colspan=3>
 				<input class="more" type="button" onClick="conf.show_count+=max_show;render(false)" value="show more"/>
 				<input class="all" type="button" onClick="conf.show_count=999999;render(false)" value="show all"/>
-				<input class="less" type="button" onClick="render()" value="show less"/>
+				<input class="less" type="button" onClick="conf.show_count=max_show;render()" value="show less"/>
 			</td>
 		</tr>
 	</table>
