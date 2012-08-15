@@ -1,139 +1,286 @@
 <html>
 <head>
-	<script src="js/jquery-1.8.0.min.js"></script>
-	<script src="js/jquery-ui-1.8.22.custom.min.js"></script>
-	<script src="js/pure_min.js"></script>
-	<link rel="styleSheet" href="css/chosen.css"></link>
-	<script src="js/chosen.jquery.min.js"></script>
-	<style>
-		.tab-template {display:none; }
-		img { width:64px }
-		table { text-align:left }
-		td.sol { text-align:center }
-		td,th { vertical-align:top }
-		th { border:1px solid black; padding:2px }
-		.less { display:none }
-		.solInput { width:3em }
-	</style>
-	<script>
-		max_show = 20;
-		settings = {
-			show_count: max_show,
-			show_thumbs: false,
-			filter_sol: -1,
-			filter_cam: [],
-			filter_thumbs: false,
-		}
-		conf={};
-		if (typeof(localStorage["msl-raws-conf"])!= "undefined" && localStorage["msl-raws-conf"] != ""){
-			conf = JSON.parse(localStorage["msl-raws-conf"]);
-		}
-		conf = $.extend({},settings,conf);		
+<script src="js/jquery-1.8.0.min.js"></script>
+<script src="js/jquery-ui-1.8.22.custom.min.js"></script>
+<script src="js/pure_min.js"></script>
+<link rel="styleSheet" href="css/chosen.css"></link>
+<script src="js/chosen.jquery.min.js"></script>
+<script src="js/jquery.sharrre-1.3.2.min.js"></script>
+<style>
+.tab-template {
+	display: none;
+}
 
-		
-		highest_sol=0;
+input.default {
+	padding: 0px !important
+}
+
+img {
+	width: 64px
+}
+
+table {
+	text-align: left
+}
+
+td.sol {
+	text-align: center
+}
+
+td,th {
+	vertical-align: top;
+	white-space:nowrap;
+}
+
+th {
+	border: 1px solid black;
+	padding: 2px
+}
+
+.less {
+	display: none
+}
+
+.solInput {
+	width: 3em
+}
+
+div.sharrre {
+	display:block;
+}
+div#headerDiv {
+	display:block;
+	height:65px;
+	white-space:nowrap;
+	
+}
+.sharrre .box {
+	float: left;
+}
+
+.sharrre .count {
+	color: #444444;
+	display: block;
+	font-size: 17px;
+	line-height: 34px;
+	height: 34px;
+	padding: 4px 0;
+	position: relative;
+	text-align: center;
+	text-decoration: none;
+	width: 50px;
+	background-color: #eee;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+}
+
+.sharrre .share {
+	color: #FFFFFF;
+	display: block;
+	font-size: 11px;
+	height: 16px;
+	line-height: 16px;
+	margin-top: 3px;
+	padding: 0;
+	text-align: center;
+	text-decoration: none;
+	width: 50px;
+	background-color: #9CCE39;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+}
+
+.sharrre .buttons {
+	display: none;
+	position: absolute;
+	margin-left: 50px;
+	z-index: 10;
+	background-color: #fff;
+}
+
+.sharrre .button {
+	float: left;
+	max-width: 50px;
+	margin-left: 10px;
+}
+</style>
+<script>
+	max_show = 20;
+	settings = {
+		show_count : max_show,
+		show_thumbs : false,
+		filter_sol : -1,
+		filter_cam : [],
+		filter_thumbs : false,
+	}
+	conf = {};
+	if (typeof (localStorage["msl-raws-conf"]) != "undefined"
+			&& localStorage["msl-raws-conf"] != "") {
+		conf = JSON.parse(localStorage["msl-raws-conf"]);
+	}
+	conf = $.extend({}, settings, conf);
+
+	highest_sol = 0;
+	count = 0;
+	data = {};
+	camList = "";
+
+	function filter(a) {
+		if (a.item.sol > highest_sol)
+			highest_sol = a.item.sol;
+		if (conf.filter_sol >= 0 && a.item.sol != conf.filter_sol)
+			return false;
+		if (conf.filter_thumbs && a.item.type == "thumbnail")
+			return false;
+		if (conf.filter_cam.length > 0
+				&& $.inArray(a.item.camera, conf.filter_cam) == -1)
+			return false;
+		if (count++ > conf.show_count)
+			return false;
+		return true;
+	}
+	function sort(a, b) {
+		if (a.sol == b.sol) {
+			return a.name > b.name ? 1 : -1;
+		}
+		return a.sol > b.sol ? -1 : 1;
+	}
+	function render() {
+		localStorage["msl-raws-conf"] = JSON.stringify(conf);
+
+		$(".less").toggle(conf.show_count > max_show);
+		$('.tab-target th.name').html("Name (loading....)");
 		count = 0;
-		data = {};
-		camList="";
-		
-		function filter(a){
-			if (a.item.sol > highest_sol) highest_sol=a.item.sol;
-			if (conf.filter_sol >= 0 && a.item.sol != conf.filter_sol) return false;
-			if (conf.filter_thumbs && a.item.type == "thumbnail") return false;
-			if (conf.filter_cam.length>0 && $.inArray(a.item.camera,conf.filter_cam)==-1)return false;
-			if (count++ > conf.show_count) return false;
-			return true;
-		}
-		function sort(a,b){
-			if (a.sol == b.sol){
-				return a.name > b.name? 1: -1;
-			}
-			return a.sol > b.sol? -1: 1;
-		}
-		function render(){
-			localStorage["msl-raws-conf"]=JSON.stringify(conf);
-			
-			$(".less").toggle(conf.show_count>max_show);
-			$('.tab-target th.name').html("Name (loading....)");
-			count = 0;
-			$('.tab-target').replaceWith($('.tab-template').clone()
-			.directives({
-				'.thumbBox@checked':function(a){return conf.show_thumbs?"checked":""},
-				'.solBox@checked':function(a){return conf.filter_sol>=0?"":"checked"},
-				'.typeBox@checked':function(a){return conf.filter_thumbs?"checked":""},
-				'.line-template':{
-					'image<-context':{
-						'.name':'image.name',
-						'.name@href':'image.url',
-						'.sol':'image.sol',
-						'.type':'image.type',
-						'.cam':'image.camera',
-						'.thumbnail': function(a){
-							if (conf.show_thumbs){
-								return '<img src="'+a.item.thumbnailUrl+'">';
-							}
-							return "";//TODO: link to load single image
+		$('.tab-target').replaceWith($('.tab-template').clone().directives({
+			'.thumbBox@checked' : function(a) {
+				return conf.show_thumbs ? "checked" : ""
+			},
+			'.solBox@checked' : function(a) {
+				return conf.filter_sol >= 0 ? "" : "checked"
+			},
+			'.typeBox@checked' : function(a) {
+				return conf.filter_thumbs ? "checked" : ""
+			},
+			'.line-template' : {
+				'image<-context' : {
+					'.name' : 'image.name',
+					'.name@href' : 'image.url',
+					'.sol' : 'image.sol',
+					'.type' : 'image.type',
+					'.cam' : 'image.camera',
+					'.thumbnail' : function(a) {
+						if (conf.show_thumbs) {
+							return '<img src="'+a.item.thumbnailUrl+'">';
 						}
-					},
-					sort:function(a,b){
-						return sort(a,b);
-					},
-					filter:function(a){
-						return filter(a);
+						return "";//TODO: link to load single image
 					}
+				},
+				sort : function(a, b) {
+					return sort(a, b);
+				},
+				filter : function(a) {
+					return filter(a);
 				}
-			}).render(data).removeClass('tab-template').addClass('tab-target'));
-			
-			//Revert input fields to conf values:
-			if (conf.filter_sol<0){ 
-				$(".solInput").val(highest_sol);
-			} else {
-				$(".solInput").val(conf.filter_sol);
 			}
-			$('.sol .newest').html(" ->"+highest_sol);
-			$(".more,.all").toggle(count>=conf.show_count);
-			$(".tab-target .camSelectMulti").val(conf.filter_cam);
-			$(".tab-target .camSelectMulti").chosen();
-			//Done
+		}).render(data).removeClass('tab-template').addClass('tab-target'));
+
+		//Revert input fields to conf values:
+		if (conf.filter_sol < 0) {
+			$(".solInput").val(highest_sol);
+		} else {
+			$(".solInput").val(conf.filter_sol);
 		}
-		function reload(){
-			$.ajax({
-				url:"/landing?flat",
-				statusCode: {
-					200: function(json){
-						data=json;
-						render();
-					}
+		$('.sol .newest').html(" ->" + highest_sol);
+		$(".more,.all").toggle(count >= conf.show_count);
+		$(".tab-target .camSelectMulti").val(conf.filter_cam);
+		$(".tab-target .camSelectMulti").chosen();
+		//Done
+	}
+	function reload() {
+		$.ajax({
+			url : "/landing?flat",
+			statusCode : {
+				200 : function(json) {
+					data = json;
+					render();
 				}
-			});
-		}
-	</script>
+			}
+		});
+	}
+	function startSharrre() {
+		$("#sharrre").sharrre({
+			share: {
+				 googlePlus: true,
+				 facebook: true,
+				 twitter: true
+			 },
+			 buttons: {
+				 googlePlus: {size: 'tall'},
+				 facebook: {layout: 'box_count'},
+				 twitter: {count: 'vertical', via: 'Stellingwerff'}
+			 },
+			 hover: function(api, options){
+				 $(api.element).find('.buttons').show();
+			 },
+			 hide: function(api, options){
+				 $(api.element).find('.buttons').hide();
+			 },
+			 enableTracking: true,
+			 urlCurl: ""
+		});
+	}
+</script>
 
-	<script type="text/javascript">
-	  var _gaq = _gaq || [];
-	  _gaq.push(['_setAccount', 'UA-34102591-1']);
-	  _gaq.push(['_trackPageview']);
+<script type="text/javascript">
+	var _gaq = _gaq || [];
+	_gaq.push([ '_setAccount', 'UA-34102591-1' ]);
+	_gaq.push([ '_trackPageview' ]);
 
-	  (function() {
-	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-	  })();
-	</script>
+	(function() {
+		var ga = document.createElement('script');
+		ga.type = 'text/javascript';
+		ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl'
+				: 'http://www')
+				+ '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0];
+		s.parentNode.insertBefore(ga, s);
+	})();
+</script>
 </head>
-<body onLoad="reload()">
-	<table class="tab-target"><tr><td>Loading data, please wait.....</td></tr></table>
+<body onLoad="reload();startSharrre()">
+	<div id="sharrre"
+		data-url="http://msl-raw-images.appspot.com/lists.html"
+		data-text="MSL Curiosity Raw images listing" data-title="share"></div>
+	<div id="headerDiv"><h1>&nbsp;MSL Curiosity - Raw images listing</h1></div>	
+	<table class="tab-target">
+		<tr>
+			<td>Loading data, please wait.....</td>
+		</tr>
+	</table>
 	<table class="tab-template">
 		<tr class=header>
-			<th class="thumbnail">Thumbnails<br><hr>Show:<input class="thumbBox" type="checkbox" onChange="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();"></th>
-			<th class="name">Name<br><hr></th> 
-			<th class="sol">Sol<span class="newest"></span><br><hr><input class="solInput" type="text" value="" onChange="if ($('.solBox:checked').length==0){conf.filter_sol=this.value; render()}"/>&nbsp;All:<input class='solBox' type="checkbox" onChange="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()"/></th>
-			<th class="type">Type<br><hr>
-			Full only:<input class="typeBox" type="checkbox" onChange="conf.filter_thumbs?conf.filter_thumbs=false:conf.filter_thumbs=true; render()"/>
+			<th class="thumbnail">Thumbnails<br>
+				<hr>Show:<input class="thumbBox" type="checkbox"
+				onChange="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();"></th>
+			<th class="name">Name<br>
+				<hr></th>
+			<th class="sol">Sol<span class="newest"></span><br>
+				<hr> <input class="solInput" type="text" value=""
+				onChange="if ($('.solBox:checked').length==0){conf.filter_sol=this.value; render()}" />&nbsp;All:<input
+				class='solBox' type="checkbox"
+				onChange="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()" /></th>
+			<th class="type">Type<br>
+				<hr> Full only:<input class="typeBox" type="checkbox"
+				onChange="conf.filter_thumbs?conf.filter_thumbs=false:conf.filter_thumbs=true; render()" />
 			</th>
-			<th class="cam">Camera<br><hr>
- 			<select class="camSelectMulti chzn-select" data-placeholder="All" multiple="multiple" onChange="conf.filter_cam=$(this).val()!=null?$(this).val():[];render()">
- 					<optgroup label="science cameras">
+			<th class="cam">Camera<br>
+				<hr> <select class="camSelectMulti chzn-select"
+				data-placeholder="All" multiple="multiple"
+				onChange="conf.filter_cam=$(this).val()!=null?$(this).val():[];render()">
+					<optgroup label="science cameras">
 						<option value="MH">(MH) MAHLI HandCam</option>
 						<option value="CR0">(CR0) ChemCam</option>
 						<option value="ML">(ML) MastCam Left</option>
@@ -156,7 +303,7 @@
 						<option value="RLB">(RLB) Rear Left HazCam</option>
 						<option value="RRB">(RRB) Rear Right HazCam</option>
 					</optgroup>
-				</select>
+			</select>
 			</th>
 		</tr>
 		<tr class="line-template">
@@ -167,11 +314,12 @@
 			<td class="cam"></td>
 		</tr>
 		<tr>
-			<td colspan=3>
-				<input class="more" type="button" onClick="conf.show_count+=max_show;render(false)" value="show more"/>
-				<input class="all" type="button" onClick="conf.show_count=999999;render(false)" value="show all"/>
-				<input class="less" type="button" onClick="conf.show_count=max_show;render()" value="show less"/>
-			</td>
+			<td colspan=3><input class="more" type="button"
+				onClick="conf.show_count+=max_show;render(false)" value="show more" />
+				<input class="all" type="button"
+				onClick="conf.show_count=999999;render(false)" value="show all" />
+				<input class="less" type="button"
+				onClick="conf.show_count=max_show;render()" value="show less" /></td>
 		</tr>
 	</table>
 </body>
