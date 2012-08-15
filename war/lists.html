@@ -3,9 +3,8 @@
 	<script src="js/jquery-1.8.0.min.js"></script>
 	<script src="js/jquery-ui-1.8.22.custom.min.js"></script>
 	<script src="js/pure_min.js"></script>
-	<script src="js/jquery.multiselect.min.js"></script>
-	<link rel="styleSheet" href="css/jquery-ui.css"></link>
-	<link rel="styleSheet" href="css/jquery.multiselect.css"></link>
+	<link rel="styleSheet" href="css/chosen.css"></link>
+	<script src="js/chosen.jquery.min.js"></script>
 	<style>
 		.tab-template {display:none; }
 		img { height:64px; width:64px }
@@ -18,20 +17,32 @@
 	</style>
 	<script>
 		max_show = 20;
-		show_count = max_show;
+		
+		//------------------------------
+		//Make this a params structure:
+		settings = {
+			show_count: max_show,
+			show_thumbs: false,
+			filter_sol: -1,
+			filter_cam: [],
+			filter_thumbs: false,
+		}
+		conf={};
+		if (typeof(localStorage["msl-raws-conf"])!= "undefined" && localStorage["msl-raws-conf"] != ""){
+			conf = JSON.parse(localStorage["msl-raws-conf"]);
+		}
+		conf = $.extend({},settings,conf);		
+
+		highest_sol=0;
 		count = 0;
 		data = {};
-		show_thumbs = false;
-		filter_sol=-1;
-		filter_cam={};
-		filter_thumbs=false;
-		highest_sol=0;
+		camList="";
 		function filter(a){
 			if (a.item.sol > highest_sol) highest_sol=a.item.sol;
-			if (filter_sol >= 0 && a.item.sol != filter_sol) return false;
-			if (filter_thumbs && a.item.type == "thumbnail") return false;
-			if (!filter_cam[a.item.camera]) return false;
-			if (count++ > show_count) return false;
+			if (conf.filter_sol >= 0 && a.item.sol != conf.filter_sol) return false;
+			if (conf.filter_thumbs && a.item.type == "thumbnail") return false;
+			if (conf.filter_cam.length>0 && $.inArray(a.item.camera,conf.filter_cam)==-1)return false;
+			if (count++ > conf.show_count) return false;
 			return true;
 		}
 		function sort(a,b){
@@ -40,25 +51,17 @@
 			}
 			return a.sol > b.sol? -1: 1;
 		}
-		function render(shrink){
-			if (shrink == null || shrink){
-				show_count=max_show;
-			}
-			filter_cam={};
-			var camList = $(".camSelect").val();
-			if (camList == "") camList = "MH,CR0,ML,MR,NLA,NRA,FLA,FRA,RLA,RRA,MD";
-			cams = camList.split(",");
-			for (cam_no=0; cam_no<cams.length; cam_no++){
-				filter_cam[cams[cam_no]]=true;
-			}
-			$(".less").toggle(show_count>max_show);
+		function render(){
+			localStorage["msl-raws-conf"]=JSON.stringify(conf);
+			
+			$(".less").toggle(conf.show_count>max_show);
 			$('.tab-target th.name').html("Name (loading....)");
 			count = 0;
 			$('.tab-target').replaceWith($('.tab-template').clone()
 			.directives({
-				'.thumbBox@checked':function(a){return show_thumbs?"checked":""},
-				'.solBox@checked':function(a){return filter_sol>=0?"":"checked"},
-				'.typeBox@checked':function(a){return filter_thumbs?"checked":""},
+				'.thumbBox@checked':function(a){return conf.show_thumbs?"checked":""},
+				'.solBox@checked':function(a){return conf.filter_sol>=0?"":"checked"},
+				'.typeBox@checked':function(a){return conf.filter_thumbs?"checked":""},
 				'.line-template':{
 					'image<-context':{
 						'.name':'image.name',
@@ -68,7 +71,7 @@
 						'.cam':'image.camera',
 						'.thumbnail': function(a){
 							var ret = '<img src="'+a.item.thumbnailUrl+'" ';
-							if (show_thumbs){
+							if (conf.show_thumbs){
 								return ret+'>';
 							} else {
 								return ret+'style="display:none">';
@@ -83,16 +86,15 @@
 					}
 				}
 			}).render(data).removeClass('tab-template').addClass('tab-target'));
-			if (filter_sol<0){ 
+			if (conf.filter_sol<0){ 
 				$(".solInput").val(highest_sol);
 			} else {
-				$(".solInput").val(filter_sol);
+				$(".solInput").val(conf.filter_sol);
 			}
-			$(".more,.all").toggle(count>=show_count);
-			$(".camSelect").val(camList);
-//			$(".tab-target .camSelect").multiselect({
-//				   selectedText: "# of # selected"
-//			});
+			$('.sol .newest').html(" ->"+highest_sol);
+			$(".more,.all").toggle(count>=conf.show_count);
+			$(".tab-target .camSelectMulti").val(conf.filter_cam);
+			$(".tab-target .camSelectMulti").chosen();
 		}
 		function reload(){
 			$.ajax({
@@ -111,28 +113,38 @@
 	<table class="tab-target"><tr><td>Loading data, please wait.....</td></tr></table>
 	<table class="tab-template">
 		<tr class=header>
-			<th class="thumbnail">Thumbnails<br><hr>Show:<input class="thumbBox" type="checkbox" onChange="show_thumbs?show_thumbs=false:show_thumbs=true;render();"></th>
-			<th class="name">Name<br><hr></th>
-			<th class="sol">Sol<br><hr><input class="solInput" type="text" value="" onChange="if ($('.solBox:checked').length==0){filter_sol=this.value; render()}"/>&nbsp;All:<input class='solBox' type="checkbox" onChange="this.checked?filter_sol=-1:filter_sol=$('.solInput').val(); render()"/></th>
+			<th class="thumbnail">Thumbnails<br><hr>Show:<input class="thumbBox" type="checkbox" onChange="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();"></th>
+			<th class="name">Name<br><hr></th> 
+			<th class="sol">Sol<span class="newest"></span><br><hr><input class="solInput" type="text" value="" onChange="if ($('.solBox:checked').length==0){conf.filter_sol=this.value; render()}"/>&nbsp;All:<input class='solBox' type="checkbox" onChange="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()"/></th>
 			<th class="type">Type<br><hr>
-			Full only:<input class="typeBox" type="checkbox" onChange="filter_thumbs?filter_thumbs=false:filter_thumbs=true; render()"/>
+			Full only:<input class="typeBox" type="checkbox" onChange="conf.filter_thumbs?conf.filter_thumbs=false:conf.filter_thumbs=true; render()"/>
 			</th>
 			<th class="cam">Camera<br><hr>
-			<input class="camSelect" value="" onChange="render()"/>
-<!--				<select class="camSelect" multiple="multiple" onChange="render()">
-					<option value="MH">(MH) MAHLI HandCam</option>
-					<option value="CR0">(CR0) ChemCam</option>
-					<option value="ML">(ML) MastCam Left</option>
-					<option value="MR">(MR) MastCam Right</option>
-					<option value="NLA">(NLA) NavCam Left</option>
-					<option value="NRA">(NRA) NavCam Right</option>
-					<option value="FLA">(FLA) Front Left HazCam</option>
-					<option value="FRA">(FRA) Front Right HazCam</option>
-					<option value="RLA">(RLA) Rear Left HazCam</option>
-					<option value="RRA">(RRA) Rear Right HazCam</option>
-					<option value="MD">(MD) MARDI DescentCam</option>
+ 			<select class="camSelectMulti chzn-select" data-placeholder="All" multiple="multiple" onChange="conf.filter_cam=$(this).val()!=null?$(this).val():[];render()">
+ 					<optgroup label="science cameras">
+						<option value="MH">(MH) MAHLI HandCam</option>
+						<option value="CR0">(CR0) ChemCam</option>
+						<option value="ML">(ML) MastCam Left</option>
+						<option value="MR">(MR) MastCam Right</option>
+					</optgroup>
+					<optgroup label="engineering cameras">
+						<option value="NLA">(NLA) NavCam Left</option>
+						<option value="NRA">(NRA) NavCam Right</option>
+						<option value="FLA">(FLA) Front Left HazCam</option>
+						<option value="FRA">(FRA) Front Right HazCam</option>
+						<option value="RLA">(RLA) Rear Left HazCam</option>
+						<option value="RRA">(RRA) Rear Right HazCam</option>
+						<option value="MD">(MD) MARDI DescentCam</option>
+					</optgroup>
+					<optgroup label="Backup engineering cameras">
+						<option value="NLB">(NLB) NavCam Left</option>
+						<option value="NRB">(NRB) NavCam Right</option>
+						<option value="FLB">(FLB) Front Left HazCam</option>
+						<option value="FRB">(FRB) Front Right HazCam</option>
+						<option value="RLB">(RLB) Rear Left HazCam</option>
+						<option value="RRB">(RRB) Rear Right HazCam</option>
+					</optgroup>
 				</select>
--->
 			</th>
 		</tr>
 		<tr class="line-template">
@@ -144,8 +156,8 @@
 		</tr>
 		<tr>
 			<td colspan=3>
-				<input class="more" type="button" onClick="show_count+=max_show;render(false)" value="show more"/>
-				<input class="all" type="button" onClick="show_count=999999;render(false)" value="show all"/>
+				<input class="more" type="button" onClick="conf.show_count+=max_show;render(false)" value="show more"/>
+				<input class="all" type="button" onClick="conf.show_count=999999;render(false)" value="show all"/>
 				<input class="less" type="button" onClick="render()" value="show less"/>
 			</td>
 		</tr>
