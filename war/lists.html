@@ -7,7 +7,7 @@
 	<script src="js/chosen.jquery.min.js"></script>
 	<style>
 		.tab-template {display:none; }
-		img { height:64px; width:64px }
+		img { width:64px }
 		table { text-align:left }
 		td.sol { text-align:center }
 		td,th { vertical-align:top }
@@ -70,12 +70,10 @@
 						'.type':'image.type',
 						'.cam':'image.camera',
 						'.thumbnail': function(a){
-							var ret = '<img src="'+a.item.thumbnailUrl+'" ';
 							if (conf.show_thumbs){
-								return ret+'>';
-							} else {
-								return ret+'style="display:none">';
+								return '<img src="'+a.item.thumbnailUrl+'">';
 							}
+							return "";//TODO: link to load single image
 						}
 					},
 					sort:function(a,b){
@@ -107,6 +105,18 @@
 				}
 			});
 		}
+	</script>
+
+	<script type="text/javascript">
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-34102591-1']);
+	  _gaq.push(['_trackPageview']);
+
+	  (function() {
+	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
 	</script>
 </head>
 <body onLoad="reload()">
