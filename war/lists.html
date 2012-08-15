@@ -7,60 +7,53 @@
 <script src="js/chosen.jquery.min.js"></script>
 <script src="js/jquery.sharrre-1.3.2.min.js"></script>
 <style>
-.tab-template {
-	display: none;
+html {
+	background: url(images/bg.jpg) no-repeat center center fixed; 
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
 }
-
-input.default {
-	padding: 0px !important
+.tab-template {	display: none; }
+input.default { padding: 0px !important }
+img { width: 64px }
+table { 
+	text-align: left;
+	border:1px solid red;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
 }
-
-img {
-	width: 64px
-}
-
-table {
-	text-align: left
-}
-
-td.sol {
-	text-align: center
-}
-
-td,th {
+td.sol { text-align: center }
+td,th {	
 	vertical-align: top;
 	white-space:nowrap;
 }
-
 th {
-	border: 1px solid black;
-	padding: 2px
+	padding: 2px;
+	border:1px solid red;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	-moz-box-shadow:    1px 1px 2px 1px red;
+  	-webkit-box-shadow: 1px 1px 2px 1px red;
+  	box-shadow:         1px 1px 2px 1px red;
 }
-
-.less {
-	display: none
+.footer {
+	font-size:smaller;
 }
-
-.solInput {
-	width: 3em
-}
-
-div.sharrre {
+.less {	display: none }
+.solInput { width: 3em }
+div.sharrre { display:block; }
+div.headerDiv {
 	display:block;
-}
-div#headerDiv {
-	display:block;
-	height:65px;
+	height:55px;
 	white-space:nowrap;
-	
 }
-.sharrre .box {
-	float: left;
-}
-
+.sharrre .box {	float: left;  }
 .sharrre .count {
 	color: #444444;
-	display: block;
+	display: none;
 	font-size: 17px;
 	line-height: 34px;
 	height: 34px;
@@ -97,7 +90,6 @@ div#headerDiv {
 	position: absolute;
 	margin-left: 50px;
 	z-index: 10;
-	background-color: #fff;
 }
 
 .sharrre .button {
@@ -221,14 +213,13 @@ div#headerDiv {
 				 facebook: {layout: 'box_count'},
 				 twitter: {count: 'vertical', via: 'Stellingwerff'}
 			 },
-			 hover: function(api, options){
-				 $(api.element).find('.buttons').show();
-			 },
-			 hide: function(api, options){
-				 $(api.element).find('.buttons').hide();
+			 click: function(api, options){
+				 $(api.element).find('.buttons').toggle();
 			 },
 			 enableTracking: true,
-			 urlCurl: ""
+			 urlCurl: "",
+			 title: "Follow the raw images Curiosity sends back to Earth each sol. This site is focused on providing easy access for downloading, listing and organizing the raw images."
+
 		});
 	}
 </script>
@@ -254,7 +245,7 @@ div#headerDiv {
 	<div id="sharrre"
 		data-url="http://msl-raw-images.appspot.com/lists.html"
 		data-text="MSL Curiosity Raw images listing" data-title="share"></div>
-	<div id="headerDiv"><h1>&nbsp;MSL Curiosity - Raw images listing</h1></div>	
+	<div class="headerDiv"><h1>&nbsp;MSL Curiosity - Raw images listing</h1></div>
 	<table class="tab-target">
 		<tr>
 			<td>Loading data, please wait.....</td>
@@ -266,19 +257,21 @@ div#headerDiv {
 				<hr>Show:<input class="thumbBox" type="checkbox"
 				onChange="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();"></th>
 			<th class="name">Name<br>
-				<hr></th>
+				<hr>
+				<input type=button onClick="reload()" value="Reload data"/>	
+			</th>
 			<th class="sol">Sol<span class="newest"></span><br>
-				<hr> <input class="solInput" type="text" value=""
-				onChange="if ($('.solBox:checked').length==0){conf.filter_sol=this.value; render()}" />&nbsp;All:<input
-				class='solBox' type="checkbox"
-				onChange="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()" /></th>
+				<hr> 
+				<input class="solInput" type="text" value="" onChange="if ($('.solBox:checked').length==0){conf.filter_sol=this.value; render()}" />
+				&nbsp;All:<input class='solBox' type="checkbox"	onChange="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()" />
+			</th>
 			<th class="type">Type<br>
-				<hr> Full only:<input class="typeBox" type="checkbox"
-				onChange="conf.filter_thumbs?conf.filter_thumbs=false:conf.filter_thumbs=true; render()" />
+				<hr> Full only:
+				<input class="typeBox" type="checkbox" onChange="conf.filter_thumbs?conf.filter_thumbs=false:conf.filter_thumbs=true; render()" />
 			</th>
 			<th class="cam">Camera<br>
-				<hr> <select class="camSelectMulti chzn-select"
-				data-placeholder="All" multiple="multiple"
+				<hr> 
+				<select class="camSelectMulti chzn-select" data-placeholder="All" multiple="multiple"
 				onChange="conf.filter_cam=$(this).val()!=null?$(this).val():[];render()">
 					<optgroup label="science cameras">
 						<option value="MH">(MH) MAHLI HandCam</option>
@@ -295,7 +288,7 @@ div#headerDiv {
 						<option value="RRA">(RRA) Rear Right HazCam</option>
 						<option value="MD">(MD) MARDI DescentCam</option>
 					</optgroup>
-					<optgroup label="Backup engineering cameras">
+					<optgroup label="secondary engineering cameras">
 						<option value="NLB">(NLB) NavCam Left</option>
 						<option value="NRB">(NRB) NavCam Right</option>
 						<option value="FLB">(FLB) Front Left HazCam</option>
@@ -322,5 +315,9 @@ div#headerDiv {
 				onClick="conf.show_count=max_show;render()" value="show less" /></td>
 		</tr>
 	</table>
+	<div class="footer">
+	This site is developed by Ludo Stellingwerff.<br>
+	I don't own any of the data on this site, massive thanks to NASA for sharing this with all of us.
+	</div> 
 </body>
 </html>
