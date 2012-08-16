@@ -42,14 +42,14 @@ public class SiteParser {
 		}
 	}
 	
-	public static boolean fetch(String s_url, int sol) {
+	public static int fetch(String s_url, int sol) {
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
 		MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
 		if (allImagesNode == null) allImagesNode = baseNode.addChild(new MemoNode("allImages"));
-		ArrayList<String> images = new ArrayList<String>();
+		ArrayList<String> images = new ArrayList<String>(100);
 		try {
-			URL url = new URL(s_url+"?s="+sol);
-			System.out.println("Now opening:"+s_url+"?s="+sol);
+			URL url = new URL(s_url+"?s="+(sol>=0?sol:""));
+			System.out.println("Now opening:"+s_url+"?s="+(sol>=0?sol:""));
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			con.setConnectTimeout(10000);
 			con.setReadTimeout(60000);
@@ -62,23 +62,32 @@ public class SiteParser {
 			MemoNode solNode = null;
 			MemoNode imageNode = null;
 			while ((line = reader.readLine()) != null) {
-				if (line.trim().equals("")) continue;
-				if (line.contains("./?rawid=")) {
-					String filename = line.split("./?rawid=")[1].split("&s")[0];
-					String res = line.split("img src=\"")[1].split("\"")[0].replaceFirst("-thm","");
-					String thumbnail = line.split("src=\"")[1].split("\"")[0];
+				if (!found && !line.equals("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\" width=\"100%\">")) continue;
+				found=true;
+				line=line.trim();
+				if (line.isEmpty()) continue;
+				int i = line.indexOf("./?rawid=");
+				if ( i > -1) {
+					line=line.substring(i+9).trim();
+					if (sol == -1) sol=Integer.parseInt(line.split("&s=")[1].split("\">")[0]);
+					String filename = new String(line.substring(0,line.indexOf("&s")));
+					String res = new String(line.split("img src=\"")[1].split("\"")[0].replaceFirst("-thm",""));
+					String thumbnail = new String(line.split("src=\"")[1].split("\"")[0]);
+					String camera = getCamera(filename);
+					if (camera.length()>2 && res.endsWith(".jpg")) res=res.replace(".jpg",".JPG");
+					
 					if (solNode == null) {
 						solNode = baseNode.getChildByStringValue("sols").getChildByStringValue("sol"+sol);
 						if (solNode == null) solNode = baseNode.getChildByStringValue("sols").addChild(new MemoNode("sol"+sol));
 					}
-					MemoNode camNode = baseNode.getChildByStringValue(getCamera(filename));
+					MemoNode camNode = baseNode.getChildByStringValue(camera);
 					if (camNode == null){
-						System.out.println("Warning, can't find camera:"+getCamera(filename));
+						System.out.println("Warning, can't find camera:"+camera);
 						continue;
 					}
-					MemoNode solcamNode = solNode.getChildByStringValue(getCamera(filename));
+					MemoNode solcamNode = solNode.getChildByStringValue(camera);
 					if (solcamNode == null){
-						solcamNode = solNode.addChild(new MemoNode(getCamera(filename)));
+						solcamNode = solNode.addChild(new MemoNode(camera));
 					}
 					MemoNode camsolNode = camNode.getChildByStringValue("sol"+sol);
 					if (camsolNode == null){
@@ -90,16 +99,18 @@ public class SiteParser {
 						containerNode.addParent(camsolNode);
 					}
 					if (containerNode.getChildByStringValue(res) == null){
+						if (containerNode.getChildByStringValue(res.replace(".jpg", ".JPG")) != null ||containerNode.getChildByStringValue(res.replace(".jpg", ".JPG")) != null ) continue;
 						imageNode=containerNode.addChild(new MemoNode(res))
 						.setPropertyValue("type",getType(filename))
 						.setPropertyValue("thumbnail",thumbnail)
 						.setParent(allImagesNode);
 						images.add(imageNode.getId().toString());
 					}
-					found = true;
 				}
-				if (imageNode != null && line.contains("RawImageUTC")) {
-					String stringDate = line.split("RawImageUTC\">")[1].split("</div>")[0];
+				if (imageNode != null) i = line.indexOf("RawImageUTC");
+				if (imageNode != null && i > -1) {
+					line=line.trim();
+					String stringDate = new String(line.split("RawImageUTC\">")[1].split("</div>")[0]);
 					imageNode.setPropertyValue("stringDate", stringDate);
 					//2012-08-09 05:34:05&nbsp;UTC
 					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss'&nbsp;'z");
@@ -131,12 +142,12 @@ public class SiteParser {
 			if (count>0) queue.add(withUrl("/collector").param("imageUUIDs",list));
 		
 			System.out.println("Done:"+s_url+"?s="+sol);
-			return found;
+			return sol;
 		} catch (Exception exp) {
 			System.out.println("Ojh, this goes wrong:" + exp.getMessage());
 			exp.printStackTrace();
 		}
 		System.out.println("No images found on:"+s_url);
-		return false;
+		return sol;
 	}
 }

@@ -21,7 +21,6 @@ public class LandingPageServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		
-		
 		int sol=-1;
 		String ssol = req.getParameter("sol");
 		if (ssol != null) {

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +21,8 @@ import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 @SuppressWarnings("serial")
 public class MslCollectorServlet extends HttpServlet {
 	static URLFetchService fs = URLFetchServiceFactory.getURLFetchService();
-
+	private static final Logger log = Logger.getLogger("msl-raw-images");
+	
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		doGet(req, resp);
@@ -67,7 +69,7 @@ public class MslCollectorServlet extends HttpServlet {
 	
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-
+		
 		resp.setContentType("text/plain");
 		InitListener.initDemoData();
 
@@ -82,12 +84,21 @@ public class MslCollectorServlet extends HttpServlet {
 			}
 		} else if (req.getParameter("doHeads") != null){
 			MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
-			MemoNode allImagesNode = baseNode.addChild(new MemoNode("allImages"));
+			MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
+			if (allImagesNode == null){
+				allImagesNode = baseNode.addChild(new MemoNode("allImages"));
+			}
 			System.out.println("checking for images without head data.");
 			ArrayList<MemoNode> all = allImagesNode.getChildren();
+			int count=0;
 			for (MemoNode image: all){
 				if (image.getPropertyValue("fileTimeStamp").equals("")){
 					fetchHead(image);
+					if (count++ >10){
+						log.severe("Flushing DB after 10 heads fixed.");
+						MemoNode.flushDB();
+						count=0;
+					}
 				}
 			}
 		} else if (req.getParameter("sol") != null){
@@ -96,16 +107,10 @@ public class MslCollectorServlet extends HttpServlet {
 					"http://mars.jpl.nasa.gov/msl/multimedia/raw/",Integer.parseInt(req.getParameter("sol")));
 		} else {
 			System.out.println("Collecting images!");
-			int i = 0;
-			while (true) {
-				if (!SiteParser.fetch(
-						"http://mars.jpl.nasa.gov/msl/multimedia/raw/", i++))
-					break;
-				if (i > 10000) {
-					System.out
-							.println("Are we really on sol 10000 by now? Whow!");
-					break;
-				}
+			int sol = SiteParser.fetch("http://mars.jpl.nasa.gov/msl/multimedia/raw/", -1);
+			sol--;
+			while (sol>=0){
+				SiteParser.fetch("http://mars.jpl.nasa.gov/msl/multimedia/raw/",sol--);
 			}
 		}
 		MemoNode.flushDB();
