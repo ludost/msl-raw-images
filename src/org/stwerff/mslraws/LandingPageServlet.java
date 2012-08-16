@@ -21,6 +21,7 @@ public class LandingPageServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		
+		
 		int sol=-1;
 		String ssol = req.getParameter("sol");
 		if (ssol != null) {
@@ -46,7 +47,17 @@ public class LandingPageServlet extends HttpServlet {
 		
 		resp.setContentType("application/json");
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
-				
+		
+		ArrayList<MemoNode> imgList = null;
+		MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
+		boolean repair = (req.getParameter("repair")!=null);
+		if (repair){
+			if (allImagesNode == null){
+				allImagesNode = baseNode.addChild(new MemoNode("allImages"));
+			}
+			imgList = allImagesNode.getChildren();
+		}
+		
 		ArrayList<MemoNode> cameras = baseNode.getChildren();
 		Iterator<MemoNode> iter = cameras.iterator();
 		ArrayNode result = om.createArrayNode();
@@ -72,7 +83,13 @@ public class LandingPageServlet extends HttpServlet {
 				Iterator<MemoNode> soliter = sols.iterator();
 				while (soliter.hasNext()){
 					MemoNode node_sol = soliter.next();	
-					int nofc = node_sol.getChildByStringValue("images").getChildren().size();
+					if (node_sol.getChildByStringValue("images") == null){
+						node_sol.addChild(new MemoNode("images"));
+					}
+					int nofc = 0;
+					if (node_sol.getChildByStringValue("images").getChildren() != null){
+						nofc = node_sol.getChildByStringValue("images").getChildren().size();
+					}
 					if (nofc > 0){
 						ObjectNode solNode = om.createObjectNode();
 						if (!flat){
@@ -88,6 +105,11 @@ public class LandingPageServlet extends HttpServlet {
 							}
 							while(image_iter.hasNext()){
 								MemoNode image = image_iter.next();
+								if (repair){
+									if (imgList != null && !imgList.contains(image)){
+										allImagesNode.addChild(image);
+									}
+								}
 								ObjectNode imageNode = om.createObjectNode();
 								String url = image.getStringValue();
 								imageNode.put("name", url.substring(url.lastIndexOf('/')+1));
@@ -96,6 +118,8 @@ public class LandingPageServlet extends HttpServlet {
 								imageNode.put("type", image.getPropertyValue("type"));
 								imageNode.put("unixTimeStamp", image.getPropertyValue("timestamp"));
 								imageNode.put("date", image.getPropertyValue("stringDate"));
+								imageNode.put("fileTimeStamp", image.getPropertyValue("fileTimeStamp"));
+								imageNode.put("lastModified", image.getPropertyValue("lastModified"));
 								if (flat){
 									imageNode.put("camera", cam.getStringValue());
 									imageNode.put("sol", node_sol.getStringValue().replace("sol", ""));
@@ -110,5 +134,6 @@ public class LandingPageServlet extends HttpServlet {
 			}
 		}
 		resp.getWriter().write(result.toString());
+		if (repair) MemoNode.flushDB();
 	}
 }

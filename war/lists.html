@@ -8,7 +8,7 @@
 <script src="js/jquery.sharrre-1.3.2.min.js"></script>
 <style>
 html {
-	background: url(images/bg2.jpg) no-repeat center center fixed; 
+	background: none; 
 	-webkit-background-size: cover;
 	-moz-background-size: cover;
 	-o-background-size: cover;
@@ -134,12 +134,30 @@ div.buttonDiv {
 
 	highest_sol = 0;
 	count = 0;
+	totalImages = 0;
 	data = {};
 	camList = "";
 
+	if (!Array.prototype.map) {
+		Array.prototype.map = function(fun /* , thisp */) {
+			var len = this.length;
+			if (typeof fun != "function")
+				throw new TypeError();
+
+			var res = new Array(len);
+			var thisp = arguments[1];
+			for ( var i = 0; i < len; i++) {
+				if (i in this)
+					res[i] = fun.call(thisp, this[i], i, this);
+			}
+
+			return res;
+		};
+	}
+	
 	function filter(a) {
-		if (a.item.sol > highest_sol)
-			highest_sol = a.item.sol;
+		if (parseInt(a.item.sol) > highest_sol)
+			highest_sol = parseInt(a.item.sol);
 		if (conf.filter_sol >= 0 && a.item.sol != conf.filter_sol)
 			return false;
 		if (conf.filter_thumbs && a.item.type == "thumbnail")
@@ -147,6 +165,7 @@ div.buttonDiv {
 		if (conf.filter_cam.length > 0
 				&& $.inArray(a.item.camera, conf.filter_cam) == -1)
 			return false;
+		totalImages++;
 		if (count++ > conf.show_count)
 			return false;
 		return true;
@@ -155,14 +174,20 @@ div.buttonDiv {
 		if (a.sol == b.sol) {
 			return a.unixTimeStamp < b.unixTimeStamp ? 1 : -1;
 		}
-		return a.sol > b.sol ? -1 : 1;
+		return parseInt(a.sol) > parseInt(b.sol) ? -1 : 1;
 	}
 	function render() {
 		localStorage["msl-raws-conf"] = JSON.stringify(conf);
-
+		if (!conf.show_background){
+			$("html").css("background-image","none");
+		} else {
+			$("html").css("background-image","url(images/bg2.jpg)");			
+		}
+		
 		$(".less").toggle(conf.show_count > max_show);
 		$('.tab-target th.name').html("Name (loading....)");
 		count = 0;
+		totalImages = 0;
 		$('.tab-target').replaceWith($('.tab-template').clone().directives({
 			'.thumbBox@checked' : function(a) {
 				return conf.show_thumbs ? "checked" : ""
@@ -198,6 +223,7 @@ div.buttonDiv {
 		}).render(data).removeClass('tab-template').addClass('tab-target'));
 
 		//Revert input fields to conf values:
+		$(".imageCount").html(totalImages+" of "+data.length+" images selected");
 		if (conf.filter_sol < 0) {
 			$(".solInput").val(highest_sol);
 		} else {
@@ -207,11 +233,6 @@ div.buttonDiv {
 		$(".more,.all").toggle(count >= conf.show_count);
 		$(".tab-target .camSelectMulti").val(conf.filter_cam);
 		$(".tab-target .camSelectMulti").chosen();
-		if (!conf.show_background){
-			$("html").css("background-image","none");
-		} else {
-			$("html").css("background-image","url(images/bg2.jpg)");			
-		}
 		//Done
 	}
 	function reload() {
@@ -285,7 +306,7 @@ div.buttonDiv {
 				onChange="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();"></th>
 			<th class="name">Name<br>
 				<hr>
-				<!-- <input type=button onClick="reload()" value="Reload data"/> -->	
+				<span class="imageCount"></span>
 			</th>
 			<th class="sol">Sol<span class="newest"></span><br>
 				<hr> 
