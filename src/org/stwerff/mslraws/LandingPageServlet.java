@@ -98,6 +98,7 @@ public class LandingPageServlet extends HttpServlet {
 									}
 								}
 								ObjectNode imageNode = om.createObjectNode();
+								imageNode.put("uuid", image.getId().toString());
 								imageNode.put("name", url.substring(url.lastIndexOf('/')+1));
 								imageNode.put("url", url);
 								imageNode.put("thumbnailUrl", image.getPropertyValue("thumbnail"));

@@ -1,6 +1,7 @@
 <html>
 <head>
 <script src="js/jquery-1.8.0.min.js"></script>
+<script src="js/json2.js"></script>
 <script src="js/jquery-ui-1.8.22.custom.min.js"></script>
 <script src="js/pure_min.js"></script>
 <link rel="styleSheet" href="css/chosen.css"></link>
@@ -39,6 +40,12 @@ th {
 	-moz-box-shadow:    1px 1px 2px 1px #8a2d05;
   	-webkit-box-shadow: 1px 1px 2px 1px #8a2d05;
   	box-shadow:         1px 1px 2px 1px #8a2d05;
+}
+th.hidden {
+	border:none;
+	box-shadow:none;
+	-moz-box-shadow:none;
+	-webkit-box-shadow:none;
 }
 .footer {
 	font-size:smaller;
@@ -236,6 +243,7 @@ div.buttonDiv {
 				'image<-context' : {
 					'.name' : 'image.name',
 					'.name@href' : 'image.url',
+					'input.selector@value' : 'image.uuid',
 					'.sol' : 'image.sol',
 					'.type' : 'image.type',
 					'.cam' : 'image.camera',
@@ -293,6 +301,36 @@ div.buttonDiv {
 		$(".tab-target .camSelectMulti").chosen();
 		$(".tab-target input.selector").enableCheckboxRangeSelection();
 		//Done
+	}
+	function selectedImages(){
+		var selected = new Array();
+		$('.tab-target input.selector:checked').each(function() {
+		    selected.push($(this).attr('value'));
+		});
+		return selected;
+	}
+	function selectedImagesList(){
+		var selected = selectedImages();
+		if (selected.length == 0) return {};
+		var result = {};
+		data.map(function(image){
+			if ($.inArray(image.uuid,selected)>=0){
+				result[image.uuid]=image;
+			}
+		});
+		return result;
+	}
+	function outputList(){
+		var newPage="";
+		var list = selectedImagesList();
+		console.log(list);
+		selectedImages().map(function(imageId){
+			newPage+=list[imageId].url+"\n";
+		});
+		var p = window.open('');
+		p.document.open("text/plain");
+		p.document.write(newPage);
+		p.document.close();
 	}
 	function reload() {
 		$.ajax({
@@ -365,29 +403,25 @@ div.buttonDiv {
 		<tr class=header>
 			<th class="thumbnail">Thumbnails<br>
 				<hr>Show:<input class="thumbBox" type="checkbox"
-				onChange="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();">
+				onClick="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();">
 			</th>
-			<th class="selector"><br>
-				<hr>
-				<input type="checkbox" onClick='this.checked?$(".tab-target input.selector").attr({ checked:"checked"}):$(".tab-target input.selector").removeAttr("checked")'>
-			</th>
-			<th class="name">Name<br>
+			<th class="name" colspan="2">Name<br>
 				<hr>
 				<span class="imageCount"></span>
 			</th>
 			<th class="sol">Sol<span class="newest"></span><br>
 				<hr> 
 				<input class="solInput" type="text" value="" onChange="if ($('.solBox:checked').length==0){conf.filter_sol=this.value; render()}" />
-				&nbsp;All:<input class='solBox' type="checkbox"	onChange="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()" />
+				&nbsp;All:<input class='solBox' type="checkbox"	onClick="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()" />
 			</th>
-			<th>Date - (use Release:<input class='sortBox' type="checkbox" onChange="this.checked?conf.sort_type='modified':conf.sort_type='time'; render()"/>)
+			<th>Date - (use Release:<input class='sortBox' type="checkbox" onClick="this.checked?conf.sort_type='modified':conf.sort_type='time'; render()"/>)
 				<br><hr>
-				New only:<input class="newBox" type="checkbox" onChange="this.checked?conf.filter_new=true:conf.filter_new=false; render()"/>
- 				Show UTC:<input class="utcBox" type="checkbox" onChange="this.checked?conf.show_utc=true:conf.show_utc=false; render()"/>
+				New only:<input class="newBox" type="checkbox" onClick="this.checked?conf.filter_new=true:conf.filter_new=false; render()"/>
+ 				Show UTC:<input class="utcBox" type="checkbox" onClick="this.checked?conf.show_utc=true:conf.show_utc=false; render()"/>
 			</th>			
 			<th class="type">Type<br>
 				<hr> Full only:
-				<input class="typeBox" type="checkbox" onChange="conf.filter_thumbs?conf.filter_thumbs=false:conf.filter_thumbs=true; render()" />
+				<input class="typeBox" type="checkbox" onClick="conf.filter_thumbs?conf.filter_thumbs=false:conf.filter_thumbs=true; render()" />
 			</th>
 			<th class="cam">Camera<br>
 				<hr> 
@@ -418,6 +452,13 @@ div.buttonDiv {
 					</optgroup>
 			</select>
 			</th>
+		</tr>
+		<tr class=header>
+			<th class="hidden"></th>
+			<th class="selector">
+				<input type="checkbox" onClick='this.checked?$(".tab-target input.selector").attr({ checked:"checked"}):$(".tab-target input.selector").removeAttr("checked")'>
+			</th>
+			<th class="list"><input type=button value="list" onClick="outputList()"></th>
 		</tr>
 		<tr class="line-template">
 			<td class="thumbnail"></td>
