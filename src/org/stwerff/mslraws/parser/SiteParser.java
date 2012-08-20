@@ -11,6 +11,8 @@ import java.util.Date;
 import java.util.logging.Logger;
 
 import com.chap.memo.memoNodes.MemoNode;
+import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.*;
@@ -19,7 +21,8 @@ import static com.google.appengine.api.taskqueue.TaskOptions.Builder.*;
 public class SiteParser {
 	private static final Logger log = Logger.getLogger("msl-raw-images");
 	static Queue queue = QueueFactory.getDefaultQueue();
-    
+	static MemcacheService memCache = MemcacheServiceFactory.getMemcacheService();;
+   
 	public static String getCamera(String filename){
 		String start = filename.substring(0, 3);
 		if (start.matches("[0-9]+")){
@@ -61,6 +64,7 @@ public class SiteParser {
 			
 			MemoNode solNode = null;
 			MemoNode imageNode = null;
+			int count=0;
 			while ((line = reader.readLine()) != null) {
 				if (!found && !line.equals("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\" width=\"100%\">")) continue;
 				found=true;
@@ -118,6 +122,10 @@ public class SiteParser {
 						Date date = formatter.parse(stringDate);
 						if (date != null){
 							imageNode.setPropertyValue("timestamp",new Long(date.getTime()).toString());
+							if (count++ > 100){
+								MemoNode.flushDB();
+								count=0;
+							}
 						} else {
 							log.warning("Couldn't parse date:"+stringDate);
 						}
@@ -129,7 +137,7 @@ public class SiteParser {
 			reader.close();
 			con.disconnect();
 			
-			int count=0;
+			count=0;
 			String list="";
 			for (String image: images){
 				list+=image+";";
@@ -139,8 +147,11 @@ public class SiteParser {
 					count=0;
 				}
 			}
-			if (count>0) queue.add(withUrl("/collector").param("imageUUIDs",list));
-		
+			if (count>0){
+				queue.add(withUrl("/collector").param("imageUUIDs",list));
+				memCache.delete("blobKey");
+			}
+			
 			System.out.println("Done:"+s_url+"?s="+sol);
 			return sol;
 		} catch (Exception exp) {

@@ -33,19 +33,27 @@
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>Memo</servlet-name>
-		<servlet-class>com.chap.memo.memoNodes.servlet.MemoTestServlet</servlet-class>
+		<servlet-class>com.chap.memo.memoNodes.servlet.MemoServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Memo</servlet-name>
 		<url-pattern>/memo</url-pattern>
 	</servlet-mapping>	
-	<welcome-file-list>
+	<servlet>
+		<servlet-name>MemoTest</servlet-name>
+		<servlet-class>com.chap.memo.memoNodes.servlet.MemoTestServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>MemoTest</servlet-name>
+		<url-pattern>/test</url-pattern>
+	</servlet-mapping>	
+		<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
 	<listener>
 	    <listener-class>org.stwerff.mslraws.images.InitListener</listener-class>
 	</listener>
- <servlet>
+<!--  <servlet>
   <servlet-name>SystemServiceServlet</servlet-name>
   <servlet-class>com.google.api.server.spi.SystemServiceServlet</servlet-class>
   <init-param>
@@ -56,5 +64,5 @@
  <servlet-mapping>
   <servlet-name>SystemServiceServlet</servlet-name>
   <url-pattern>/_ah/spi/*</url-pattern>
- </servlet-mapping>
+ </servlet-mapping> -->
 </web-app>

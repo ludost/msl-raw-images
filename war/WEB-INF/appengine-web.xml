@@ -3,11 +3,10 @@
   <application>msl-raw-images</application>
   <version>2</version>
 
-  <!--
-    Allows App Engine to send multiple requests to one instance in parallel:
-  -->
-  <threadsafe>true</threadsafe>
-
+    <threadsafe>true</threadsafe>
+    <warmup-requests-enabled>1</warmup-requests-enabled>
+    <precompilation-enabled>1</precompilation-enabled>
+    
   <!-- Configure java.util.logging -->
   <system-properties>
     <property name="java.util.logging.config.file" value="WEB-INF/logging.properties"/>

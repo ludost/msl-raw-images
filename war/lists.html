@@ -6,6 +6,7 @@
 <link rel="styleSheet" href="css/chosen.css"></link>
 <script src="js/chosen.jquery.min.js"></script>
 <script src="js/jquery.sharrre-1.3.2.min.js"></script>
+<script src="js/range-select.js"></script>
 <style>
 html {
 	background: none; 
@@ -44,6 +45,13 @@ th {
 }
 .less {	display: none }
 .solInput { width: 3em }
+.newImage { 
+	color:red;
+	display: none; 
+}
+.show {
+	display: inline !important
+}
 div.sharrre { display:block; }
 div.headerDiv {
 	display:block;
@@ -231,6 +239,12 @@ div.buttonDiv {
 					'.sol' : 'image.sol',
 					'.type' : 'image.type',
 					'.cam' : 'image.camera',
+					'.newImage@class+' : function(a){
+						if (parseFloat(a.item.lastModified==""?a.item.unixTimeStamp:a.item.lastModified) > newLimit){
+							return " show";
+						}
+						return "";
+					},
 					'.thumbnail' : function(a) {
 						if (conf.show_thumbs) {
 							return '<img src="'+a.item.thumbnailUrl+'">';
@@ -250,10 +264,10 @@ div.buttonDiv {
 							date = new Date(millis);	
 						}
 						if (conf.show_utc){
-							return date.getUTCFullYear()+"-"+pad(date.getUTCMonth(),2)+"-"+pad(date.getUTCDate(),2)+" "+pad(date.getUTCHours(),2)+":"+pad(date.getUTCMinutes(),2)+":"+pad(date.getUTCSeconds(),2)+" UTC";
+							return date.getUTCFullYear()+"-"+pad(date.getUTCMonth()+1,2)+"-"+pad(date.getUTCDate(),2)+" "+pad(date.getUTCHours(),2)+":"+pad(date.getUTCMinutes(),2)+":"+pad(date.getUTCSeconds(),2)+" UTC";
 						} else {
 							var offset = -date.getTimezoneOffset()/60;
-							return date.getFullYear()+"-"+pad(date.getMonth(),2)+"-"+pad(date.getDate(),2)+" "+pad(date.getHours(),2)+":"+pad(date.getMinutes(),2)+":"+pad(date.getSeconds(),2)+" UTC"+(offset>=0?"+"+offset:"-"+offset);							
+							return date.getFullYear()+"-"+pad(date.getMonth()+1,2)+"-"+pad(date.getDate(),2)+" "+pad(date.getHours(),2)+":"+pad(date.getMinutes(),2)+":"+pad(date.getSeconds(),2)+" UTC"+(offset>=0?"+"+offset:"-"+offset);							
 						}
 					}
 				},
@@ -277,6 +291,7 @@ div.buttonDiv {
 		$(".more,.all").toggle(count >= conf.show_count);
 		$(".tab-target .camSelectMulti").val(conf.filter_cam);
 		$(".tab-target .camSelectMulti").chosen();
+		$(".tab-target input.selector").enableCheckboxRangeSelection();
 		//Done
 	}
 	function reload() {
@@ -350,7 +365,12 @@ div.buttonDiv {
 		<tr class=header>
 			<th class="thumbnail">Thumbnails<br>
 				<hr>Show:<input class="thumbBox" type="checkbox"
-				onChange="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();"></th>
+				onChange="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();">
+			</th>
+			<th class="selector"><br>
+				<hr>
+				<input type="checkbox" onClick='this.checked?$(".tab-target input.selector").attr({ checked:"checked"}):$(".tab-target input.selector").removeAttr("checked")'>
+			</th>
 			<th class="name">Name<br>
 				<hr>
 				<span class="imageCount"></span>
@@ -401,14 +421,17 @@ div.buttonDiv {
 		</tr>
 		<tr class="line-template">
 			<td class="thumbnail"></td>
-			<td><a href="" class="name" target="_blank"></a></td>
+			<td class="selector">
+					<input type="checkbox" class="selector" name="selector"> 
+			</td>
+			<td><span class="newImage">*</span><a href="" class="name" target="_blank"></a></td>
 			<td class="sol"></td>
 			<td class="date"></td>	
 			<td class="type"></td>
 			<td class="cam"></td>
 		</tr>
 		<tr>
-			<td colspan=3><input class="more" type="button"
+			<td colspan=6><input class="more" type="button"
 				onClick="conf.show_count+=max_show;render(false)" value="show more" />
 				<input class="all" type="button"
 				onClick="conf.show_count=999999;render(false)" value="show all" />
@@ -418,7 +441,8 @@ div.buttonDiv {
 	</table>
 	<div class="footer">
 	This site is developed by Ludo Stellingwerff.<br>
-	I don't own any of the data on this site, massive thanks to NASA for sharing this with all of us.
+	I don't own any of the data on this site, massive thanks to NASA for sharing this with all of us.<br>
+	Source:<a href="http://mars.jpl.nasa.gov/msl/multimedia/raw/" target="_blank">http://mars.jpl.nasa.gov/msl/multimedia/raw/</a>.
 	</div> 
 </body>
 </html>

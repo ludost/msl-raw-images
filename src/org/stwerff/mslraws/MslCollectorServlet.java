@@ -1,5 +1,7 @@
 package org.stwerff.mslraws;
 
+import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -15,13 +17,19 @@ import org.stwerff.mslraws.parser.SiteParser;
 
 import com.chap.memo.memoNodes.MemoNode;
 import com.eaio.uuid.UUID;
+import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import com.google.appengine.api.taskqueue.Queue;
+import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 
 @SuppressWarnings("serial")
 public class MslCollectorServlet extends HttpServlet {
 	static URLFetchService fs = URLFetchServiceFactory.getURLFetchService();
+	static Queue queue = QueueFactory.getDefaultQueue();
 	private static final Logger log = Logger.getLogger("msl-raw-images");
+	static MemcacheService memCache = MemcacheServiceFactory.getMemcacheService();;
 	
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
@@ -73,6 +81,14 @@ public class MslCollectorServlet extends HttpServlet {
 		resp.setContentType("text/plain");
 		InitListener.initDemoData();
 
+		if (req.getParameter("passOn") != null){
+			if (req.getParameter("doHeads") != null){
+				queue.add(withUrl("/collector").param("doHeads","true"));				
+			} else {
+				queue.add(withUrl("/collector"));
+			}
+			return;
+		}
 		String images = req.getParameter("imageUUIDs");
 		if (images != null) {
 			System.out.println("checking head:" + images);
@@ -82,6 +98,7 @@ public class MslCollectorServlet extends HttpServlet {
 					fetchHead(imageNode);
 				}
 			}
+			memCache.delete("blobKey");
 		} else if (req.getParameter("doHeads") != null){
 			MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
 			MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
@@ -100,6 +117,9 @@ public class MslCollectorServlet extends HttpServlet {
 						count=0;
 					}
 				}
+			}
+			if (all.size()>0){
+				memCache.delete("ResultJSON");
 			}
 		} else if (req.getParameter("sol") != null){
 			System.out.println("Collecting images!");
