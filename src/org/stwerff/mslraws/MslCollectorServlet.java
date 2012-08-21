@@ -98,7 +98,7 @@ public class MslCollectorServlet extends HttpServlet {
 					fetchHead(imageNode);
 				}
 			}
-			memCache.delete("blobKey");
+			memCache.delete("quickServe");
 		} else if (req.getParameter("doHeads") != null){
 			MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
 			MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
@@ -119,7 +119,7 @@ public class MslCollectorServlet extends HttpServlet {
 				}
 			}
 			if (all.size()>0){
-				memCache.delete("ResultJSON");
+				memCache.delete("quickServe");
 			}
 		} else if (req.getParameter("sol") != null){
 			System.out.println("Collecting images!");
@@ -130,7 +130,7 @@ public class MslCollectorServlet extends HttpServlet {
 			int sol = SiteParser.fetch("http://mars.jpl.nasa.gov/msl/multimedia/raw/", -1);
 			sol--;
 			while (sol>=0){
-				SiteParser.fetch("http://mars.jpl.nasa.gov/msl/multimedia/raw/",sol--);
+				queue.add(withUrl("/collector").param("sol",Integer.toString(sol--)));
 			}
 		}
 		MemoNode.flushDB();

@@ -47,6 +47,14 @@ th.hidden {
 	-moz-box-shadow:none;
 	-webkit-box-shadow:none;
 }
+div.lists {
+	display:inline;
+	border:1px #8a2d05 solid;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	padding:2px 3px 3px 3px;
+}
 .footer {
 	font-size:smaller;
 }
@@ -59,17 +67,24 @@ th.hidden {
 .show {
 	display: inline !important
 }
-div.sharrre { display:block; }
+
 div.headerDiv {
 	display:block;
-	height:55px;
+	height:50px;
 	white-space:nowrap;
 }
-div.buttonDiv {
+div.error {
+	color: red;
+}
+div.buttonDiv{
+	position:absolute;
+	top:5px;
+	left:10px;
+}
+div.reload {
 	display:block;
-	height:45px;
-	white-space:nowrap;
-	float:left;
+	margin-top:10px;
+	padding:5px;
 	border:1px solid #8a2d05;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
@@ -77,57 +92,103 @@ div.buttonDiv {
 	-moz-box-shadow:    1px 1px 2px 1px #8a2d05;
   	-webkit-box-shadow: 1px 1px 2px 1px #8a2d05;
   	box-shadow:         1px 1px 2px 1px #8a2d05;
-}
-.backgroundButton {
-	font-size:11px;
-}
-.sharrre .box {	float: left;  }
-.sharrre .count {
-	color: #444444;
-	display: none;
-	font-size: 17px;
-	line-height: 34px;
-	height: 34px;
-	padding: 4px 0;
-	position: relative;
 	text-align: center;
-	text-decoration: none;
-	width: 50px;
-	background-color: #eee;
-	-webkit-border-radius: 4px;
-	-moz-border-radius: 4px;
-	border-radius: 4px;
+	width:100px;
 }
-
-.sharrre .share {
-	color: #FFFFFF;
-	display: block;
-	font-size: 11px;
-	height: 16px;
-	line-height: 16px;
-	margin-top: 3px;
-	margin-left: 20px;
-	padding: 0;
-	text-align: center;
-	text-decoration: none;
-	width: 50px;
-	background-color: red;
-	-webkit-border-radius: 4px;
-	-moz-border-radius: 4px;
-	border-radius: 4px;
+.sharrre .box{
+background:#6f838c;
+background:-webkit-gradient(linear,left top,left bottom,color-stop(#6f838c,0),color-stop(#4d5e66,1));
+background:-webkit-linear-gradient(top, #6f838c 0%, #4d5e66 100%);
+background:-moz-linear-gradient(top, #6f838c 0%, #4d5e66 100%);
+background:-o-linear-gradient(top, #6f838c 0%, #4d5e66 100%);
+background:linear-gradient(top, #6f838c 0%, #4d5e66 100%);
+filter:progid:DXImageTransform.Microsoft.gradient( startColorstr='#6f838c', endColorstr='#4d5e66',GradientType=0 );
+-webkit-box-shadow:0 1px 1px #d3d3d3;
+-moz-box-shadow:0 1px 1px #d3d3d3;
+box-shadow:0 1px 1px #d3d3d3;
+height:22px;
+display:inline-block;
+position:relative;
+padding:0px 55px 0 8px;
+-webkit-border-radius:3px;
+-moz-border-radius:3px;
+border-radius:3px;
+font-size:12px;
+float:left;
+clear:both;
+overflow:hidden;
+-webkit-transition:all 0.3s linear;
+-moz-transition:all 0.3s linear;
+-o-transition:all 0.3s linear;
+transition:all 0.3s linear;
 }
-
-.sharrre .buttons {
-	display: none;
-	position: absolute;
-	margin-left: 50px;
-	z-index: 10;
+.sharrre .left{
+line-height:22px;
+display:block;
+white-space:nowrap;
+text-shadow:0px 1px 1px rgba(255,255,255,0.3);
+color:#ffffff;
+-webkit-transition:all 0.2s linear;
+-moz-transition:all 0.2s linear;
+-o-transition:all 0.2s linear;
+transition:all 0.2s linear;
 }
-
-.sharrre .button {
-	float: left;
-	max-width: 50px;
-	margin-left: 10px;
+.sharrre .middle{
+position:absolute;
+height:22px;
+top:0px;
+right:30px;
+width:0px;
+background:#63707e;
+text-shadow:0px -1px 1px #363f49;
+color:#fff;
+white-space:nowrap;
+text-align:left;
+overflow:hidden;
+-webkit-box-shadow:-1px 0px 1px rgba(255,255,255,0.4), 1px 1px 2px rgba(0,0,0,0.2) inset;
+-moz-box-shadow:-1px 0px 1px rgba(255,255,255,0.4), 1px 1px 2px rgba(0,0,0,0.2) inset;
+box-shadow:-1px 0px 1px rgba(255,255,255,0.4), 1px 1px 2px rgba(0,0,0,0.2) inset;
+-webkit-transition:width 0.3s linear;
+-moz-transition:width 0.3s linear;
+-o-transition:width 0.3s linear;
+transition:width 0.3s linear;
+}
+.sharrre .middle a{
+color:#fff;
+font-weight:bold;
+padding:0 9px 0 9px;
+text-align:center;
+float:left;
+line-height:22px;
+-webkit-box-shadow:-1px 0px 1px rgba(255,255,255,0.4), 1px 1px 2px rgba(0,0,0,0.2) inset;
+-moz-box-shadow:-1px 0px 1px rgba(255,255,255,0.4), 1px 1px 2px rgba(0,0,0,0.2) inset;
+box-shadow:-1px 0px 1px rgba(255,255,255,0.4), 1px 1px 2px rgba(0,0,0,0.2) inset;
+}
+.sharrre .right{
+position:absolute;
+right:0px;
+top:0px;
+height:100%;
+width:45px;
+text-align:center;
+line-height:22px;
+color:#4b5d61;
+background:#f1faf9;
+background:-webkit-gradient(linear,left top,left bottom,color-stop(#f1faf9,0),color-stop(#bacfd2,1));
+background:-webkit-linear-gradient(top, #f1faf9 0%, #bacfd2 100%);
+background:-moz-linear-gradient(top, #f1faf9 0%, #bacfd2 100%);
+background:-o-linear-gradient(top, #f1faf9 0%, #bacfd2 100%);
+background:linear-gradient(top, #f1faf9 0%, #bacfd2 100%);
+filter:progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1faf9', endColorstr='#bacfd2',GradientType=0 );
+}
+.sharrre .box:hover{
+padding-right:130px;
+}
+.sharrre .middle a:hover{
+text-decoration:none;
+}
+.sharrre .box:hover .middle{
+width:90px;
 }
 </style>
 <script>
@@ -140,8 +201,7 @@ div.buttonDiv {
 		filter_sol : -1,
 		filter_cam : [],
 		filter_thumbs : false,
-		filter_new : false,
-		show_background: true
+		filter_new : false
 	}
 	conf = {};
 	if (typeof (localStorage["msl-raws-conf"]) != "undefined"
@@ -150,10 +210,11 @@ div.buttonDiv {
 	}
 	conf = $.extend({}, settings, conf);
 
+	data = [];
+	
 	highest_sol = 0;
 	count = 0;
 	totalImages = 0;
-	data = {};
 	camList = "";
 	newLimit= 0;
 
@@ -210,11 +271,6 @@ div.buttonDiv {
 	function render() {
 		newLimit= new Date().getTime()-(24*3600*1000);
 		localStorage["msl-raws-conf"] = JSON.stringify(conf);
-		if (!conf.show_background){
-			$("html").css("background-image","none");
-		} else {
-			$("html").css("background-image","url(images/bg2.jpg)");			
-		}
 		
 		$(".less").toggle(conf.show_count > max_show);
 		$('.tab-target th.name').html("Name (loading....)");
@@ -333,16 +389,27 @@ div.buttonDiv {
 		p.document.close();
 	}
 	function reload() {
+		if (typeof (localStorage["msl-raws-data"]) != "undefined"
+			&& localStorage["msl-raws-data"] != ""){
+			try {
+				var storedData = JSON.parse(localStorage["msl-raws-data"]);
+				if (storedData.length>0){
+					data=storedData;
+					render();
+				}
+			} catch (e){};
+		}
 		$.ajax({
 			url : "/landing?flat",
 			statusCode : {
 				200 : function(json) {
 					data = json;
+					localStorage["msl-raws-data"]=JSON.stringify(data);
 					render();
 				}
 			},
 			error : function(){
-				$(".tab-target td").html("I'm sorry, but something went wrong while trying to reach the server, please try again.");
+				$(".error").html("I'm sorry, but something went wrong while trying to reach the server, please try again.<a href='#' onClick='$(\".error\").html(\"\")'>(x)</a>");
 			}
 		});
 	}
@@ -353,15 +420,25 @@ div.buttonDiv {
 				 facebook: true,
 				 twitter: true
 			 },
-			 buttons: {
-				 googlePlus: {size: 'tall'},
-				 facebook: {layout: 'box_count'},
-				 twitter: {count: 'vertical', via: 'Stellingwerff'}
-			 },
-			 click: function(api, options){
-				 $(api.element).find('.buttons').toggle();
-			 },
+			 template: '<div class="box"><div class="left">Share</div><div class="middle"><a href="#" class="facebook">f</a><a href="#" class="twitter">t</a><a href="#" class="googleplus">+1</a></div><div class="right">{total}</div></div>',
+			 enableHover: false,
 			 enableTracking: true,
+			 enableCounter:true,
+			 buttons: {
+				 twitter: {via: 'Stellingwerff'}
+			 },
+			 render: function(api, options){
+				 $(api.element).on('click', '.twitter', function() {
+				 api.openPopup('twitter');
+				 });
+				 $(api.element).on('click', '.facebook', function() {
+				 api.openPopup('facebook');
+				 });
+				 $(api.element).on('click', '.googleplus', function() {
+				 api.openPopup('googlePlus');
+				 });
+				 console.log(options);
+			 },
 			 urlCurl: "",
 			 title: "Follow the raw images Curiosity sends back to Earth each sol. This site is focused on providing easy access for downloading, listing and organizing the raw images."
 
@@ -384,16 +461,26 @@ div.buttonDiv {
 		var s = document.getElementsByTagName('script')[0];
 		s.parentNode.insertBefore(ga, s);
 	})();
+	
+	$(document).ready(function(){
+		 $("div.reload").html("<a href='#' class='reload' onClick='reload()'>Reload</a>");
+		 $("div.reload").ajaxStart(function(){$(this).html("<span class='reloading'>Loading...</span>")})
+		               .ajaxStop(function(){$(this).html("<a href='#' class='reload' onClick='reload()'>Reload</a>")});
+		 reload();
+		 startSharrre();
+	});
 </script>
 </head>
-<body onLoad="reload();startSharrre()">
+<body>
 	<div class="buttonDiv">
-	<input class="backgroundButton" type="button" onClick="conf.show_background=(conf.show_background?false:true); render()" value="background?"/><br>
 	<div id="sharrre"
 		data-url="http://msl-raw-images.appspot.com/lists.html"
-		data-text="MSL Curiosity Raw images listing" data-title="share!"></div>
+		data-text="MSL Curiosity Raw images listing"></div>
+	<br>
+	<div class="reload"></div>
 	</div>
 	<div class="headerDiv"><h1><center>MSL Curiosity - Raw images listing</center></h1></div>
+	<div class="error"></div>
 	<table class="tab-target">
 		<tr>
 			<td>Loading data, please wait..... (Sadly this can take upto a minute, working on it...)</td>
@@ -458,7 +545,22 @@ div.buttonDiv {
 			<th class="selector">
 				<input type="checkbox" onClick='this.checked?$(".tab-target input.selector").attr({ checked:"checked"}):$(".tab-target input.selector").removeAttr("checked")'>
 			</th>
-			<th class="list"><input type=button value="list" onClick="outputList()"></th>
+			<th class="list" colspan=3><input type=button value="Export" onClick="outputList()">
+<!-- 			
+	//TODO: implement list storage, probably best by creating list view first
+			<input type=button value="Create List">
+			<div class="lists">
+				<select>
+					<option value="manage">Manage lists</option>
+					<optgroup label="lists">
+						<option value="list1">list1</option>
+						<option value="list2" selected>list2</option>
+					</optgroup>
+				</select>
+				Only:<input type=checkbox>Exclude:<input type=checkbox>
+			</div>
+ -->
+			</th>
 		</tr>
 		<tr class="line-template">
 			<td class="thumbnail"></td>

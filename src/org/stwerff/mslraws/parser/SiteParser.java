@@ -149,7 +149,7 @@ public class SiteParser {
 			}
 			if (count>0){
 				queue.add(withUrl("/collector").param("imageUUIDs",list));
-				memCache.delete("blobKey");
+				memCache.delete("quickServe");
 			}
 			
 			System.out.println("Done:"+s_url+"?s="+sol);

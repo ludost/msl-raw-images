@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.chap.memo.memoNodes.MemoNode;
+import com.eaio.uuid.UUID;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -139,11 +140,16 @@ public class LandingPageServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		
+		boolean fullReload = req.getParameter("reload")!=null?true:false;
+		boolean mayCache = true;
+		
 		int sol=-1;
 		String ssol = req.getParameter("sol");
 		if (ssol != null) {
 			try {
 			   sol = Integer.parseInt(ssol);
+			   fullReload=true;
+			   mayCache=false;
 			} catch (Exception e){
 				System.out.println("Non numeric sol input!");
 			}
@@ -151,13 +157,41 @@ public class LandingPageServlet extends HttpServlet {
 		String camera = req.getParameter("cam");
 		if (camera == null){
 			camera="all";
+		} else {
+			fullReload=true;
+			mayCache=false;
 		}
 		boolean countsOnly = (req.getParameter("counts") != null);
 		boolean flat = (req.getParameter("flat") != null);
 		boolean repair = (req.getParameter("repair")!=null);
 		
+		if (countsOnly || !flat || repair){
+			fullReload=true;
+			mayCache=false;
+		}
 		resp.setContentType("application/json");
-		String result = generateJSON(sol,camera,countsOnly,flat,repair);
+		String result="";
+		if (!fullReload && memCache.get("quickServe") != null && memCache.get("quickServe") != ""){
+			UUID uuid = new UUID((String)memCache.get("quickServe"));
+			byte[] val = new MemoNode(uuid).getValue();
+			if (val != null && val.length>0){
+				result = new String(val);
+			}
+		}
+		if (result.equals("")) {
+			result = generateJSON(sol,camera,countsOnly,flat,repair);
+			if (mayCache){
+				MemoNode lastServed= MemoNode.getRootNode().getChildByStringValue("msl-raws-lastServed");
+				if (lastServed != null){
+					for (MemoNode page : lastServed.getChildren()){
+						page.delete();
+					}
+				} else {
+					lastServed = MemoNode.getRootNode().addChild(new MemoNode("msl-raws-lastServed"));
+				}
+				memCache.put("quickServe", lastServed.addChild(new MemoNode(result)).getId().toString());
+			}
+		}
 		resp.getWriter().write(result);
 		if (repair) MemoNode.flushDB();
 	}
