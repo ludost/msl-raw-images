@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?><web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.5" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
-	<servlet>
+<!-- 	<filter>
+		<filter-name>CORS</filter-name>
+		<filter-class>com.thetransactioncompany.cors.CORSFilter</filter-class>
+    	<init-param>
+		    <param-name>cors.supportedHeaders</param-name>
+		    <param-value>Content-Type, Accept, Origin, x-session_id</param-value>
+		</init-param>
+		<init-param>
+		    <param-name>cors.supportedMethods</param-name>
+		    <param-value>GET, POST, HEAD, PUT, DELETE, OPTIONS</param-value>
+		</init-param>
+		<init-param>
+		    <param-name>cors.maxAge</param-name>
+		    <param-value>3600</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>CORS</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping> -->
+    <servlet>
 	    <servlet-name>landingPage</servlet-name>
 	    <servlet-class>org.stwerff.mslraws.LandingPageServlet</servlet-class>
 	</servlet>
@@ -53,6 +73,15 @@
 	<listener>
 	    <listener-class>org.stwerff.mslraws.images.InitListener</listener-class>
 	</listener>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>Memo</web-resource-name>
+			<url-pattern>/memo</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>admin</role-name>
+		</auth-constraint>
+	</security-constraint>
 <!--  <servlet>
   <servlet-name>SystemServiceServlet</servlet-name>
   <servlet-class>com.google.api.server.spi.SystemServiceServlet</servlet-class>

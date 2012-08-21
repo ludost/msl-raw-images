@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.stwerff.mslraws.parser.SiteParser;
+
 import com.chap.memo.memoNodes.MemoNode;
 import com.eaio.uuid.UUID;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -122,16 +124,22 @@ public class LandingPageServlet extends HttpServlet {
 			}
 		}
 		if (repair){
-			//remove duplicates
 			ArrayList<MemoNode> allImages = allImagesNode.getChildren();
 			HashSet<String> set = new HashSet<String>(allImages.size());
 			for (MemoNode image : allImages){
-				if (set.contains(image.getStringValue())){
+				String url = image.getStringValue();
+				//remove duplicates
+				if (set.contains(url)){
 					image.delete();
+					continue;
 				} else {
-					set.add(image.getStringValue());
+					set.add(url);
 				}
+				//check type
+				String type = SiteParser.getType(url.substring(url.lastIndexOf('/')+1));
+				if (!image.getPropertyValue("type").equals(type)) image.setPropertyValue("type", type);
 			}
+			memCache.delete("quickServe");
 		}
 		return result.toString();
 	}

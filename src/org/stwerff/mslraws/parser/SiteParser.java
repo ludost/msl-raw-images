@@ -35,11 +35,13 @@ public class SiteParser {
 	public static String getType(String filename){
 		if (filename.charAt(16) == '_'){
 			if (filename.charAt(17) == 'T') return "thumbnail";
-			if (filename.charAt(17) == 'D') return "downschaled";
+			if (filename.charAt(17) == 'D') return "downscaled";
+			if (filename.charAt(17) == 'S') return "subframe";
 			if (filename.charAt(17) == 'F') return "full";
 			return "unknown";
 		} else {
 			if (filename.charAt(16) == 'I') return "thumbnail";
+			if (filename.charAt(16) == 'D') return "downscaled";
 			if (filename.charAt(16) == 'E') return "full/subframe";
 			return "unknown";
 		}
@@ -56,9 +58,9 @@ public class SiteParser {
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			con.setConnectTimeout(10000);
 			con.setReadTimeout(60000);
-
+			
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					con.getInputStream()),50000);
+					con.getInputStream()),5000);
 			String line;
 			boolean found = false;
 			
