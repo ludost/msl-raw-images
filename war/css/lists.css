@@ -53,7 +53,27 @@ div.lists {
 	font-size:smaller;
 }
 .less {	display: none }
+.show { display: inline !important}
+.inline { display: inline-block !important }
 .solInput { width: 3em }
+.prefix {
+	display:none;
+}
+.listCreate{
+	display:none;
+}
+.listSelect{
+	width:90px;
+}
+.cleanLink {
+	text-decoration:none;
+	color:black;
+}
+.listIcon{
+	border:1px solid #8a2d05;
+	height:16px;
+	width:16px;
+}
 .newImage { 
 	color:red;
 	display: none; 

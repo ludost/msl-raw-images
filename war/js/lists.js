@@ -8,6 +8,8 @@ settings = {
 	filter_cam : [],
 	filter_thumbs : false,
 	filter_new : false,
+	filter_list : "none",
+	current_list : {},
 	useWget : true,
 	wget_syntax : "wget -i -"
 }
@@ -19,13 +21,62 @@ if (typeof (localStorage["msl-raws-conf"]) != "undefined"
 conf = $.extend({}, settings, conf);
 
 data = [];
+errorCloseButton = "&nbsp;<a href='#' class='cleanLink' onClick='$(\".error\").html(\"\")'>(x)</a>";
 
-highest_sol = 0;
-count = 0;
-totalImages = 0;
-camList = "";
-newLimit = 0;
+/*
+ * Lists management
+ */
+lists = {};
+if (typeof (localStorage["msl-raws-lists"]) != "undefined"
+	&& localStorage["msl-raws-lists"] != "") {
+	try {
+		var tmp_lists = JSON.parse(localStorage["msl-raws-lists"]);
+		if (tmp_lists.length>=0){
+			lists=tmp_lists;
+		}
+	} catch (e){}
+}
 
+function createList(){
+	if ($(".listLabel").val() != ""){
+		conf.current_list = {
+			uuid: new UUID(),
+			name: $(".listLabel").val(),
+			description: $(".listDescr").val(),
+			url: $(".listURL").val(),
+			uuids: selectedImages()
+		}
+		lists[conf.current_list.uuid]=(conf.current_list);
+		localStorage["msl-raws-lists"]=JSON.stringify(lists);
+		render();
+		$(".listCreate input:not(.close)").val("");
+	} else {
+		$(".error")
+		.html("Sorry, you'll have to provide a list name!"+errorCloseButton);
+	}
+}
+function deleteList(){
+	delete lists[conf.current_list.uuid];
+	conf.current_list = {};
+	localStorage["msl-raws-lists"]=JSON.stringify(lists);
+	render();
+}
+
+function addToList(){
+	$(".error")
+	.html("Sorry, I haven't implemented that button yet!"+errorCloseButton);
+}
+function removeFromList(){
+	$(".error")
+	.html("Sorry, I haven't implemented that button yet!"+errorCloseButton);	
+}
+function openLists(){
+	$(".error")
+	.html("Sorry, I haven't implemented that button yet!"+errorCloseButton);
+}
+/*
+ * Tools
+ */
 if (!Array.prototype.map) {
 	Array.prototype.map = function(fun /* , thisp */) {
 		var len = this.length;
@@ -49,21 +100,42 @@ function pad(number, length) {
 	}
 	return str;
 }
+
+
+/*
+ * Image listing
+ */
+highest_sol = 0;
+count = 0;
+totalImages = 0;
+camList = "";
+newLimit = 0;
+
 function filter(a) {
 	if (parseInt(a.item.sol) > highest_sol)
 		highest_sol = parseInt(a.item.sol);
-	if (conf.filter_new
-			&& parseFloat(a.item.lastModified == "" ? a.item.unixTimeStamp
-					: a.item.lastModified) < newLimit)
-		return false;
-	if (conf.filter_sol >= 0 && a.item.sol != conf.filter_sol)
-		return false;
-	if (conf.filter_thumbs
-			&& (a.item.type == "thumbnail" || a.item.type == "downscaled"))
-		return false;
-	if (conf.filter_cam.length > 0
-			&& $.inArray(a.item.camera, conf.filter_cam) == -1)
-		return false;
+	if (conf.filter_list == "include"
+			&& $.inArray(a.item.uuid,conf.current_list.uuids) < 0) return false;
+	if (conf.filter_list == "exclude"
+			&& $.inArray(a.item.uuid,conf.current_list.uuids) >= 0) return false;
+	if (conf.filter_list == "complete"){
+		if ($.inArray(a.item.uuid,conf.current_list.uuids) < 0){
+			return false;
+		}
+	} else {
+		if (conf.filter_new
+				&& parseFloat(a.item.lastModified == "" ? a.item.unixTimeStamp
+						: a.item.lastModified) < newLimit)
+			return false;
+		if (conf.filter_sol >= 0 && a.item.sol != conf.filter_sol)
+			return false;
+		if (conf.filter_thumbs
+				&& (a.item.type == "thumbnail" || a.item.type == "downscaled"))
+			return false;
+		if (conf.filter_cam.length > 0
+				&& $.inArray(a.item.camera, conf.filter_cam) == -1)
+			return false;		
+	}
 	totalImages++;
 	if (count++ > conf.show_count)
 		return false;
@@ -100,28 +172,23 @@ function render() {
 							.directives(
 									{
 										'.thumbBox@checked' : function(a) {
-											return conf.show_thumbs ? "checked"
-													: ""
+											return conf.show_thumbs ? "checked" : ""
 										},
 										'.solBox@checked' : function(a) {
-											return conf.filter_sol >= 0 ? ""
-													: "checked"
+											return conf.filter_sol >= 0 ? "" : "checked"
 										},
 										'.typeBox@checked' : function(a) {
 											return conf.filter_thumbs ? "checked"
 													: ""
 										},
 										'.sortBox@checked' : function(a) {
-											return conf.sort_type == "modified" ? "checked"
-													: ""
+											return conf.sort_type == "modified" ? "checked"	: ""
 										},
 										'.newBox@checked' : function(a) {
-											return conf.filter_new ? "checked"
-													: ""
+											return conf.filter_new ? "checked" : ""
 										},
 										'.utcBox@checked' : function(a) {
-											return conf.show_utc ? "checked"
-													: ""
+											return conf.show_utc ? "checked" : ""
 										},
 										'.line-template' : {
 											'image<-context' : {
@@ -132,8 +199,7 @@ function render() {
 												'.type' : 'image.type',
 												'.cam' : 'image.camera',
 												'.newImage@class+' : function(a) {
-													if (parseFloat(a.item.lastModified == "" ? a.item.unixTimeStamp
-															: a.item.lastModified) > newLimit) {
+													if (parseFloat(a.item.lastModified == "" ? a.item.unixTimeStamp	: a.item.lastModified) >= newLimit) {
 														return " show";
 													}
 													return "";
@@ -154,77 +220,29 @@ function render() {
 													if (conf.sort_type == "modified") {
 														if (a.item.lastModified != "") {
 															millis = parseFloat(a.item.lastModified);
-															date = new Date(
-																	millis);
+															date = new Date(millis);
 														}
 													} else {
 														millis = parseFloat(a.item.unixTimeStamp);
 														date = new Date(millis);
 													}
 													if (conf.show_utc) {
-														return date
-																.getUTCFullYear()
-																+ "-"
-																+ pad(
-																		date
-																				.getUTCMonth() + 1,
-																		2)
-																+ "-"
-																+ pad(
-																		date
-																				.getUTCDate(),
-																		2)
-																+ " "
-																+ pad(
-																		date
-																				.getUTCHours(),
-																		2)
-																+ ":"
-																+ pad(
-																		date
-																				.getUTCMinutes(),
-																		2)
-																+ ":"
-																+ pad(
-																		date
-																				.getUTCSeconds(),
-																		2)
+														return date.getUTCFullYear()
+																+ "-" + pad(date.getUTCMonth() + 1,2)
+																+ "-" + pad(date.getUTCDate(),2)
+																+ " " + pad(date.getUTCHours(),2)
+																+ ":" + pad(date.getUTCMinutes(),2)
+																+ ":" + pad(date.getUTCSeconds(),2)
 																+ " UTC";
 													} else {
-														var offset = -date
-																.getTimezoneOffset() / 60;
-														return date
-																.getFullYear()
-																+ "-"
-																+ pad(
-																		date
-																				.getMonth() + 1,
-																		2)
-																+ "-"
-																+ pad(
-																		date
-																				.getDate(),
-																		2)
-																+ " "
-																+ pad(
-																		date
-																				.getHours(),
-																		2)
-																+ ":"
-																+ pad(
-																		date
-																				.getMinutes(),
-																		2)
-																+ ":"
-																+ pad(
-																		date
-																				.getSeconds(),
-																		2)
-																+ " UTC"
-																+ (offset >= 0 ? "+"
-																		+ offset
-																		: "-"
-																				+ offset);
+														var offset = -date.getTimezoneOffset() / 60;
+														return date.getFullYear()
+														+ "-" + pad(date.getMonth() + 1,2)
+														+ "-" + pad(date.getDate(),2)
+														+ " " + pad(date.getHours(),2)
+														+ ":" + pad(date.getMinutes(),2)
+														+ ":" + pad(date.getSeconds(),2)
+														+ " UTC" + (offset >= 0 ? "+":"-") + offset;
 													}
 												}
 											},
@@ -251,10 +269,25 @@ function render() {
 	$(".tab-target .camSelectMulti").val(conf.filter_cam);
 	$(".tab-target .camSelectMulti").chosen();
 	$(".tab-target input.selector").enableCheckboxRangeSelection();
+	$(".tab-target input.selector").on('click',toggleSelector);
+	$(".tab-target .listSelect").val(conf.filter_list);
+	$(".currentList").html(typeof conf.current_list.name != "undefined"?conf.current_list.name:"none");
+	toggleSelector();
+	
 	// ALthough not necessary on all redraws, no problem:
 	$(".prefixText").val(conf.wget_syntax);
 	$(".prefixBox").attr('checked', conf.useWget);
 	// Done
+}
+function selectList(){
+	$(".tab-target input.selector").each(function(){
+		var $this = $(this);
+		$.inArray($this.attr('value'),conf.current_list.uuids)>=0?$this.attr("checked","checked"):$this.removeAttr("checked");
+	});
+	toggleSelector();
+}
+function toggleSelector(){
+	selectedImages().length>0?$(".toggleSelector").attr("checked","checked"):$(".toggleSelector").removeAttr("checked");
 }
 function selectedImages() {
 	var selected = new Array();
@@ -305,8 +338,7 @@ function reload() {
 		}
 		;
 	}
-	$
-			.ajax({
+	$.ajax({
 				url : "/landing?flat",
 				statusCode : {
 					200 : function(json) {
@@ -374,17 +406,35 @@ _gaq.push([ '_trackPageview' ]);
 })();
 
 $(document).ready(function() {
-	$("div.reload").html("<a href='#' class='reload' onClick='reload()'>Reload</a>");
+	var reloadString = "<a href='#' class='reload cleanLink' onClick='reload()'>Reload</a>";
+	$("div.reload").html(reloadString);
 	$("div.reload").ajaxStart(function() {
 		$(this).html("<span class='reloading'>Loading...</span>")})
 	.ajaxStop(function() {
-		$(this).html("<a href='#' class='reload' onClick='reload()'>Reload</a>")});
+		$(this).html(reloadString)});
 	
 	reload();
 	startSharrre();
 	$("input:button").button();
 	$(".prefix").dialog({
-			autoOpen : false,
-			title : "export prefix"
+		autoOpen : false,
+		title : "export prefix",
+		modal : true
+	});
+	$(".listCreate").dialog({
+		autoOpen : false,
+		title : "create list",
+		modal : true		
+	});
+	$(".listDelete").dialog({
+		autoOpen : false,
+		title : "delete list",
+		modal : true		
+	});
+	$(".listHelp").dialog({
+		autoOpen : false,
+		title : "legenda",
+		modal : true,
+		width : "40em"
 	});
 });
