@@ -1,4 +1,5 @@
 
+
 var errorCloseButton = "&nbsp;<a href='#' class='cleanLink' onClick='$(\".error\").html(\"\")'><span class='ui-icon ui-icon-circle-close inline'></span></a>";
 dyn = {
 	max_show:20,
@@ -60,6 +61,7 @@ function createList(){
 		localStorage["msl-raws-lists"]=JSON.stringify(lists);
 		render();
 		$(".listCreate input:not(.close),.listCreate textarea").val("");
+		selectList();
 	} else {
 		$(".error")
 		.html("Sorry, you'll have to provide a list name!"+errorCloseButton);
@@ -82,6 +84,7 @@ function addToList(){
 	});
 	localStorage["msl-raws-lists"]=JSON.stringify(lists);
 	render();
+	selectList();
 }
 function removeFromList(){
 	var images = selectedImages();
@@ -94,6 +97,7 @@ function removeFromList(){
 	});
 	localStorage["msl-raws-lists"]=JSON.stringify(lists);
 	render();
+	selectList();
 }
 function openLists(){
 	$(".error")
@@ -158,8 +162,9 @@ function filter(a) {
 	dyn.totalImages++;
 	if (dyn.pagecount > dyn.render_max)
 		return false;
-	if (dyn.pagecount++ > conf.show_count)
+	if (dyn.pagecount > conf.show_count)
 		return false;
+	dyn.pagecount++;
 	return true;
 }
 function sort(a, b) {
@@ -367,6 +372,9 @@ function outputList() {
 function reload() {
 	$("div.reload").html("<span class='reloading'>Loading...</span>");
 	$(".error").html("");
+	if (typeof _gaq != "undefined"){
+		_gaq.push(['_trackEvent', "imageList", "Reload"]);
+	}
 	$.ajax({
 				url : "/landing?flat",
 				statusCode : {
