@@ -5,10 +5,15 @@ html {
 	-o-background-size: cover;
 	background-size: cover;
 }
-/* .lists{  */
-/* 	display:none !important */
-/* } */
-
+.lists{ 
+	display:none !important
+}
+.preferences {
+	white-space:nowrap;
+}
+input.max_show,input.render_max {
+	width:5em;
+}
 .tab-template {	display: none; }
 input.default { padding: 0px !important }
 img { width: 64px }
@@ -48,6 +53,9 @@ div.lists {
 	-moz-border-radius: 5px;
 	border-radius: 5px;
 	padding:2px 3px 3px 3px;
+}
+.line-infolist{
+	display:none;
 }
 .typeSelectMulti{
 	width:125px;

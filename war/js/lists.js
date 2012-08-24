@@ -2,19 +2,16 @@
 
 var errorCloseButton = "&nbsp;<a href='#' class='cleanLink' onClick='$(\".error\").html(\"\")'><span class='ui-icon ui-icon-circle-close inline'></span></a>";
 dyn = {
-	max_show:20,
 	data:[],
 	highest_sol:0,
 	pagecount:0,
 	totalImages:0,
 	newLimit:0,
-	render_max:500, //Safety!
 	fullList:[]
 }
 
 var settings = {
 	sort_type : "time",
-	show_count : dyn.max_show,
 	show_thumbs : false,
 	show_utc : true,
 	filter_sol : -1,
@@ -24,7 +21,10 @@ var settings = {
 	filter_list : "none",
 	current_list : {},
 	useWget : true,
-	wget_syntax : "wget -i -"
+	wget_syntax : "wget -i -",
+	max_show:20,
+	show_count : 20,
+	render_max:500
 }
 
 conf = {};
@@ -35,14 +35,57 @@ if (typeof (localStorage["msl-raws-conf"]) != "undefined"
 conf = $.extend({}, settings, conf);
 
 lists = {};
-if (typeof (localStorage["msl-raws-lists"]) != "undefined"
+if (typeof localStorage["msl-raws-lists"] != "undefined"
 	&& localStorage["msl-raws-lists"] != "") {
 	try {
 		var tmp_lists = JSON.parse(localStorage["msl-raws-lists"]);
-		if (tmp_lists.length>=0){
-			lists=tmp_lists;
+		lists=tmp_lists;
+	} catch (e){ console.log("couldn't read lists:",e)}
+}
+/*
+ * Tools
+ */
+$.extend({
+    getUrlVars : function() {
+            var vars = [], hash;
+            var loc = window.location.href;
+            if (loc.indexOf('#') >=0){
+            	loc = loc.slice(0,loc.indexOf('#'));
+            }
+            var hashes = loc.slice(loc.indexOf('?') + 1).split('&');
+            for(var i = 0; i < hashes.length; i++) {
+                    hash = hashes[i].split('=');
+                    vars.push(hash[0]);
+                    vars[hash[0]] = hash[1];
+            }
+            return vars;
+    },
+    getUrlVar : function(name) {
+            return $.getUrlVars()[name];
+    }
+});
+if (!Array.prototype.map) {
+	Array.prototype.map = function(fun /* , thisp */) {
+		var len = this.length;
+		if (typeof fun != "function")
+			throw new TypeError();
+
+		var res = new Array(len);
+		var thisp = arguments[1];
+		for ( var i = 0; i < len; i++) {
+			if (i in this)
+				res[i] = fun.call(thisp, this[i], i, this);
 		}
-	} catch (e){}
+
+		return res;
+	};
+}
+function pad(number, length) {
+	var str = '' + number;
+	while (str.length < length) {
+		str = '0' + str;
+	}
+	return str;
 }
 
 /**
@@ -57,7 +100,7 @@ function createList(){
 			url: $(".listURL").val(),
 			uuids: selectedImages()
 		}
-		lists[conf.current_list.uuid]=(conf.current_list);
+		lists[conf.current_list.uuid.id]=(conf.current_list);
 		localStorage["msl-raws-lists"]=JSON.stringify(lists);
 		render();
 		$(".listCreate input:not(.close),.listCreate textarea").val("");
@@ -68,7 +111,7 @@ function createList(){
 	}
 }
 function deleteList(){
-	delete lists[conf.current_list.uuid];
+	delete lists[conf.current_list.uuid.id];
 	conf.current_list = {};
 	localStorage["msl-raws-lists"]=JSON.stringify(lists);
 	render();
@@ -103,32 +146,6 @@ function openLists(){
 	$(".error")
 	.html("Sorry, I haven't implemented that button yet!"+errorCloseButton);
 }
-/*
- * Tools
- */
-if (!Array.prototype.map) {
-	Array.prototype.map = function(fun /* , thisp */) {
-		var len = this.length;
-		if (typeof fun != "function")
-			throw new TypeError();
-
-		var res = new Array(len);
-		var thisp = arguments[1];
-		for ( var i = 0; i < len; i++) {
-			if (i in this)
-				res[i] = fun.call(thisp, this[i], i, this);
-		}
-
-		return res;
-	};
-}
-function pad(number, length) {
-	var str = '' + number;
-	while (str.length < length) {
-		str = '0' + str;
-	}
-	return str;
-}
 
 /*
  * Image listing
@@ -136,7 +153,7 @@ function pad(number, length) {
 function filter(a) {
 	if (parseInt(a.item.sol) > dyn.highest_sol)
 		dyn.highest_sol = parseInt(a.item.sol);
-	var skip = typeof conf.current_list.name == "undefined";
+	var skip = typeof conf.current_list == "undefined" || typeof conf.current_list.name == "undefined";
 	if (!skip && conf.filter_list == "include"
 			&& $.inArray(a.item.uuid,conf.current_list.uuids) < 0) return false;
 	if (!skip && conf.filter_list == "exclude"
@@ -160,7 +177,8 @@ function filter(a) {
 			return false;		
 	}
 	dyn.totalImages++;
-	if (dyn.pagecount > dyn.render_max)
+	dyn.fullList.push(a.item.uuid);
+	if (dyn.pagecount > conf.render_max)
 		return false;
 	if (dyn.pagecount > conf.show_count)
 		return false;
@@ -191,6 +209,8 @@ function render() {
 	$('.error').html("");
 	dyn.pagecount = 0;
 	dyn.totalImages = 0;
+	dyn.fullList=[];
+	
 	$('.tab-target')
 			.replaceWith(
 					$('.tab-template')
@@ -295,26 +315,37 @@ function render() {
 	toggleSelector();
 
 	//Navigation stuff
+	$(".line-infolist").toggle(conf.filter_list=="complete" && typeof conf.current_list.name != "undefined");
 	$(".tab-target .line-filler").toggle(dyn.totalImages==0); 
-	$(".tab-target .less,.base").toggle(conf.show_count > dyn.max_show);
-	if (conf.show_count == 2*dyn.max_show) $(".tab-target .less").hide();
+	$(".tab-target .less,.base").toggle(conf.show_count > conf.max_show);
+	if (conf.show_count == 2*conf.max_show) $(".tab-target .less").hide();
 	$(".tab-target .more,.all").toggle(dyn.pagecount >= conf.show_count);
 	$(".tab-target .now").html(conf.show_count);
-	$(".tab-target .more").val("+"+dyn.max_show);
-	$(".tab-target .less").val("-"+dyn.max_show);
-	$(".tab-target .base").val("only "+dyn.max_show);
+	$(".tab-target .more").val("+"+conf.max_show);
+	$(".tab-target .less").val("-"+conf.max_show);
+	$(".tab-target .base").val("only "+conf.max_show);
 	$(".tab-target .all").val("all "+dyn.totalImages);
 
 	//Set some global info fields:
 	$(".tab-target .imageCount").html(
 			dyn.totalImages + " of " + dyn.data.length + " images selected");
-	$(".tab-target .currentList").html(typeof conf.current_list.name != "undefined"?conf.current_list.name:"####");
-	$(".tab-target .listCount").html(typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length+" images":"")
+	$(".tab-target .currentList,.listDelete .currentList").html(typeof conf.current_list.name != "undefined"?conf.current_list.name:"####");
+	$(".tab-target .listCount").html(typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length+" images":"");
 	$('.tab-target .sol .newest').html(" ->" + dyn.highest_sol);
+	
+	$(".listInfo").html(($(".listInfo").clone().render(conf.current_list,{
+		".listLabel" : "name",
+		".listCount" : function(a){ return typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length+" images":"" },
+		".listDescr" : "description",
+		".listURL" : function(a){ return conf.current_list.url==""?"":"<a href='"+conf.current_list.url+"' target='_blank'>"+conf.current_list.url+"</a>"}
+	})).html());
+	
+	$('input.render_max').val(conf.render_max);
+	$('input.max_show').val(conf.max_show);
 
-	if (dyn.pagecount >= dyn.render_max) {
+	if (dyn.pagecount >= conf.render_max) {
 		$(".error")
-		.html("Sorry, cowardly refusing to render more than "+dyn.render_max+" images in one page!"+errorCloseButton+"<br><a href='#' onClick='dyn.render_max=999999;render();'>Temporary lift limit, really sure?</a>");
+		.html("Sorry, cowardly refusing to render more than "+conf.render_max+" images in one page!"+errorCloseButton+"<br><a href='#' onClick='conf.render_max=999999;render();'>Temporary lift limit, really sure?</a>");
 	}
 	$(".tab-target input:button").button('refresh');
 
@@ -324,6 +355,7 @@ function render() {
 	// Done
 }
 function selectList(){
+	if (typeof conf.current_list.uuids == "undefined") return;
 	$(".tab-target input.selector").each(function(){
 		var $this = $(this);
 		$.inArray($this.attr('value'),conf.current_list.uuids)>=0?$this.attr("checked","checked"):$this.removeAttr("checked");
@@ -453,33 +485,41 @@ $(document).ready(function() {
 		$(this).html(reloadString)});
 	$("input:button").button();
 
+	var listId = $.getUrlVar("list");
+	if (typeof listId != "undefined" && listId != "" && typeof lists[listId] != "undefined"){
+		conf.current_list=lists[listId];
+		conf.filter_list="complete";
+	}
+	
 	reload();
 	startSharrre();
-	$(".prefix").dialog({
-		autoOpen : false,
-		title : "export prefix",
-		modal : true
-	});
 	$(".listCreate").dialog({
 		autoOpen : false,
-		title : "create list",
-		modal : true		
+		title : "Create list",
+		modal : true,
+		width : "50em"		
 	});
 	$(".listDelete").dialog({
 		autoOpen : false,
-		title : "delete list",
+		title : "Delete list",
 		modal : true		
 	});
 	$(".listInfo").dialog({
 		autoOpen : false,
 		title : "Meta info",
-		modal : true		
+		modal : true,
+		width : "50em"
 	});
 	$(".listHelp").dialog({
 		autoOpen : false,
-		title : "legenda",
+		title : "Legenda",
 		modal : true,
 		width : "40em"
 	});
-
+	$(".preferences").dialog({
+		autoOpen : false,
+		title : "Preferences",
+		modal : true,
+		width : "35em"
+	})
 });
