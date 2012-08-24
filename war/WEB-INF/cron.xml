@@ -3,6 +3,6 @@
   <cron>
     <url>/collector</url>
     <description>Check and collect images every couple of minutes.</description>
-    <schedule>every 30 minutes</schedule>
+    <schedule>every 5 minutes</schedule>
   </cron>
 </cronentries>

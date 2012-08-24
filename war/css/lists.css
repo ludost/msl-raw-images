@@ -5,6 +5,10 @@ html {
 	-o-background-size: cover;
 	background-size: cover;
 }
+.lists{ 
+	display:none !important
+}
+
 .tab-template {	display: none; }
 input.default { padding: 0px !important }
 img { width: 64px }
@@ -44,6 +48,9 @@ div.lists {
 	-moz-border-radius: 5px;
 	border-radius: 5px;
 	padding:2px 3px 3px 3px;
+}
+.typeSelectMulti{
+	width:125px;
 }
 .ui-button {
 	font-size:8pt !important;

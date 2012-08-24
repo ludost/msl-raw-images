@@ -6,7 +6,7 @@ settings = {
 	show_utc : true,
 	filter_sol : -1,
 	filter_cam : [],
-	filter_thumbs : false,
+	filter_type : ["F","S","D"],
 	filter_new : false,
 	filter_list : "none",
 	current_list : {},
@@ -21,7 +21,7 @@ if (typeof (localStorage["msl-raws-conf"]) != "undefined"
 conf = $.extend({}, settings, conf);
 
 data = [];
-errorCloseButton = "&nbsp;<a href='#' class='cleanLink' onClick='$(\".error\").html(\"\")'>(x)</a>";
+errorCloseButton = "&nbsp;<a href='#' class='cleanLink' onClick='$(\".error\").html(\"\")'><span class='ui-icon ui-icon-circle-close inline'></span></a>";
 
 /*
  * Lists management
@@ -49,7 +49,7 @@ function createList(){
 		lists[conf.current_list.uuid]=(conf.current_list);
 		localStorage["msl-raws-lists"]=JSON.stringify(lists);
 		render();
-		$(".listCreate input:not(.close)").val("");
+		$(".listCreate input:not(.close),.listCreate textarea").val("");
 	} else {
 		$(".error")
 		.html("Sorry, you'll have to provide a list name!"+errorCloseButton);
@@ -63,12 +63,27 @@ function deleteList(){
 }
 
 function addToList(){
-	$(".error")
-	.html("Sorry, I haven't implemented that button yet!"+errorCloseButton);
+	var images = selectedImages();
+	var list = conf.current_list.uuids;
+	images.map(function (uuid){
+		if ($.inArray(uuid,list)<0){
+			list.push(uuid);
+		}
+	});
+	localStorage["msl-raws-lists"]=JSON.stringify(lists);
+	render();
 }
 function removeFromList(){
-	$(".error")
-	.html("Sorry, I haven't implemented that button yet!"+errorCloseButton);	
+	var images = selectedImages();
+	var list = conf.current_list.uuids;
+	images.map(function (uuid){
+		var pos = $.inArray(uuid,list); 
+		if (pos>=0){
+			list.splice(pos,1);
+		}
+	});
+	localStorage["msl-raws-lists"]=JSON.stringify(lists);
+	render();
 }
 function openLists(){
 	$(".error")
@@ -106,19 +121,22 @@ function pad(number, length) {
  * Image listing
  */
 highest_sol = 0;
-count = 0;
+pagecount = 0;
 totalImages = 0;
 camList = "";
 newLimit = 0;
+render_max = 500; //Safety!
+fullList = [];
 
 function filter(a) {
 	if (parseInt(a.item.sol) > highest_sol)
 		highest_sol = parseInt(a.item.sol);
-	if (conf.filter_list == "include"
+	var skip = typeof conf.current_list.name == "undefined";
+	if (!skip && conf.filter_list == "include"
 			&& $.inArray(a.item.uuid,conf.current_list.uuids) < 0) return false;
-	if (conf.filter_list == "exclude"
+	if (!skip && conf.filter_list == "exclude"
 			&& $.inArray(a.item.uuid,conf.current_list.uuids) >= 0) return false;
-	if (conf.filter_list == "complete"){
+	if (!skip && conf.filter_list == "complete"){
 		if ($.inArray(a.item.uuid,conf.current_list.uuids) < 0){
 			return false;
 		}
@@ -129,15 +147,17 @@ function filter(a) {
 			return false;
 		if (conf.filter_sol >= 0 && a.item.sol != conf.filter_sol)
 			return false;
-		if (conf.filter_thumbs
-				&& (a.item.type == "thumbnail" || a.item.type == "downscaled"))
-			return false;
+		if (conf.filter_type.length > 0
+				&& $.inArray(a.item.type.substring(0,1).toUpperCase(), conf.filter_type) == -1)
+			return false;		
 		if (conf.filter_cam.length > 0
 				&& $.inArray(a.item.camera, conf.filter_cam) == -1)
 			return false;		
 	}
 	totalImages++;
-	if (count++ > conf.show_count)
+	if (pagecount > render_max)
+		return false;
+	if (pagecount++ > conf.show_count)
 		return false;
 	return true;
 }
@@ -161,9 +181,9 @@ function render() {
 	newLimit = new Date().getTime() - (24 * 3600 * 1000);
 	localStorage["msl-raws-conf"] = JSON.stringify(conf);
 
-	$(".less").toggle(conf.show_count > max_show);
 	$('.tab-target th.name').html("Name (loading....)");
-	count = 0;
+	$('.error').html("");
+	pagecount = 0;
 	totalImages = 0;
 	$('.tab-target')
 			.replaceWith(
@@ -176,10 +196,6 @@ function render() {
 										},
 										'.solBox@checked' : function(a) {
 											return conf.filter_sol >= 0 ? "" : "checked"
-										},
-										'.typeBox@checked' : function(a) {
-											return conf.filter_thumbs ? "checked"
-													: ""
 										},
 										'.sortBox@checked' : function(a) {
 											return conf.sort_type == "modified" ? "checked"	: ""
@@ -257,23 +273,43 @@ function render() {
 							.addClass('tab-target'));
 
 	// Revert input fields to conf values:
-	$(".imageCount").html(
-			totalImages + " of " + data.length + " images selected");
 	if (conf.filter_sol < 0) {
 		$(".solInput").val(highest_sol);
 	} else {
 		$(".solInput").val(conf.filter_sol);
 	}
-	$('.sol .newest').html(" ->" + highest_sol);
-	$(".more,.all").toggle(count >= conf.show_count);
+	$(".tab-target .typeSelectMulti").val(conf.filter_type);
+	$(".tab-target .typeSelectMulti").chosen();
+	
 	$(".tab-target .camSelectMulti").val(conf.filter_cam);
 	$(".tab-target .camSelectMulti").chosen();
 	$(".tab-target input.selector").enableCheckboxRangeSelection();
 	$(".tab-target input.selector").on('click',toggleSelector);
 	$(".tab-target .listSelect").val(conf.filter_list);
-	$(".currentList").html(typeof conf.current_list.name != "undefined"?conf.current_list.name:"none");
 	toggleSelector();
-	
+
+	//Navigation stuff
+	$(".line-filler").toggle(totalImages==0); 
+	$(".less,.base").toggle(conf.show_count > max_show);
+	if (conf.show_count == 2*max_show) $(".less").hide();
+	$(".more,.all").toggle(pagecount >= conf.show_count);
+	$(".now").html(conf.show_count);
+	$(".more").val("+"+max_show);
+	$(".less").val("-"+max_show);
+	$(".base").val("only "+max_show);
+	$(".all").val("all "+totalImages);
+
+	//Set some global info fields:
+	$(".imageCount").html(
+			totalImages + " of " + data.length + " images selected");
+	$(".currentList").html(typeof conf.current_list.name != "undefined"?conf.current_list.name:"####");
+	$(".listCount").html(typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length+" images":"")
+	$('.sol .newest').html(" ->" + highest_sol);
+
+	if (pagecount >= render_max) {
+		$(".error")
+		.html("Sorry, cowardly refusing to render more than "+render_max+" images in one page!"+errorCloseButton+"<br><a href='#' onClick='render_max=999999;render();'>Temporary lift limit, really sure?</a>");
+	}
 	// ALthough not necessary on all redraws, no problem:
 	$(".prefixText").val(conf.wget_syntax);
 	$(".prefixBox").attr('checked', conf.useWget);
@@ -326,31 +362,23 @@ function outputList() {
 	p.document.close();
 }
 function reload() {
-	if (typeof (localStorage["msl-raws-data"]) != "undefined"
-			&& localStorage["msl-raws-data"] != "") {
-		try {
-			var storedData = JSON.parse(localStorage["msl-raws-data"]);
-			if (storedData.length > 0) {
-				data = storedData;
-				render();
-			}
-		} catch (e) {
-		}
-		;
-	}
+	$("div.reload").html("<span class='reloading'>Loading...</span>");
+	$(".error").html("");
 	$.ajax({
 				url : "/landing?flat",
 				statusCode : {
 					200 : function(json) {
 						data = json;
-						localStorage["msl-raws-data"] = JSON.stringify(data);
+						if (typeof data == "string"){
+							data = JSON.parse(json);
+						}
 						render();
 					}
 				},
 				error : function() {
 					$(".error")
 							.html(
-									"I'm sorry, but something went wrong while trying to reach the server, please try again.<a href='#' onClick='$(\".error\").html(\"\")'>(x)</a>");
+									"I'm sorry, but something went wrong while trying to reach the server, please try again."+errorCloseButton);
 				}
 			});
 }
@@ -431,10 +459,16 @@ $(document).ready(function() {
 		title : "delete list",
 		modal : true		
 	});
+	$(".listInfo").dialog({
+		autoOpen : false,
+		title : "Meta info",
+		modal : true		
+	});
 	$(".listHelp").dialog({
 		autoOpen : false,
 		title : "legenda",
 		modal : true,
 		width : "40em"
 	});
+	
 });

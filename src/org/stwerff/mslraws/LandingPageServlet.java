@@ -33,7 +33,7 @@ public class LandingPageServlet extends HttpServlet {
 	static MemcacheService memCache = MemcacheServiceFactory.getMemcacheService();;
 
 	
-	public String generateJSON(int sol, String camera, boolean countsOnly, boolean flat, boolean repair){
+	public ArrayNode generateJSON(int sol, String camera, boolean countsOnly, boolean flat, boolean repair){
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
 		
 		ArrayList<MemoNode> imgList = null;
@@ -139,9 +139,15 @@ public class LandingPageServlet extends HttpServlet {
 				String type = SiteParser.getType(url.substring(url.lastIndexOf('/')+1));
 				if (!image.getPropertyValue("type").equals(type)) image.setPropertyValue("type", type);
 			}
+			MemoNode statsNode=baseNode.getChildByStringValue("imageStats");
+			if (statsNode != null){
+				String totalCount = new Integer(allImagesNode.getChildren().size()).toString();
+				statsNode.setPropertyValue("totalCount",totalCount);
+				System.out.println("Set count to:"+totalCount);
+			}
 			memCache.delete("quickServe");
 		}
-		return result.toString();
+		return result;
 	}
 	
 	
@@ -187,7 +193,8 @@ public class LandingPageServlet extends HttpServlet {
 			}
 		}
 		if (result.equals("")) {
-			result = generateJSON(sol,camera,countsOnly,flat,repair);
+			ArrayNode resultNode = generateJSON(sol,camera,countsOnly,flat,repair);
+			result=resultNode.toString();
 			if (mayCache){
 				MemoNode lastServed= MemoNode.getRootNode().getChildByStringValue("msl-raws-lastServed");
 				if (lastServed != null){

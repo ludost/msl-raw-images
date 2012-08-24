@@ -36,7 +36,7 @@
 	</table>
 	<table class="tab-template">
 		<tr class=header>
-			<th class="thumbnail">Thumbnails<br>
+			<th class="thumbnail" rowspan=2>Thumbnails<br>
 				<hr>Show:<input class="thumbBox" type="checkbox"
 				onClick="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();">
 			</th>
@@ -54,11 +54,17 @@
 				New only:<input class="newBox" type="checkbox" onClick="this.checked?conf.filter_new=true:conf.filter_new=false; render()"/>
  				Show UTC:<input class="utcBox" type="checkbox" onClick="this.checked?conf.show_utc=true:conf.show_utc=false; render()"/>
 			</th>			
-			<th class="type">Type<br>
-				<hr> Full only:
-				<input class="typeBox" type="checkbox" onClick="conf.filter_thumbs?conf.filter_thumbs=false:conf.filter_thumbs=true; render()" />
+			<th class="type" rowspan=2>Type<br>
+				<hr>
+				<select class="typeSelectMulti" data-placeholder="All" multiple="multiple"
+				onChange="conf.filter_type=$(this).val()!=null?$(this).val():[];render()">
+					<option value="F">Full</option>
+					<option value="S">Subframe</option>
+					<option value="D">Downscaled</option>
+					<option value="T">Thumbnail</option>
+				</select>
 			</th>
-			<th class="cam">Camera<br>
+			<th class="cam" rowspan=2>Camera<br>
 				<hr> 
 				<select class="camSelectMulti" data-placeholder="All" multiple="multiple"
 				onChange="conf.filter_cam=$(this).val()!=null?$(this).val():[];render()">
@@ -89,7 +95,6 @@
 			</th>
 		</tr>
 		<tr class=header>
-			<th class="hidden"></th>
 			<th class="selector">
 				<input class="toggleSelector" type="checkbox" onClick='this.checked?$(".tab-target input.selector").attr({ checked:"checked"}):$(".tab-target input.selector").removeAttr("checked")'>
 			</th>
@@ -102,8 +107,10 @@
 				<a href="#" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') selectList()"><span class="ui-icon-check ui-icon inline"></span></a>
 				<a href="#" class="listIcon" onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') addToList()"><span class="ui-icon-plus ui-icon inline"></span></a>
 				<a href="#" class="listIcon" onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') removeFromList()"><span class="ui-icon-minus ui-icon inline"></span></a>
-				current: [<a href="#" class="cleanLink" onClick="openLists()"><span class="currentList">none</span>
+				<a href="#" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') $('.listInfo').dialog('open')"><span class="ui-icon-info ui-icon inline"></span></a>
+				[<a href="#" class="cleanLink" onClick="openLists()"><span class="currentList">####</span>
 				<span class="ui-icon-triangle-1-s ui-icon inline"></span></a>]
+				<span class="listCount"></span>
 				<select class="listSelect" onChange="conf.filter_list=$(this).val();render()">
 					<option value="none">Ignore</option>
 					<option value="exclude">Exclude list</option>
@@ -125,18 +132,34 @@
 			<td class="type"></td>
 			<td class="cam"></td>
 		</tr>
+		<tr class="line-filler">
+			<td class="thumbnail"></td>
+			<td class="selector"> 
+			</td>
+			<td>No images found for current selection!</td>
+			<td class="sol"></td>
+			<td class="date"></td>	
+			<td class="type"></td>
+			<td class="cam"></td>
+		</tr>
 		<tr>
-			<td colspan=6><input class="more" type="button"
-				onClick="conf.show_count+=max_show;render(false)" value="show more" />
-				<input class="all" type="button"
-				onClick="conf.show_count=999999;render(false)" value="show all" />
+			<td colspan=8>
+				<hr>
+				Showing max:<span class="now"></span>
+				<input class="base" type="button"
+				onClick="conf.show_count=max_show;render()"/>	
 				<input class="less" type="button"
-				onClick="conf.show_count=max_show;render()" value="show less" /></td>
+				onClick="conf.show_count-=max_show;render()"/>	
+				<input class="more" type="button"
+				onClick="conf.show_count+=max_show;render(false)" />
+				<input class="all" type="button"
+				onClick="conf.show_count=999999;render(false)" />
+			</td>
 		</tr>
 	</table>
 	<div class="footer">
 	<div itemscope itemtype="http://data-vocabulary.org/Person">
-	This site is developed by <span itemprop="name">Ludo Stellingwerff</span>.<br>
+	This site is developed by <span itemprop="name">Ludo Stellingwerff</span>&nbsp;(<span itemprop="role">Senior Software Engineer</span> - <span itemprop="location">Rotterdam, The Netherlands</span>).<br>
 	</div>
 	I don't own any of the data on this site, massive thanks to NASA for sharing this with all of us.<br>
 	Source:<a href="http://mars.jpl.nasa.gov/msl/multimedia/raw/" target="_blank">http://mars.jpl.nasa.gov/msl/multimedia/raw/</a>.
@@ -150,7 +173,7 @@
 	</div> 
 	<div class="listCreate">
 		Label: <input type="text" class="listLabel" name="listLabel"/><br>
-		Description: <input type="textarea" class="listDescr" name="listDescr"/><br>
+		Description: <textarea class="listDescr" name="listDescr"></textarea><br>
 		Related url: <input type="text" class="listURL" name="listURL"/><br>
 		<span style="text-size:8pt">(e.g. URL to UMSF forum post/discussion)</span><br>
 		<input type="button" class="close" value="Create" onClick="createList();$('.listCreate').dialog('close');"/>
@@ -161,6 +184,9 @@
 		<input type="button" value="Delete" onClick="deleteList();$('.listDelete').dialog('close');"/>
 		<input type="button" value="Cancel" onClick="$('.listDelete').dialog('close');"/>
 	</div>
+	<div class="listInfo">
+		
+	</div>
 	<div class="listHelp">
 		<ul>
 			<li style="white-space:nowrap"><span class="ui-icon-document ui-icon inline"></span> - Creates new list based on current image selection</li>			
@@ -168,6 +194,7 @@
 			<li style="white-space:nowrap"><span class="ui-icon-check ui-icon inline"></span> - Select all visible images which are on the current list</li>
 			<li style="white-space:nowrap"><span class="ui-icon-plus ui-icon inline"></span> - Add selected images to current list</li>
 			<li style="white-space:nowrap"><span class="ui-icon-minus ui-icon inline"></span> - Remove selected images from current list</li>
+			<li style="white-space:nowrap"><span class="ui-icon-info ui-icon inline"></span> - Show the current lists meta info</li>
 			<li style="white-space:nowrap"><span class="ui-icon-triangle-1-s ui-icon inline"></span> - Open list management/selection dialog</li>
 		</ul>
 		<input type="button" value="Cancel" onClick="$('.listHelp').dialog('close');"/>

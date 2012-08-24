@@ -60,7 +60,7 @@ public class SiteParser {
 			con.setReadTimeout(60000);
 			
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					con.getInputStream()),5000);
+					con.getInputStream()),15000);
 			String line;
 			boolean found = false;
 			
@@ -153,7 +153,8 @@ public class SiteParser {
 				queue.add(withUrl("/collector").param("imageUUIDs",list));
 				memCache.delete("quickServe");
 			}
-			
+			reader.close();
+			con.disconnect();
 			System.out.println("Done:"+s_url+"?s="+sol);
 			return sol;
 		} catch (Exception exp) {
