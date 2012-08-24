@@ -1,7 +1,19 @@
-max_show = 20;
-settings = {
+
+var errorCloseButton = "&nbsp;<a href='#' class='cleanLink' onClick='$(\".error\").html(\"\")'><span class='ui-icon ui-icon-circle-close inline'></span></a>";
+dyn = {
+	max_show:20,
+	data:[],
+	highest_sol:0,
+	pagecount:0,
+	totalImages:0,
+	newLimit:0,
+	render_max:500, //Safety!
+	fullList:[]
+}
+
+var settings = {
 	sort_type : "time",
-	show_count : max_show,
+	show_count : dyn.max_show,
 	show_thumbs : false,
 	show_utc : true,
 	filter_sol : -1,
@@ -13,6 +25,7 @@ settings = {
 	useWget : true,
 	wget_syntax : "wget -i -"
 }
+
 conf = {};
 if (typeof (localStorage["msl-raws-conf"]) != "undefined"
 		&& localStorage["msl-raws-conf"] != "") {
@@ -20,12 +33,6 @@ if (typeof (localStorage["msl-raws-conf"]) != "undefined"
 }
 conf = $.extend({}, settings, conf);
 
-data = [];
-errorCloseButton = "&nbsp;<a href='#' class='cleanLink' onClick='$(\".error\").html(\"\")'><span class='ui-icon ui-icon-circle-close inline'></span></a>";
-
-/*
- * Lists management
- */
 lists = {};
 if (typeof (localStorage["msl-raws-lists"]) != "undefined"
 	&& localStorage["msl-raws-lists"] != "") {
@@ -37,6 +44,9 @@ if (typeof (localStorage["msl-raws-lists"]) != "undefined"
 	} catch (e){}
 }
 
+/**
+ * List management
+ */
 function createList(){
 	if ($(".listLabel").val() != ""){
 		conf.current_list = {
@@ -116,21 +126,12 @@ function pad(number, length) {
 	return str;
 }
 
-
 /*
  * Image listing
  */
-highest_sol = 0;
-pagecount = 0;
-totalImages = 0;
-camList = "";
-newLimit = 0;
-render_max = 500; //Safety!
-fullList = [];
-
 function filter(a) {
-	if (parseInt(a.item.sol) > highest_sol)
-		highest_sol = parseInt(a.item.sol);
+	if (parseInt(a.item.sol) > dyn.highest_sol)
+		dyn.highest_sol = parseInt(a.item.sol);
 	var skip = typeof conf.current_list.name == "undefined";
 	if (!skip && conf.filter_list == "include"
 			&& $.inArray(a.item.uuid,conf.current_list.uuids) < 0) return false;
@@ -143,7 +144,7 @@ function filter(a) {
 	} else {
 		if (conf.filter_new
 				&& parseFloat(a.item.lastModified == "" ? a.item.unixTimeStamp
-						: a.item.lastModified) < newLimit)
+						: a.item.lastModified) < dyn.newLimit)
 			return false;
 		if (conf.filter_sol >= 0 && a.item.sol != conf.filter_sol)
 			return false;
@@ -154,10 +155,10 @@ function filter(a) {
 				&& $.inArray(a.item.camera, conf.filter_cam) == -1)
 			return false;		
 	}
-	totalImages++;
-	if (pagecount > render_max)
+	dyn.totalImages++;
+	if (dyn.pagecount > dyn.render_max)
 		return false;
-	if (pagecount++ > conf.show_count)
+	if (dyn.pagecount++ > conf.show_count)
 		return false;
 	return true;
 }
@@ -178,13 +179,13 @@ function saveConf() {
 	localStorage["msl-raws-conf"] = JSON.stringify(conf);
 }
 function render() {
-	newLimit = new Date().getTime() - (24 * 3600 * 1000);
+	dyn.newLimit = new Date().getTime() - (24 * 3600 * 1000);
 	localStorage["msl-raws-conf"] = JSON.stringify(conf);
 
 	$('.tab-target th.name').html("Name (loading....)");
 	$('.error').html("");
-	pagecount = 0;
-	totalImages = 0;
+	dyn.pagecount = 0;
+	dyn.totalImages = 0;
 	$('.tab-target')
 			.replaceWith(
 					$('.tab-template')
@@ -215,7 +216,7 @@ function render() {
 												'.type' : 'image.type',
 												'.cam' : 'image.camera',
 												'.newImage@class+' : function(a) {
-													if (parseFloat(a.item.lastModified == "" ? a.item.unixTimeStamp	: a.item.lastModified) >= newLimit) {
+													if (parseFloat(a.item.lastModified == "" ? a.item.unixTimeStamp	: a.item.lastModified) >= dyn.newLimit) {
 														return " show";
 													}
 													return "";
@@ -269,12 +270,12 @@ function render() {
 												return filter(a);
 											}
 										}
-									}).render(data).removeClass('tab-template')
+									}).render(dyn.data).removeClass('tab-template')
 							.addClass('tab-target'));
 
 	// Revert input fields to conf values:
 	if (conf.filter_sol < 0) {
-		$(".solInput").val(highest_sol);
+		$(".solInput").val(dyn.highest_sol);
 	} else {
 		$(".solInput").val(conf.filter_sol);
 	}
@@ -289,27 +290,29 @@ function render() {
 	toggleSelector();
 
 	//Navigation stuff
-	$(".line-filler").toggle(totalImages==0); 
-	$(".less,.base").toggle(conf.show_count > max_show);
-	if (conf.show_count == 2*max_show) $(".less").hide();
-	$(".more,.all").toggle(pagecount >= conf.show_count);
-	$(".now").html(conf.show_count);
-	$(".more").val("+"+max_show);
-	$(".less").val("-"+max_show);
-	$(".base").val("only "+max_show);
-	$(".all").val("all "+totalImages);
+	$(".tab-target .line-filler").toggle(dyn.totalImages==0); 
+	$(".tab-target .less,.base").toggle(conf.show_count > dyn.max_show);
+	if (conf.show_count == 2*dyn.max_show) $(".tab-target .less").hide();
+	$(".tab-target .more,.all").toggle(dyn.pagecount >= conf.show_count);
+	$(".tab-target .now").html(conf.show_count);
+	$(".tab-target .more").val("+"+dyn.max_show);
+	$(".tab-target .less").val("-"+dyn.max_show);
+	$(".tab-target .base").val("only "+dyn.max_show);
+	$(".tab-target .all").val("all "+dyn.totalImages);
 
 	//Set some global info fields:
-	$(".imageCount").html(
-			totalImages + " of " + data.length + " images selected");
-	$(".currentList").html(typeof conf.current_list.name != "undefined"?conf.current_list.name:"####");
-	$(".listCount").html(typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length+" images":"")
-	$('.sol .newest').html(" ->" + highest_sol);
+	$(".tab-target .imageCount").html(
+			dyn.totalImages + " of " + dyn.data.length + " images selected");
+	$(".tab-target .currentList").html(typeof conf.current_list.name != "undefined"?conf.current_list.name:"####");
+	$(".tab-target .listCount").html(typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length+" images":"")
+	$('.tab-target .sol .newest').html(" ->" + dyn.highest_sol);
 
-	if (pagecount >= render_max) {
+	if (dyn.pagecount >= dyn.render_max) {
 		$(".error")
-		.html("Sorry, cowardly refusing to render more than "+render_max+" images in one page!"+errorCloseButton+"<br><a href='#' onClick='render_max=999999;render();'>Temporary lift limit, really sure?</a>");
+		.html("Sorry, cowardly refusing to render more than "+dyn.render_max+" images in one page!"+errorCloseButton+"<br><a href='#' onClick='dyn.render_max=999999;render();'>Temporary lift limit, really sure?</a>");
 	}
+	$(".tab-target input:button").button('refresh');
+
 	// ALthough not necessary on all redraws, no problem:
 	$(".prefixText").val(conf.wget_syntax);
 	$(".prefixBox").attr('checked', conf.useWget);
@@ -337,7 +340,7 @@ function selectedImagesList() {
 	if (selected.length == 0)
 		return {};
 	var result = {};
-	data.map(function(image) {
+	dyn.data.map(function(image) {
 		if ($.inArray(image.uuid, selected) >= 0) {
 			result[image.uuid] = image;
 		}
@@ -368,9 +371,9 @@ function reload() {
 				url : "/landing?flat",
 				statusCode : {
 					200 : function(json) {
-						data = json;
-						if (typeof data == "string"){
-							data = JSON.parse(json);
+						dyn.data = json;
+						if (typeof dyn.data == "string"){
+							dyn.data = JSON.parse(json);
 						}
 						render();
 					}
@@ -440,10 +443,10 @@ $(document).ready(function() {
 		$(this).html("<span class='reloading'>Loading...</span>")})
 	.ajaxStop(function() {
 		$(this).html(reloadString)});
-	
+	$("input:button").button();
+
 	reload();
 	startSharrre();
-	$("input:button").button();
 	$(".prefix").dialog({
 		autoOpen : false,
 		title : "export prefix",
@@ -470,5 +473,5 @@ $(document).ready(function() {
 		modal : true,
 		width : "40em"
 	});
-	
+
 });

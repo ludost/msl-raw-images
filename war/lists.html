@@ -105,8 +105,10 @@
 				<a href="#" class="listIcon" onClick="if (selectedImages().length>0) $('.listCreate').dialog('open')"><span class="ui-icon-document ui-icon inline"></span></a>			
 				<a href="#" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') $('.listDelete').dialog('open')"><span class="ui-icon-trash ui-icon inline"></span></a>			
 				<a href="#" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') selectList()"><span class="ui-icon-check ui-icon inline"></span></a>
+				&nbsp;
 				<a href="#" class="listIcon" onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') addToList()"><span class="ui-icon-plus ui-icon inline"></span></a>
 				<a href="#" class="listIcon" onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') removeFromList()"><span class="ui-icon-minus ui-icon inline"></span></a>
+				&nbsp;
 				<a href="#" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') $('.listInfo').dialog('open')"><span class="ui-icon-info ui-icon inline"></span></a>
 				[<a href="#" class="cleanLink" onClick="openLists()"><span class="currentList">####</span>
 				<span class="ui-icon-triangle-1-s ui-icon inline"></span></a>]
@@ -147,11 +149,11 @@
 				<hr>
 				Showing max:<span class="now"></span>
 				<input class="base" type="button"
-				onClick="conf.show_count=max_show;render()"/>	
+				onClick="conf.show_count=dyn.max_show;render()"/>	
 				<input class="less" type="button"
-				onClick="conf.show_count-=max_show;render()"/>	
+				onClick="conf.show_count-=dyn.max_show;render()"/>	
 				<input class="more" type="button"
-				onClick="conf.show_count+=max_show;render(false)" />
+				onClick="conf.show_count+=dyn.max_show;render(false)" />
 				<input class="all" type="button"
 				onClick="conf.show_count=999999;render(false)" />
 			</td>

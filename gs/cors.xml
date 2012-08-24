@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CorsConfig>
+  <Cors>
+    <Origins>
+      <Origin>http://1.msl-raw-images.appspot.com</Origin>
+      <Origin>http://msl-raw-images.appspot.com</Origin>
+      <Origin>http://localhost:8888</Origin>
+      <Origin>http://192.168.88.113:8888</Origin>
+    </Origins>
+    <Methods>
+      <Method>GET</Method>
+      <Method>HEAD</Method>
+      <Method>DELETE</Method>
+    </Methods>
+    <ResponseHeaders>
+      <ResponseHeader>x-goog-meta-foo1</ResponseHeader>
+    </ResponseHeaders>
+    <MaxAgeSec>1800</MaxAgeSec>
+  </Cors>
+</CorsConfig>
+

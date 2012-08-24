@@ -5,9 +5,9 @@ html {
 	-o-background-size: cover;
 	background-size: cover;
 }
-.lists{ 
-	display:none !important
-}
+/* .lists{  */
+/* 	display:none !important */
+/* } */
 
 .tab-template {	display: none; }
 input.default { padding: 0px !important }
@@ -70,6 +70,8 @@ div.lists {
 	display:none;
 }
 .listSelect{
+	position:relative;
+	top:1px;
 	width:90px;
 }
 .cleanLink {
@@ -77,9 +79,15 @@ div.lists {
 	color:black;
 }
 .listIcon{
+	position:relative;
+	top:1px;
 	border:1px solid #8a2d05;
 	height:16px;
 	width:16px;
+}
+.ui-icon{
+	position:relative;
+	top:1px;
 }
 .newImage { 
 	color:red;
