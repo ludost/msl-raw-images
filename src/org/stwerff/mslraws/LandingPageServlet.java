@@ -30,8 +30,10 @@ import com.google.appengine.api.memcache.MemcacheServiceFactory;
 public class LandingPageServlet extends HttpServlet {
 	private static final long serialVersionUID = 8110001398162695563L;
 	static final ObjectMapper om = new ObjectMapper();
-	static MemcacheService memCache = MemcacheServiceFactory.getMemcacheService();;
-
+	static MemcacheService memCache = MemcacheServiceFactory.getMemcacheService();
+	
+	static final String jpl = "http://mars.jpl.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol";
+	static final String msss = "http://mars.jpl.nasa.gov/msl-raw-images/msss";
 	
 	public ArrayNode generateJSON(int sol, String camera, boolean countsOnly, boolean flat, boolean repair){
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
@@ -103,11 +105,10 @@ public class LandingPageServlet extends HttpServlet {
 								ObjectNode imageNode = om.createObjectNode();
 								imageNode.put("uuid", image.getId().toString());
 								imageNode.put("name", url.substring(url.lastIndexOf('/')+1));
-								imageNode.put("url", url);
-								imageNode.put("thumbnailUrl", image.getPropertyValue("thumbnail"));
+								imageNode.put("url", url.replace(jpl,"J$").replace(msss,"M$"));
+								imageNode.put("thumbnailUrl", image.getPropertyValue("thumbnail").replace(jpl,"J$").replace(msss,"M$"));
 								imageNode.put("type", image.getPropertyValue("type"));
 								imageNode.put("unixTimeStamp", image.getPropertyValue("timestamp"));
-								imageNode.put("date", image.getPropertyValue("stringDate"));
 								imageNode.put("fileTimeStamp", image.getPropertyValue("fileTimeStamp"));
 								imageNode.put("lastModified", image.getPropertyValue("lastModified"));
 								if (flat){
@@ -183,7 +184,6 @@ public class LandingPageServlet extends HttpServlet {
 			fullReload=true;
 			mayCache=false;
 		}
-		resp.setContentType("application/json");
 		String result="";
 		if (!fullReload && memCache.get("quickServe") != null && memCache.get("quickServe") != ""){
 			UUID uuid = new UUID((String)memCache.get("quickServe"));
@@ -207,6 +207,9 @@ public class LandingPageServlet extends HttpServlet {
 				memCache.put("quickServe", lastServed.addChild(new MemoNode(result)).getId().toString());
 			}
 		}
+		resp.setBufferSize(500000);
+		resp.setContentType("application/json");
+		resp.setContentLength(result.length());
 		resp.getWriter().write(result);
 		if (repair) MemoNode.flushDB();
 	}

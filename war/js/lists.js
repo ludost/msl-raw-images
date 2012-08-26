@@ -1,5 +1,6 @@
 
-
+var jpl = "http://mars.jpl.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol";
+var msss = "http://mars.jpl.nasa.gov/msl-raw-images/msss";
 var errorCloseButton = "&nbsp;<a href='#' class='cleanLink' onClick='$(\".error\").html(\"\")'><span class='ui-icon ui-icon-circle-close inline'></span></a>";
 dyn = {
 	data:[],
@@ -7,7 +8,8 @@ dyn = {
 	pagecount:0,
 	totalImages:0,
 	newLimit:0,
-	fullList:[]
+	fullList:[],
+	temp_render_max:false
 }
 
 var settings = {
@@ -92,12 +94,12 @@ function pad(number, length) {
  * List management
  */
 function createList(){
-	if ($(".listLabel").val() != ""){
+	if ($(".listCreate .listLabel").val() != ""){
 		conf.current_list = {
 			uuid: new UUID(),
-			name: $(".listLabel").val(),
-			description: $(".listDescr").val(),
-			url: $(".listURL").val(),
+			name: $(".listCreate .listLabel").val(),
+			description: $(".listCreate .listDescr").val(),
+			url: $(".listCreate .listURL").val(),
 			uuids: selectedImages()
 		}
 		lists[conf.current_list.uuid.id]=(conf.current_list);
@@ -142,11 +144,34 @@ function removeFromList(){
 	render();
 	selectList();
 }
-function openLists(){
-	$(".error")
-	.html("Sorry, I haven't implemented that button yet!"+errorCloseButton);
+
+function openList(listId){
+	conf.current_list=lists[listId];
+	conf.filter_list="complete";
+	$tabs.tabs('select',0);
 }
 
+function renderLists(){
+	$('.listBrowser-target')
+	.replaceWith(
+			$('.listBrowser-template')
+					.clone()
+					.directives({
+						'.line-template' : {
+							'listItem<-context' : {
+								".listLabel@onClick":function(a){
+									return "openList('"+a.item.uuid.id+"')";
+								},
+								".listLabel":"listItem.name",
+								".listCount":"listItem.uuids.length",
+								".listDescr":"listItem.description",
+								".listUrl@href":"listItem.url",
+								".listUrl":function(a){ return a.item.url==""?"":"link"}
+							}
+						}
+					}).render(lists).removeClass('listBrowser-template')
+					.addClass('listBrowser-target'));
+}
 /*
  * Image listing
  */
@@ -178,7 +203,7 @@ function filter(a) {
 	}
 	dyn.totalImages++;
 	dyn.fullList.push(a.item.uuid);
-	if (dyn.pagecount > conf.render_max)
+	if (!dyn.temp_render_max && dyn.pagecount > conf.render_max)
 		return false;
 	if (dyn.pagecount > conf.show_count)
 		return false;
@@ -235,7 +260,9 @@ function render() {
 										'.line-template' : {
 											'image<-context' : {
 												'.name' : 'image.name',
-												'.name@href' : 'image.url',
+												'.name@href' : function(a){
+													return a.item.url[1]=="$"?(a.item.url[0]=="J"?jpl:msss)+a.item.url.substring(2):a.item.url;
+												},
 												'input.selector@value' : 'image.uuid',
 												'.sol' : 'image.sol',
 												'.type' : 'image.type',
@@ -249,7 +276,7 @@ function render() {
 												'.thumbnail' : function(a) {
 													if (conf.show_thumbs) {
 														return '<img src="'
-																+ a.item.thumbnailUrl
+																+ (a.item.thumbnailUrl[1]=="$"?(a.item.url[0]=="J"?jpl:msss)+a.item.thumbnailUrl.substring(2):a.item.thumbnailUrl)
 																+ '">';
 													}
 													return "";// TODO: link to
@@ -320,7 +347,7 @@ function render() {
 	$(".tab-target .less,.base").toggle(conf.show_count > conf.max_show);
 	if (conf.show_count == 2*conf.max_show) $(".tab-target .less").hide();
 	$(".tab-target .more,.all").toggle(dyn.pagecount >= conf.show_count);
-	$(".tab-target .now").html(conf.show_count);
+	$(".tab-target .now").html(conf.show_count==999999?"all":conf.show_count);
 	$(".tab-target .more").val("+"+conf.max_show);
 	$(".tab-target .less").val("-"+conf.max_show);
 	$(".tab-target .base").val("only "+conf.max_show);
@@ -345,7 +372,7 @@ function render() {
 
 	if (dyn.pagecount >= conf.render_max) {
 		$(".error")
-		.html("Sorry, cowardly refusing to render more than "+conf.render_max+" images in one page!"+errorCloseButton+"<br><a href='#' onClick='conf.render_max=999999;render();'>Temporary lift limit, really sure?</a>");
+		.html("Sorry, cowardly refusing to render more than "+conf.render_max+" images in one page!"+errorCloseButton+"<br><a href='#' onClick='dyn.temp_render_max=true;render();'>Temporary lift limit, really sure?</a>");
 	}
 	$(".tab-target input:button").button('refresh');
 
@@ -354,6 +381,7 @@ function render() {
 	$(".prefixBox").attr('checked', conf.useWget);
 	// Done
 }
+
 function selectList(){
 	if (typeof conf.current_list.uuids == "undefined") return;
 	$(".tab-target input.selector").each(function(){
@@ -522,4 +550,11 @@ $(document).ready(function() {
 		modal : true,
 		width : "35em"
 	})
+	$tabs = $(".tabContainer").tabs({
+		selected:0,
+		show: function(event, ui) {
+			if (ui.panel.id == "Lists") renderLists();
+			if (ui.panel.id == "Images") render();			
+		}
+	});
 });

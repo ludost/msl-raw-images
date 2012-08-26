@@ -42,10 +42,12 @@ public class SiteParser {
 		} else {
 			if (filename.charAt(16) == 'I') return "thumbnail";
 			if (filename.charAt(16) == 'D') return "downscaled";
-			if (filename.charAt(16) == 'E') return "full/subframe";
+			if (filename.charAt(16) == 'C') return "subframe";
+			if (filename.charAt(16) == 'E') return "full";
 			return "unknown";
 		}
 	}
+	
 	
 	public static int fetch(String s_url, int sol) {
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
@@ -117,9 +119,10 @@ public class SiteParser {
 				if (imageNode != null && i > -1) {
 					line=line.trim();
 					String stringDate = new String(line.split("RawImageUTC\">")[1].split("</div>")[0]);
+					stringDate = stringDate.replaceAll("<br/>", " ").replaceAll("&nbsp;", " ");
 					imageNode.setPropertyValue("stringDate", stringDate);
 					//2012-08-09 05:34:05&nbsp;UTC
-					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss'&nbsp;'z");
+					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
 					try {
 						Date date = formatter.parse(stringDate);
 						if (date != null){

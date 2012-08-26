@@ -1,8 +1,9 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<title>MC.RIL | MSL Curiosity Raw Images Listing</title>
-<meta name="description" content="Follow the raw images Curiosity sends back to Earth each sol. This site is focused on downloading, listing and organizing the raw images.">
+<title>MSL Curiosity Raw Images Listing</title>
+<meta name="description"
+	content="Follow the raw images Curiosity sends back to Earth each sol. This site is focused on downloading, listing and organizing the raw images.">
 <meta http-equiv="content-type" content="text/html;charset=UTF-8">
 
 <script src="js/jquery-1.8.0.min.js"></script>
@@ -10,10 +11,11 @@
 <script src="js/browser-detect.js"></script>
 <script src="js/jquery-ui-1.8.23.custom.min.js"></script>
 <script src="js/pure_min.js"></script>
-<script src="js/uuid.js"></script> 
+<script src="js/uuid.js"></script>
 <link rel="styleSheet" href="css/lists.css"></link>
 <link rel="styleSheet" href="css/chosen.css"></link>
-<link rel="styleSheet" href="css/custom-theme/jquery-ui-1.8.23.custom.css"></link>
+<link rel="styleSheet"
+	href="css/custom-theme/jquery-ui-1.8.23.custom.css"></link>
 <script src="js/chosen.jquery.min.js"></script>
 <script src="js/jquery.sharrre-1.3.2.min.js"></script>
 <script src="js/range-select.js"></script>
@@ -21,204 +23,283 @@
 </head>
 <body>
 	<div class="buttonDiv">
-	<div id="sharrre"
-		data-url="http://msl-raw-images.appspot.com/lists.html"
-		data-text="MSL Curiosity Raw images listing"></div>
-	<br>
-	<div class="reload"></div>
+		<div id="sharrre"
+			data-url="http://msl-raw-images.appspot.com/lists.html"
+			data-text="MSL Curiosity Raw images listing"></div>
+		<br>
+		<div class="reload"></div>
 	</div>
-	<div class="headerDiv"><h1><center>MSL Curiosity - Raw Images Listing</center></h1></div>
+	<div class="headerDiv">
+		<h1>
+			&nbsp;MSL Curiosity - Raw Images Listing
+		</h1>
+	</div>
 	<div class="error"></div>
-	<table class="tab-target">
-		<tr>
-			<td>Loading data, please wait..... (Sadly this can take upto a minute, working on it...)</td>
-		</tr>
-	</table>
-	<table class="tab-template">
-		<tr class=header>
-			<th class="thumbnail" rowspan=2>Thumbnails<br>
-				<hr>Show:<input class="thumbBox" type="checkbox"
-				onClick="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();">
-			</th>
-			<th class="name" colspan="2">Name<br>
-				<hr>
-				<span class="imageCount"></span>
-			</th>
-			<th class="sol">Sol<span class="newest"></span><br>
-				<hr> 
-				<input class="solInput" type="text" value="" onChange="if ($('.solBox:checked').length==0){conf.filter_sol=this.value; render()}" />
-				&nbsp;All:<input class='solBox' type="checkbox"	onClick="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()" />
-			</th>
-			<th>Date - (use Release:<input class='sortBox' type="checkbox" onClick="this.checked?conf.sort_type='modified':conf.sort_type='time'; render()"/>)
-				<br><hr>
-				New only:<input class="newBox" type="checkbox" onClick="this.checked?conf.filter_new=true:conf.filter_new=false; render()"/>
- 				Show UTC:<input class="utcBox" type="checkbox" onClick="this.checked?conf.show_utc=true:conf.show_utc=false; render()"/>
-			</th>			
-			<th class="type" rowspan=2>Type<br>
-				<hr>
-				<select class="typeSelectMulti" data-placeholder="All" multiple="multiple"
-				onChange="conf.filter_type=$(this).val()!=null?$(this).val():[];render()">
-					<option value="F">Full</option>
-					<option value="S">Subframe</option>
-					<option value="D">Downscaled</option>
-					<option value="T">Thumbnail</option>
-				</select>
-			</th>
-			<th class="cam" rowspan=2>Camera<br>
-				<hr> 
-				<select class="camSelectMulti" data-placeholder="All" multiple="multiple"
-				onChange="conf.filter_cam=$(this).val()!=null?$(this).val():[];render()">
-					<optgroup label="science cameras">
-						<option value="MH">(MH) MAHLI HandCam</option>
-						<option value="CR0">(CR0) ChemCam</option>
-						<option value="ML">(ML) MastCam Left</option>
-						<option value="MR">(MR) MastCam Right</option>
-					</optgroup>
-					<optgroup label="engineering cameras">
-						<option value="NLA">(NLA) NavCam Left</option>
-						<option value="NRA">(NRA) NavCam Right</option>
-						<option value="FLA">(FLA) Front Left HazCam</option>
-						<option value="FRA">(FRA) Front Right HazCam</option>
-						<option value="RLA">(RLA) Rear Left HazCam</option>
-						<option value="RRA">(RRA) Rear Right HazCam</option>
-						<option value="MD">(MD) MARDI DescentCam</option>
-					</optgroup>
-					<optgroup label="secondary engineering cameras">
-						<option value="NLB">(NLB) NavCam Left</option>
-						<option value="NRB">(NRB) NavCam Right</option>
-						<option value="FLB">(FLB) Front Left HazCam</option>
-						<option value="FRB">(FRB) Front Right HazCam</option>
-						<option value="RLB">(RLB) Rear Left HazCam</option>
-						<option value="RRB">(RRB) Rear Right HazCam</option>
-					</optgroup>
-			</select>
-			</th>
-		</tr>
-		<tr class=header>
-			<th class="selector">
-				<input class="toggleSelector" type="checkbox" onClick='this.checked?$(".tab-target input.selector").attr({ checked:"checked"}):$(".tab-target input.selector").removeAttr("checked")'>
-			</th>
-			<th class="list" colspan=3>
-			<input type=button value="Export" onClick="outputList()">
-			<input type=button value="Preferences" onClick="$('.preferences').dialog('open');">
-			&nbsp;&nbsp;
-			<div class="lists">
-				<a href="#" class="listIcon" onClick="if (selectedImages().length>0) $('.listCreate').dialog('open')"><span class="ui-icon-document ui-icon inline"></span></a>			
-				<a href="#" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') $('.listDelete').dialog('open')"><span class="ui-icon-trash ui-icon inline"></span></a>			
-				|
-				<a href="#" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') selectList()"><span class="ui-icon-check ui-icon inline"></span></a>
-				|
-				<a href="#" class="listIcon" onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') addToList()"><span class="ui-icon-plus ui-icon inline"></span></a>
-				<a href="#" class="listIcon" onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') removeFromList()"><span class="ui-icon-minus ui-icon inline"></span></a>
-				|
-				[<a href="#" class="cleanLink" onClick="openLists()"><span class="currentList">####</span>
-				<span class="ui-icon-triangle-1-s ui-icon inline"></span></a>]
-				<span class="listCount"></span>
-				<select class="listSelect" onChange="conf.filter_list=$(this).val();render()">
-					<option value="none">Ignore</option>
-					<option value="exclude">Exclude list</option>
-					<option value="include">Included only (other filters apply)</option>
-					<option value="complete">Show only list (ignores other filters!)</option> 
-				</select>
-				<a href="#" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') $('.listInfo').dialog('open')"><span class="ui-icon-info ui-icon inline"></span></a>
-				|
-				<a href="#" class="listIcon" onClick="$('.listHelp').dialog('open')"><span class="ui-icon-help ui-icon inline"></span></a>
-			</div>
-			</th>
-		</tr>
-		<tr class="line-infolist">
-			<td colspan=2 class="hidden"></td>
-			<td colspan=3>(Showing entire list, other filters are ignored!)</td>
-			<td colspan=2 class="hidden"></td>
-		</tr>
-		<tr class="line-template">
-			<td class="thumbnail"></td>
-			<td class="selector">
-					<input type="checkbox" class="selector" name="selector"> 
-			</td>
-			<td><span class="newImage">*</span><a href="" class="name" target="_blank"></a></td>
-			<td class="sol"></td>
-			<td class="date"></td>	
-			<td class="type"></td>
-			<td class="cam"></td>
-		</tr>
-		<tr class="line-filler">
-			<td class="thumbnail"></td>
-			<td class="selector"> 
-			</td>
-			<td>No images found for current selection!</td>
-			<td class="sol"></td>
-			<td class="date"></td>	
-			<td class="type"></td>
-			<td class="cam"></td>
-		</tr>
-		<tr>
-			<td colspan=8>
-				<hr>
-				Showing max:<span class="now"></span>
-				<input class="base" type="button"
-				onClick="conf.show_count=conf.max_show;render()"/>	
-				<input class="less" type="button"
-				onClick="conf.show_count-=conf.max_show;render()"/>	
-				<input class="more" type="button"
-				onClick="conf.show_count+=conf.max_show;render(false)" />
-				<input class="all" type="button"
-				onClick="conf.show_count=999999;render(false)" />
-			</td>
-		</tr>
-	</table>
-	<div class="footer">
-	<div itemscope itemtype="http://data-vocabulary.org/Person">
-	This site is developed by <span itemprop="name">Ludo Stellingwerff</span>&nbsp;(<span itemprop="role">Senior Software Engineer</span> - <span itemprop="location">Rotterdam, The Netherlands</span>).<br>
+	<div class="tabContainer">
+		<ul>
+			<li><a href="#Images">Images</a></li>
+			<li><a href="#Lists">Lists</a></li>
+		</ul>
+		<div class="imageBrowser" id="Images">
+			<table class="tab-target">
+				<tr>
+					<td>Loading data, please wait..... (Sadly this can take upto a
+						minute, working on it...)</td>
+				</tr>
+			</table>
+			<table class="tab-template">
+				<tr class=header>
+					<th class="thumbnail" rowspan=2>Thumbnails<br>
+						<hr>Show:<input class="thumbBox" type="checkbox"
+						onClick="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();">
+					</th>
+					<th class="name" colspan="2">Name<br>
+						<hr> <span class="imageCount"></span>
+					</th>
+					<th class="sol">Sol<span class="newest"></span><br>
+						<hr> <input class="solInput" type="text" value=""
+						onChange="if ($('.solBox:checked').length==0){conf.filter_sol=this.value; render()}" />
+						&nbsp;All:<input class='solBox' type="checkbox"
+						onClick="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()" />
+					</th>
+					<th>Date - (use Release:<input class='sortBox' type="checkbox"
+						onClick="this.checked?conf.sort_type='modified':conf.sort_type='time'; render()" />)
+						<br>
+					<hr> New only:<input class="newBox" type="checkbox"
+						onClick="this.checked?conf.filter_new=true:conf.filter_new=false; render()" />
+						Show UTC:<input class="utcBox" type="checkbox"
+						onClick="this.checked?conf.show_utc=true:conf.show_utc=false; render()" />
+					</th>
+					<th class="type" rowspan=2>Type<br>
+						<hr> <select class="typeSelectMulti" data-placeholder="All"
+						multiple="multiple"
+						onChange="conf.filter_type=$(this).val()!=null?$(this).val():[];render()">
+							<option value="F">Full</option>
+							<option value="S">Subframe</option>
+							<option value="D">Downscaled</option>
+							<option value="T">Thumbnail</option>
+					</select>
+					</th>
+					<th class="cam" rowspan=2>Camera<br>
+						<hr> <select class="camSelectMulti" data-placeholder="All"
+						multiple="multiple"
+						onChange="conf.filter_cam=$(this).val()!=null?$(this).val():[];render()">
+							<optgroup label="science cameras">
+								<option value="MH">(MH) MAHLI HandCam</option>
+								<option value="CR0">(CR0) ChemCam</option>
+								<option value="ML">(ML) MastCam Left</option>
+								<option value="MR">(MR) MastCam Right</option>
+							</optgroup>
+							<optgroup label="engineering cameras">
+								<option value="NLA">(NLA) NavCam Left</option>
+								<option value="NRA">(NRA) NavCam Right</option>
+								<option value="FLA">(FLA) Front Left HazCam</option>
+								<option value="FRA">(FRA) Front Right HazCam</option>
+								<option value="RLA">(RLA) Rear Left HazCam</option>
+								<option value="RRA">(RRA) Rear Right HazCam</option>
+								<option value="MD">(MD) MARDI DescentCam</option>
+							</optgroup>
+							<optgroup label="secondary engineering cameras">
+								<option value="NLB">(NLB) NavCam Left</option>
+								<option value="NRB">(NRB) NavCam Right</option>
+								<option value="FLB">(FLB) Front Left HazCam</option>
+								<option value="FRB">(FRB) Front Right HazCam</option>
+								<option value="RLB">(RLB) Rear Left HazCam</option>
+								<option value="RRB">(RRB) Rear Right HazCam</option>
+							</optgroup>
+					</select>
+					</th>
+				</tr>
+				<tr class=header>
+					<th class="selector"><input class="toggleSelector"
+						type="checkbox"
+						onClick='this.checked?$(".tab-target input.selector").attr({ checked:"checked"}):$(".tab-target input.selector").removeAttr("checked")'>
+					</th>
+					<th class="list" colspan=3><input type=button value="Export"
+						onClick="outputList()"> <input type=button
+						value="Preferences" onClick="$('.preferences').dialog('open');">
+						&nbsp;&nbsp;
+						<div class="lists">
+							<a href="#" class="listIcon"
+								onClick="if (selectedImages().length>0) $('.listCreate').dialog('open')"><span
+								class="ui-icon-document ui-icon inline"></span></a> <a href="#"
+								class="listIcon"
+								onClick="if (typeof conf.current_list.name != 'undefined') $('.listDelete').dialog('open')"><span
+								class="ui-icon-trash ui-icon inline"></span></a> | <a href="#"
+								class="listIcon"
+								onClick="if (typeof conf.current_list.name != 'undefined') selectList()"><span
+								class="ui-icon-check ui-icon inline"></span></a> | <a href="#"
+								class="listIcon"
+								onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') addToList()"><span
+								class="ui-icon-plus ui-icon inline"></span></a> <a href="#"
+								class="listIcon"
+								onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') removeFromList()"><span
+								class="ui-icon-minus ui-icon inline"></span></a> | [<a href="#"
+								class="cleanLink" onClick="$tabs.tabs('select', 1);"><span
+								class="currentList">####</span> <span
+								class="ui-icon-triangle-1-s ui-icon inline"></span></a>] <span
+								class="listCount"></span> <select class="listSelect"
+								onChange="conf.filter_list=$(this).val();render()">
+								<option value="none">Ignore</option>
+								<option value="exclude">Exclude list</option>
+								<option value="include">Included only (other filters
+									apply)</option>
+								<option value="complete">Show only list (ignores other
+									filters!)</option>
+							</select> <a href="#" class="listIcon"
+								onClick="if (typeof conf.current_list.name != 'undefined') $('.listInfo').dialog('open')"><span
+								class="ui-icon-info ui-icon inline"></span></a> | <a href="#"
+								class="listIcon" onClick="$('.listHelp').dialog('open')"><span
+								class="ui-icon-help ui-icon inline"></span></a>
+						</div></th>
+				</tr>
+				<tr class="line-infolist">
+					<td colspan=2 class="hidden"></td>
+					<td colspan=3>(Showing entire list, other filters are
+						ignored!)</td>
+					<td colspan=2 class="hidden"></td>
+				</tr>
+				<tr class="line-template">
+					<td class="thumbnail"></td>
+					<td class="selector"><input type="checkbox" class="selector"
+						name="selector"></td>
+					<td><span class="newImage">*</span><a href="" class="name"
+						target="_blank"></a></td>
+					<td class="sol"></td>
+					<td class="date"></td>
+					<td class="type"></td>
+					<td class="cam"></td>
+				</tr>
+				<tr class="line-filler">
+					<td class="thumbnail"></td>
+					<td class="selector"></td>
+					<td>No images found for current selection!</td>
+					<td class="sol"></td>
+					<td class="date"></td>
+					<td class="type"></td>
+					<td class="cam"></td>
+				</tr>
+				<tr>
+					<td colspan=8>
+						<hr> Showing max:<span class="now"></span> <input
+						class="base" type="button"
+						onClick="conf.show_count=conf.max_show;render()" /> <input
+						class="less" type="button"
+						onClick="conf.show_count-=conf.max_show;render()" /> <input
+						class="more" type="button"
+						onClick="conf.show_count+=conf.max_show;render(false)" /> <input
+						class="all" type="button"
+						onClick="conf.show_count=999999;render(false)" />
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div class="listBrowser" id="Lists">
+			<table class="listBrowser-target">
+
+			</table>
+			<table class="listBrowser-template">
+			<tr>
+				<th>Name</th>
+				<th>Count</th>
+				<th>Description</th>
+				<th>Url</th>
+			</tr>
+				<tr class="line-template">
+					<td><a href="#" onClick="" class="listLabel"></a></td>
+					<td class="listCount"></td>
+					<td><div class="listDescr"></div></td>
+					<td><a href="#" class="listUrl" target="_blank">Link</a></td>
+				</tr>
+			</table>
+		</div>
 	</div>
-	I don't own any of the data on this site, massive thanks to NASA for sharing this with all of us.<br>
-	Source:<a href="http://mars.jpl.nasa.gov/msl/multimedia/raw/" target="_blank">http://mars.jpl.nasa.gov/msl/multimedia/raw/</a>.
-	<br>
-	<a href="mailto:msl_site_maintainer@stwerff.xs4all.nl?subject=Website%20feedback%20and%20tips">Mailto:Site Maintainer</a><br>
+	<div class="footer">
+		<div itemscope itemtype="http://data-vocabulary.org/Person">
+			This site is developed by <span itemprop="name">Ludo
+				Stellingwerff</span>&nbsp;(<span itemprop="role">Senior Software
+				Engineer</span> - <span itemprop="location">Rotterdam, The
+				Netherlands</span>).<br>
+		</div>
+		I don't own any of the data on this site, massive thanks to NASA for
+		sharing this with all of us.<br> Source:<a
+			href="http://mars.jpl.nasa.gov/msl/multimedia/raw/" target="_blank">http://mars.jpl.nasa.gov/msl/multimedia/raw/</a>.
+		<br> <a
+			href="mailto:msl_site_maintainer@stwerff.xs4all.nl?subject=Website%20feedback%20and%20tips">Mailto:Site
+			Maintainer</a><br>
 	</div>
 	<div class="listCreate">
 		<ul>
-		<li>Name:&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" class="listLabel" name="listLabel"/>
-		<li>Weblink: <input type="text" class="listURL" name="listURL"/><br>
-		<li>Description: <textarea class="listDescr" name="listDescr" style="height:8em;width:40em;"></textarea>
+			<li>Name:&nbsp;&nbsp;&nbsp;&nbsp;<input type="text"
+				class="listLabel" name="listLabel" />
+			<li>Weblink: <input type="text" class="listURL" name="listURL" /><br>
+			<li>Description: <textarea class="listDescr" name="listDescr"
+					style="height: 8em; width: 40em;"></textarea>
 		</ul>
-		<input type="button" class="close" value="Create" onClick="createList();$('.listCreate').dialog('close');"/>
-		<input type="button" value="Cancel" onClick="$('.listCreate').dialog('close');"/>
+		<input type="button" class="close" value="Create"
+			onClick="createList();$('.listCreate').dialog('close');" /> <input
+			type="button" value="Cancel"
+			onClick="$('.listCreate').dialog('close');" />
 	</div>
 	<div class="listDelete">
-		Are you sure you want to drop the list called: <span class="currentList"></span>?<br>
-		<input type="button" value="Delete" onClick="deleteList();$('.listDelete').dialog('close');"/>
-		<input type="button" value="Cancel" onClick="$('.listDelete').dialog('close');"/>
+		Are you sure you want to drop the list called: <span
+			class="currentList"></span>?<br> <input type="button"
+			value="Delete"
+			onClick="deleteList();$('.listDelete').dialog('close');" /> <input
+			type="button" value="Cancel"
+			onClick="$('.listDelete').dialog('close');" />
 	</div>
 	<div class="listInfo">
-		Name: <span class="listLabel"></span><br>
-		(<span class="listCount"></span>)<br>
+		Name: <span class="listLabel"></span><br> (<span
+			class="listCount"></span>)<br>
 		<hr>
-		<span class="listDescr"></span><br><br>
-		Weblink: <span class="listURL"></span><br>
+		<span class="listDescr"></span><br>
+		<br> Weblink: <span class="listURL"></span><br>
 		<hr>
-		<input type="button" class="close" value="Close" onClick="$('.listInfo').dialog('close')"/>
+		<input type="button" class="close" value="Close"
+			onClick="$('.listInfo').dialog('close')" />
 	</div>
 	<div class="listHelp">
 		<ul>
-			<li style="white-space:nowrap"><span class="ui-icon-document ui-icon inline"></span> - Creates new list based on current image selection</li>			
-			<li style="white-space:nowrap"><span class="ui-icon-trash ui-icon inline"></span> - Delete current list</li>
-			<li style="white-space:nowrap"><span class="ui-icon-check ui-icon inline"></span> - Select all visible images which are on the current list</li>
-			<li style="white-space:nowrap"><span class="ui-icon-plus ui-icon inline"></span> - Add selected images to current list</li>
-			<li style="white-space:nowrap"><span class="ui-icon-minus ui-icon inline"></span> - Remove selected images from current list</li>
-			<li style="white-space:nowrap"><span class="ui-icon-info ui-icon inline"></span> - Show the current lists meta info</li>
-			<li style="white-space:nowrap"><span class="ui-icon-triangle-1-s ui-icon inline"></span> - Open list management/selection dialog</li>
+			<li style="white-space: nowrap"><span
+				class="ui-icon-document ui-icon inline"></span> - Creates new list
+				based on current image selection</li>
+			<li style="white-space: nowrap"><span
+				class="ui-icon-trash ui-icon inline"></span> - Delete current list</li>
+			<li style="white-space: nowrap"><span
+				class="ui-icon-check ui-icon inline"></span> - Select all visible
+				images which are on the current list</li>
+			<li style="white-space: nowrap"><span
+				class="ui-icon-plus ui-icon inline"></span> - Add selected images to
+				current list</li>
+			<li style="white-space: nowrap"><span
+				class="ui-icon-minus ui-icon inline"></span> - Remove selected
+				images from current list</li>
+			<li style="white-space: nowrap"><span
+				class="ui-icon-info ui-icon inline"></span> - Show the current lists
+				meta info</li>
+			<li style="white-space: nowrap"><span
+				class="ui-icon-triangle-1-s ui-icon inline"></span> - Open list
+				management/selection dialog</li>
 		</ul>
-		<input type="button" value="Cancel" onClick="$('.listHelp').dialog('close');"/>
+		<input type="button" value="Cancel"
+			onClick="$('.listHelp').dialog('close');" />
 	</div>
 	<div class="preferences">
-		<input class="max_show" onChange="conf.max_show=$(this).val();saveConf();render()"/> Page size increment.<br>
-		<input class="render_max" onChange="conf.render_max=$(this).val();saveConf();render()"/> Maximum render limit.<br>
+		<input class="max_show"
+			onChange="conf.max_show=$(this).val();saveConf();render()" /> Page
+		size increment.<br> <input class="render_max"
+			onChange="conf.render_max=$(this).val();saveConf();render()" />
+		Maximum render limit.<br>
 		<hr>
-		<input type="checkbox" class="prefixBox" onClick="this.checked?conf.useWget=true:conf.useWget=false;saveConf()"/> Export command wrap?<br>
-		<input type="text" class="prefixText" onChange="conf.wget_syntax=$(this).val();saveConf()"> Export command setup.<br>
-		<hr>	
-		<input type=button value="Close" onClick="$('.preferences').dialog('close');"/>
+		<input type="checkbox" class="prefixBox"
+			onClick="this.checked?conf.useWget=true:conf.useWget=false;saveConf()" />
+		Export command wrap?<br> <input type="text" class="prefixText"
+			onChange="conf.wget_syntax=$(this).val();saveConf()"> Export
+		command setup.<br>
+		<hr>
+		<input type=button value="Close"
+			onClick="$('.preferences').dialog('close');" />
 	</div>
 </body>
 </html>

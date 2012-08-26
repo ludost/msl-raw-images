@@ -42,7 +42,7 @@ public class MslCollectorServlet extends HttpServlet {
 
 	public int fetchImageCount() throws IOException {
 		int result = 0;
-		URL url = new URL("http://mars.jpl.nasa.gov/msl/multimedia/raw");
+		URL url = new URL("http://marsmobile.jpl.nasa.gov/msl/multimedia/raw");
 		HttpURLConnection con = (HttpURLConnection) url.openConnection();
 		con.setConnectTimeout(10000);
 		con.setReadTimeout(40000);
@@ -143,7 +143,7 @@ public class MslCollectorServlet extends HttpServlet {
 				if (image.getPropertyValue("fileTimeStamp").equals("")) {
 					fetchHead(image);
 					if (count++ > 10) {
-						log.severe("Flushing DB after 10 heads fixed.");
+						log.severe("Flushing DB after 100 heads fixed.");
 						MemoNode.flushDB();
 						count = 0;
 					}
@@ -154,7 +154,7 @@ public class MslCollectorServlet extends HttpServlet {
 			}
 		} else if (req.getParameter("sol") != null) {
 			System.out.println("Collecting images!");
-			SiteParser.fetch("http://mars.jpl.nasa.gov/msl/multimedia/raw/",
+			SiteParser.fetch("http://marsmobile.jpl.nasa.gov/msl/multimedia/raw/",
 					Integer.parseInt(req.getParameter("sol")));
 		} else {
 			System.out.println("checking for new images!");
@@ -174,7 +174,7 @@ public class MslCollectorServlet extends HttpServlet {
 			if (doReload) {
 				System.out.println("Collecting images!");
 				int sol = SiteParser.fetch(
-						"http://mars.jpl.nasa.gov/msl/multimedia/raw/", -1);
+						"http://marsmobile.jpl.nasa.gov/msl/multimedia/raw/", -1);
 				sol--;
 				while (sol >= 0) {
 					queue.add(withUrl("/collector").param("sol",

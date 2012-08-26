@@ -5,4 +5,9 @@
     <description>Check and collect images every couple of minutes.</description>
     <schedule>every 5 minutes</schedule>
   </cron>
+  <cron>
+    <url>/memo?merge</url>
+    <description>Compact the database every couple of minutes.</description>
+    <schedule>every 30 minutes</schedule>
+  </cron>
 </cronentries>
