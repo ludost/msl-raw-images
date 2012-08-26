@@ -152,6 +152,7 @@ function openList(listId){
 }
 
 function renderLists(){
+	
 	$('.listBrowser-target')
 	.replaceWith(
 			$('.listBrowser-template')
@@ -171,6 +172,7 @@ function renderLists(){
 						}
 					}).render(lists).removeClass('listBrowser-template')
 					.addClass('listBrowser-target'));
+	$(".listBrowser-target .line-filler").toggle($.isEmptyObject(lists));
 }
 /*
  * Image listing

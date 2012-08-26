@@ -38,7 +38,7 @@
 	<div class="tabContainer">
 		<ul>
 			<li><a href="#Images">Images</a></li>
-			<li><a href="#Lists">Lists</a></li>
+			<li><a href="#Lists">Local Lists</a></li>
 		</ul>
 		<div class="imageBrowser" id="Images">
 			<table class="tab-target">
@@ -120,21 +120,21 @@
 						value="Preferences" onClick="$('.preferences').dialog('open');">
 						&nbsp;&nbsp;
 						<div class="lists">
-							<a href="#" class="listIcon"
-								onClick="if (selectedImages().length>0) $('.listCreate').dialog('open')"><span
-								class="ui-icon-document ui-icon inline"></span></a> <a href="#"
+							<a href="#CreateList" class="listIcon"
+								onClick="if (selectedImages().length>0) $('.listCreate').dialog('open'); return false"><span
+								class="ui-icon-document ui-icon inline"></span></a> <a href="#DropList"
 								class="listIcon"
-								onClick="if (typeof conf.current_list.name != 'undefined') $('.listDelete').dialog('open')"><span
-								class="ui-icon-trash ui-icon inline"></span></a> | <a href="#"
+								onClick="if (typeof conf.current_list.name != 'undefined') $('.listDelete').dialog('open'); return false"><span
+								class="ui-icon-trash ui-icon inline"></span></a> | <a href="#SelectImages"
 								class="listIcon"
-								onClick="if (typeof conf.current_list.name != 'undefined') selectList()"><span
-								class="ui-icon-check ui-icon inline"></span></a> | <a href="#"
+								onClick="if (typeof conf.current_list.name != 'undefined') selectList(); return false"><span
+								class="ui-icon-check ui-icon inline"></span></a> | <a href="#AddImages"
 								class="listIcon"
-								onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') addToList()"><span
-								class="ui-icon-plus ui-icon inline"></span></a> <a href="#"
+								onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') addToList(); return false"><span
+								class="ui-icon-plus ui-icon inline"></span></a> <a href="#RemoveImages"
 								class="listIcon"
-								onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') removeFromList()"><span
-								class="ui-icon-minus ui-icon inline"></span></a> | [<a href="#"
+								onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') removeFromList(); return false"><span
+								class="ui-icon-minus ui-icon inline"></span></a> | [<a href="#Lists"
 								class="cleanLink" onClick="$tabs.tabs('select', 1);"><span
 								class="currentList">####</span> <span
 								class="ui-icon-triangle-1-s ui-icon inline"></span></a>] <span
@@ -146,10 +146,10 @@
 									apply)</option>
 								<option value="complete">Show only list (ignores other
 									filters!)</option>
-							</select> <a href="#" class="listIcon"
-								onClick="if (typeof conf.current_list.name != 'undefined') $('.listInfo').dialog('open')"><span
-								class="ui-icon-info ui-icon inline"></span></a> | <a href="#"
-								class="listIcon" onClick="$('.listHelp').dialog('open')"><span
+							</select> <a href="#Info" class="listIcon"
+								onClick="if (typeof conf.current_list.name != 'undefined') $('.listInfo').dialog('open'); return false"><span
+								class="ui-icon-info ui-icon inline"></span></a> | <a href="#Help"
+								class="listIcon" onClick="$('.listHelp').dialog('open'); return false"><span
 								class="ui-icon-help ui-icon inline"></span></a>
 						</div></th>
 				</tr>
@@ -211,6 +211,9 @@
 					<td><div class="listDescr"></div></td>
 					<td><a href="#" class="listUrl" target="_blank">Link</a></td>
 				</tr>
+								<tr class="line-filler">
+					<td colspan=4>No lists exist yet, please create one in the images overview</td>
+				</tr>
 			</table>
 		</div>
 	</div>
@@ -237,16 +240,16 @@
 					style="height: 8em; width: 40em;"></textarea>
 		</ul>
 		<input type="button" class="close" value="Create"
-			onClick="createList();$('.listCreate').dialog('close');" /> <input
-			type="button" value="Cancel"
+			onClick="createList();$('.listCreate').dialog('close');" />
+		<input type="button" class="close" value="Cancel"
 			onClick="$('.listCreate').dialog('close');" />
 	</div>
 	<div class="listDelete">
 		Are you sure you want to drop the list called: <span
-			class="currentList"></span>?<br> <input type="button"
-			value="Delete"
-			onClick="deleteList();$('.listDelete').dialog('close');" /> <input
-			type="button" value="Cancel"
+			class="currentList"></span>?<br> 
+			<input type="button" class="close" value="Delete"
+			onClick="deleteList();$('.listDelete').dialog('close');" />
+			<input type="button" class="close" value="Cancel"
 			onClick="$('.listDelete').dialog('close');" />
 	</div>
 	<div class="listInfo">
@@ -276,13 +279,13 @@
 				class="ui-icon-minus ui-icon inline"></span> - Remove selected
 				images from current list</li>
 			<li style="white-space: nowrap"><span
-				class="ui-icon-info ui-icon inline"></span> - Show the current lists
+				class="ui-icon-info ui-icon inline"></span> - Show the current list's
 				meta info</li>
 			<li style="white-space: nowrap"><span
 				class="ui-icon-triangle-1-s ui-icon inline"></span> - Open list
 				management/selection dialog</li>
 		</ul>
-		<input type="button" value="Cancel"
+		<input type="button" class="close" value="Cancel"
 			onClick="$('.listHelp').dialog('close');" />
 	</div>
 	<div class="preferences">
@@ -298,7 +301,7 @@
 			onChange="conf.wget_syntax=$(this).val();saveConf()"> Export
 		command setup.<br>
 		<hr>
-		<input type=button value="Close"
+		<input type=button class="close" value="Close"
 			onClick="$('.preferences').dialog('close');" />
 	</div>
 </body>
