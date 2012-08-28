@@ -48,6 +48,22 @@ public class SiteParser {
 		}
 	}
 	
+	public static void addToNew(MemoNode imageNode, int sol){
+		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
+		MemoNode newNode = baseNode.getChildByStringValue("newImages");
+		if (newNode == null) newNode = baseNode.addChild(new MemoNode("newImages"));
+		
+		//Add to camera counter
+		String type = imageNode.getPropertyValue("type");
+		MemoNode camNode = newNode.getChildByStringValue(type);
+		if (camNode == null) camNode = newNode.addChild(new MemoNode(type));
+		camNode.setChild(imageNode);
+		
+		//Add to sol counter
+		MemoNode solNode = newNode.getChildByStringValue(new Integer(sol).toString());
+		if (solNode == null) solNode = newNode.addChild(new MemoNode(new Integer(sol).toString()));
+		solNode.addChild(imageNode);
+	}
 	
 	public static int fetch(String s_url, int sol) {
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
@@ -113,6 +129,7 @@ public class SiteParser {
 						.setPropertyValue("thumbnail",thumbnail)
 						.setParent(allImagesNode);
 						images.add(imageNode.getId().toString());
+						addToNew(imageNode, sol);
 					}
 				}
 				if (imageNode != null) i = line.indexOf("RawImageUTC");
@@ -146,19 +163,21 @@ public class SiteParser {
 			String list="";
 			for (String image: images){
 				list+=image+";";
-				if (count++>100){
+				if (count++>50){
 				    queue.add(withUrl("/collector").param("imageUUIDs",list));
 				    list="";
 					count=0;
 				}
 			}
-			if (count>0){
+			if (list.length()>0){
 				queue.add(withUrl("/collector").param("imageUUIDs",list));
 				memCache.delete("quickServe");
 			}
 			reader.close();
 			con.disconnect();
-			System.out.println("Done:"+s_url+"?s="+sol);
+			log.severe("Done:"+s_url+"?s="+sol+" found:"+images.size()+" new images");
+			if (MemoNode.getRootNode().getChildByStringValue("newImagesFlag") == null) MemoNode.getRootNode().addChild(new MemoNode("newImagesFlag")).setPropertyValue("new", "false");
+			if (images.size()>0) MemoNode.getRootNode().getChildByStringValue("newImagesFlag").setPropertyValue("new","true");
 			return sol;
 		} catch (Exception exp) {
 			System.out.println("Ojh, this goes wrong:" + exp.getMessage());

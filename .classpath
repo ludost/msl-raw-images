@@ -8,6 +8,7 @@
 	<classpathentry exported="true" kind="lib" path="war/WEB-INF/lib/jackson-core-2.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="war/WEB-INF/lib/jackson-databind-2.0.0.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/guava-12.0.1.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/twitter4j-core-2.2.6.jar"/>
 	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER/appengine-java-sdk-1.6.3"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

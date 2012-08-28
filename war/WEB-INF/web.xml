@@ -44,7 +44,7 @@
 		<servlet-name>collector</servlet-name>
 		<url-pattern>/collector</url-pattern>
 	</servlet-mapping>
-	<servlet>
+		<servlet>
 	    <servlet-name>Mailer</servlet-name>
 	    <servlet-class>org.stwerff.mslraws.MailServlet</servlet-class>
 	</servlet>

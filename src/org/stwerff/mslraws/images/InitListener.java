@@ -3,20 +3,36 @@ package org.stwerff.mslraws.images;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import twitter4j.TwitterFactory;
+import twitter4j.conf.ConfigurationBuilder;
+
 import com.chap.memo.memoNodes.MemoNode;
 
 public class InitListener  implements ServletContextListener {
 
+	public static TwitterFactory tf=null;
+	
 	@Override
 	public void contextDestroyed(ServletContextEvent arg0) {
 	}
 
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
-		initDemoData();
+		initData();
+		initTwitter();
 	}
 
-	public static void initDemoData(){
+	public static void initTwitter(){
+		ConfigurationBuilder cb = new ConfigurationBuilder();
+		cb.setDebugEnabled(true)
+		  .setOAuthConsumerKey("zqabV9xmGSxx3EFWUBDdA")
+		  .setOAuthConsumerSecret("HMNudmnopG1xsoHebr3VKdwFyPErQUkS7XM6dJYj1kE")
+		  .setOAuthAccessToken("784328444-PdhkGZ25pA1lz2atQHFJHfeiPB45IGLGw1fW3m9d")
+		  .setOAuthAccessTokenSecret("oUxXVYqWtDqrufP4jLkaJPcT6UsNdwFemEBBu5llvU");
+		tf = new TwitterFactory(cb.build());
+	}
+	
+	public static void initData(){
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
 		if (baseNode == null){
 			baseNode = MemoNode.getRootNode().addChild(new MemoNode("msl-raw-images"));

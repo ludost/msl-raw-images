@@ -67,8 +67,10 @@ public class MslCollectorServlet extends HttpServlet {
 	public void fetchHead(MemoNode imageNode) throws IOException {
 		// check head of image, store last-modified and date
 		String s_url = imageNode.getStringValue();
-		if (!s_url.startsWith("http"))
+		if (!s_url.startsWith("http")){
+			log.severe("invalid URL, no protocol:'"+s_url+"'");
 			return;
+		}
 		URL url = new URL(s_url);
 		HttpURLConnection con = (HttpURLConnection) url.openConnection();
 		con.setConnectTimeout(10000);
@@ -87,7 +89,7 @@ public class MslCollectorServlet extends HttpServlet {
 				fetchHead(imageNode);
 				return;
 			}
-			System.err.println("Warning: Image not found!");
+			log.severe("Warning: Image not found!");
 			return;
 		}
 		if (con.getResponseCode() == 200) {
@@ -97,8 +99,8 @@ public class MslCollectorServlet extends HttpServlet {
 				imageNode.setPropertyValue("lastModified",
 						new Long(con.getLastModified()).toString());
 			} else {
-				System.err.println("Image URL not valid:"
-						+ imageNode.getStringValue());
+				log.severe("Image URL not valid:'"
+						+ imageNode.getStringValue()+"'");
 			}
 		}
 		con.disconnect();
@@ -108,7 +110,7 @@ public class MslCollectorServlet extends HttpServlet {
 			throws IOException {
 
 		resp.setContentType("text/plain");
-		InitListener.initDemoData();
+		InitListener.initData();
 
 		if (req.getParameter("passOn") != null) {
 			if (req.getParameter("doHeads") != null) {
@@ -120,7 +122,7 @@ public class MslCollectorServlet extends HttpServlet {
 		}
 		String images = req.getParameter("imageUUIDs");
 		if (images != null) {
-			System.out.println("checking head:" + images);
+			log.warning("checking head:" + images);
 			for (String image : images.split(";")) {
 				MemoNode imageNode = new MemoNode(new UUID(image));
 				if (imageNode != null) {
@@ -136,7 +138,7 @@ public class MslCollectorServlet extends HttpServlet {
 			if (allImagesNode == null) {
 				allImagesNode = baseNode.addChild(new MemoNode("allImages"));
 			}
-			System.out.println("checking for images without head data.");
+			log.warning("checking for images without head data.");
 			ArrayList<MemoNode> all = allImagesNode.getChildren();
 			int count = 0;
 			for (MemoNode image : all) {
@@ -153,11 +155,9 @@ public class MslCollectorServlet extends HttpServlet {
 				memCache.delete("quickServe");
 			}
 		} else if (req.getParameter("sol") != null) {
-			System.out.println("Collecting images!");
 			SiteParser.fetch("http://marsmobile.jpl.nasa.gov/msl/multimedia/raw/",
 					Integer.parseInt(req.getParameter("sol")));
 		} else {
-			System.out.println("checking for new images!");
 			int count = fetchImageCount();
 			MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue(
 					"msl-raw-images");
@@ -168,11 +168,11 @@ public class MslCollectorServlet extends HttpServlet {
 				if (count <= allImagesNode.getChildren().size())
 					doReload = false;
 				} catch (Exception e){
-					System.out.println("Warning:"+e.getLocalizedMessage());
+					log.severe("Warning:"+e.getLocalizedMessage());
 				}
 			}
 			if (doReload) {
-				System.out.println("Collecting images!");
+				log.warning("Collecting images!");
 				int sol = SiteParser.fetch(
 						"http://marsmobile.jpl.nasa.gov/msl/multimedia/raw/", -1);
 				sol--;
@@ -181,7 +181,7 @@ public class MslCollectorServlet extends HttpServlet {
 							Integer.toString(sol--)));
 				}
 			} else {
-				System.out.println("Skipping collection, nothing new.");
+				log.warning("Skipping collection, nothing new.");
 			}
 
 		}

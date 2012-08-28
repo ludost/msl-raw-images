@@ -36,14 +36,23 @@ if (typeof (localStorage["msl-raws-conf"]) != "undefined"
 }
 conf = $.extend({}, settings, conf);
 
-lists = {};
+local_lists = {};
 if (typeof localStorage["msl-raws-lists"] != "undefined"
 	&& localStorage["msl-raws-lists"] != "") {
 	try {
 		var tmp_lists = JSON.parse(localStorage["msl-raws-lists"]);
-		lists=tmp_lists;
+		local_lists=tmp_lists;
 	} catch (e){ console.log("couldn't read lists:",e)}
 }
+subscribed_lists = {};
+if (typeof localStorage["msl-raws-subscriptions"] != "undefined"
+	&& localStorage["msl-raws-subscriptions"] != "") {
+	try {
+		var tmp_lists = JSON.parse(localStorage["msl-raws-subscriptions"]);
+		subscribed_lists=tmp_lists;
+	} catch (e){ console.log("couldn't read lists:",e)}
+}
+
 /*
  * Tools
  */
@@ -102,8 +111,8 @@ function createList(){
 			url: $(".listCreate .listURL").val(),
 			uuids: selectedImages()
 		}
-		lists[conf.current_list.uuid.id]=(conf.current_list);
-		localStorage["msl-raws-lists"]=JSON.stringify(lists);
+		local_lists[conf.current_list.uuid.id]=(conf.current_list);
+		localStorage["msl-raws-lists"]=JSON.stringify(local_lists);
 		render();
 		$(".listCreate input:not(.close),.listCreate textarea").val("");
 		selectList();
@@ -113,12 +122,25 @@ function createList(){
 	}
 }
 function deleteList(){
-	delete lists[conf.current_list.uuid.id];
+	delete local_lists[conf.current_list.uuid.id];
 	conf.current_list = {};
-	localStorage["msl-raws-lists"]=JSON.stringify(lists);
+	localStorage["msl-raws-lists"]=JSON.stringify(local_lists);
 	render();
 }
-
+function publishList(listId){
+	var list = JSON.stringify(local_lists[listId]);
+	console.log("sending:"+list);
+	$.ajax({
+		url:"/lists?publish",
+		type:"POST",
+		processdata:false,
+		data:list
+	});
+}
+function subscribeToList(listId){
+	$(".error")
+	.html("Sorry, that button hasn't been implemented yet!"+errorCloseButton);	
+}
 function addToList(){
 	var images = selectedImages();
 	var list = conf.current_list.uuids;
@@ -127,7 +149,7 @@ function addToList(){
 			list.push(uuid);
 		}
 	});
-	localStorage["msl-raws-lists"]=JSON.stringify(lists);
+	localStorage["msl-raws-lists"]=JSON.stringify(local_lists);
 	render();
 	selectList();
 }
@@ -140,13 +162,13 @@ function removeFromList(){
 			list.splice(pos,1);
 		}
 	});
-	localStorage["msl-raws-lists"]=JSON.stringify(lists);
+	localStorage["msl-raws-lists"]=JSON.stringify(local_lists);
 	render();
 	selectList();
 }
 
 function openList(listId){
-	conf.current_list=lists[listId];
+	conf.current_list=local_lists[listId];
 	conf.filter_list="complete";
 	$tabs.tabs('select',0);
 }
@@ -156,6 +178,31 @@ function renderLists(){
 	$('.listBrowser-target')
 	.replaceWith(
 			$('.listBrowser-template')
+					.clone()
+					.directives({
+						'.line-template' : {
+							'listItem<-context' : {
+								".listPublish@onClick":function(a){
+									return "publishList('"+a.item.uuid.id+"')";
+								},
+								".listLabel@onClick":function(a){
+									return "openList('"+a.item.uuid.id+"')";
+								},
+								".listLabel":"listItem.name",
+								".listCount":"listItem.uuids.length",
+								".listDescr":"listItem.description",
+								".listUrl@href":"listItem.url",
+								".listUrl":function(a){ return a.item.url==""?"":"link"}
+							}
+						}
+					}).render(local_lists).removeClass('listBrowser-template')
+					.addClass('listBrowser-target'));
+	$(".listBrowser-target .line-filler").toggle($.isEmptyObject(local_lists));
+}
+function renderSubscriptions(){	
+	$('.subscriptionBrowser-target')
+	.replaceWith(
+			$('.subscriptionBrowser-template')
 					.clone()
 					.directives({
 						'.line-template' : {
@@ -170,9 +217,9 @@ function renderLists(){
 								".listUrl":function(a){ return a.item.url==""?"":"link"}
 							}
 						}
-					}).render(lists).removeClass('listBrowser-template')
-					.addClass('listBrowser-target'));
-	$(".listBrowser-target .line-filler").toggle($.isEmptyObject(lists));
+					}).render(subscribed_lists).removeClass('subscriptionBrowser-template')
+					.addClass('subscriptionBrowser-target'));
+	$(".subscriptionBrowser-target .line-filler").toggle($.isEmptyObject(subscribed_lists));
 }
 /*
  * Image listing
@@ -455,57 +502,9 @@ function reload() {
 				}
 			});
 }
-function startSharrre() {
-	$("#sharrre")
-			.sharrre(
-					{
-						share : {
-							googlePlus : true,
-							facebook : true,
-							twitter : true
-						},
-						template : '<div class="box"><div class="left">Share</div><div class="middle"><a href="#" class="facebook">f</a><a href="#" class="twitter">t</a><a href="#" class="googleplus">+1</a></div><div class="right">{total}</div></div>',
-						enableHover : false,
-						enableTracking : true,
-						enableCounter : true,
-						buttons : {
-							twitter : {
-								via : 'Stellingwerff'
-							}
-						},
-						render : function(api, options) {
-							$(api.element).on('click', '.twitter', function() {
-								api.openPopup('twitter');
-							});
-							$(api.element).on('click', '.facebook', function() {
-								api.openPopup('facebook');
-							});
-							$(api.element).on('click', '.googleplus',
-									function() {
-										api.openPopup('googlePlus');
-									});
-						},
-						urlCurl : "",
-						title : "Follow the raw images Curiosity sends back to Earth each sol. This site is focused on providing easy access for downloading, listing and organizing the raw images."
 
-					});
-}
 
-var _gaq = _gaq || [];
-_gaq.push([ '_setAccount', 'UA-34102591-1' ]);
-_gaq.push([ '_trackPageview' ]);
-
-(function() {
-	var ga = document.createElement('script');
-	ga.type = 'text/javascript';
-	ga.async = true;
-	ga.src = ('https:' == document.location.protocol ? 'https://ssl'
-			: 'http://www')
-			+ '.google-analytics.com/ga.js';
-	var s = document.getElementsByTagName('script')[0];
-	s.parentNode.insertBefore(ga, s);
-})();
-
+	
 $(document).ready(function() {
 	var reloadString = "<a href='#' class='reload cleanLink' onClick='reload()'>Reload</a>";
 	$("div.reload").html(reloadString);
@@ -516,13 +515,18 @@ $(document).ready(function() {
 	$("input:button").button();
 
 	var listId = $.getUrlVar("list");
-	if (typeof listId != "undefined" && listId != "" && typeof lists[listId] != "undefined"){
-		conf.current_list=lists[listId];
+	if (typeof listId != "undefined" && listId != "" && typeof local_lists[listId] != "undefined"){
+		conf.current_list=local_lists[listId];
 		conf.filter_list="complete";
 	}
-	
-	reload();
-	startSharrre();
+	$tabs = $(".tabContainer").tabs({
+		selected:0,
+		show: function(event, ui) {
+			if (ui.panel.id == "Lists") renderLists();
+			if (ui.panel.id == "Subscriptions") renderSubscriptions();
+			if (ui.panel.id == "Images") render();			
+		}
+	});
 	$(".listCreate").dialog({
 		autoOpen : false,
 		title : "Create list",
@@ -551,12 +555,33 @@ $(document).ready(function() {
 		title : "Preferences",
 		modal : true,
 		width : "35em"
-	})
-	$tabs = $(".tabContainer").tabs({
-		selected:0,
-		show: function(event, ui) {
-			if (ui.panel.id == "Lists") renderLists();
-			if (ui.panel.id == "Images") render();			
-		}
+	});
+	render();
+	reload();
+	var _gaq = _gaq || [];
+	_gaq.push([ '_setAccount', 'UA-34102591-1' ]);
+	_gaq.push([ '_trackPageview' ]);
+
+	(function() {
+		var ga = document.createElement('script');
+		ga.type = 'text/javascript';
+		ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl'
+				: 'http://www')
+				+ '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0];
+		s.parentNode.insertBefore(ga, s);
+	})();
+	!function(d,s,id){
+		var js,fjs=d.getElementsByTagName(s)[0];
+		if(!d.getElementById(id)){
+			js=d.createElement(s);
+			js.id=id;
+			js.src="//platform.twitter.com/widgets.js";
+			fjs.parentNode.insertBefore(js,fjs);
+		}}(document,"script","twitter-wjs")
+	;
+	stLight.options({
+			publisher : "d1b23a5c-25a8-40b8-aa83-a7d19b05523d"
 	});
 });
