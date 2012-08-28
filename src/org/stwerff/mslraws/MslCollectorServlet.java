@@ -34,7 +34,10 @@ public class MslCollectorServlet extends HttpServlet {
 	private static final Logger log = Logger.getLogger("msl-raw-images");
 	static MemcacheService memCache = MemcacheServiceFactory
 			.getMemcacheService();;
-
+	static final String MOBILEURL="http://mars.jpl.nasa.gov/msl/multimedia/raw/";
+	static final String SITEURL="http://mars.jpl.nasa.gov/msl/multimedia/raw/";
+	static String BASEURL = SITEURL;
+	
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		doGet(req, resp);
@@ -42,7 +45,7 @@ public class MslCollectorServlet extends HttpServlet {
 
 	public int fetchImageCount() throws IOException {
 		int result = 0;
-		URL url = new URL("http://marsmobile.jpl.nasa.gov/msl/multimedia/raw");
+		URL url = new URL(BASEURL);
 		HttpURLConnection con = (HttpURLConnection) url.openConnection();
 		con.setConnectTimeout(10000);
 		con.setReadTimeout(40000);
@@ -112,6 +115,9 @@ public class MslCollectorServlet extends HttpServlet {
 		resp.setContentType("text/plain");
 		InitListener.initData();
 
+		if (req.getParameter("site") != null) BASEURL=SITEURL;
+		if (req.getParameter("mobile") != null) BASEURL=MOBILEURL;
+		
 		if (req.getParameter("passOn") != null) {
 			if (req.getParameter("doHeads") != null) {
 				queue.add(withUrl("/collector").param("doHeads", "true"));
@@ -155,7 +161,18 @@ public class MslCollectorServlet extends HttpServlet {
 				memCache.delete("quickServe");
 			}
 		} else if (req.getParameter("sol") != null) {
-			SiteParser.fetch("http://marsmobile.jpl.nasa.gov/msl/multimedia/raw/",
+			String total="";
+			if ((total = req.getParameter("total")) != null){
+				MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue(
+						"msl-raw-images");
+				MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
+				int count= Integer.parseInt(total);
+				if (count >= allImagesNode.getChildren().size()){
+					log.warning("Skipping sol:"+req.getParameter("sol")+" because total is reached!");
+					return;
+				}
+			}
+			SiteParser.fetch(BASEURL,
 					Integer.parseInt(req.getParameter("sol")));
 		} else {
 			int count = fetchImageCount();
@@ -174,11 +191,11 @@ public class MslCollectorServlet extends HttpServlet {
 			if (doReload) {
 				log.warning("Collecting images!");
 				int sol = SiteParser.fetch(
-						"http://marsmobile.jpl.nasa.gov/msl/multimedia/raw/", -1);
+						BASEURL, -1);
 				sol--;
 				while (sol >= 0) {
 					queue.add(withUrl("/collector").param("sol",
-							Integer.toString(sol--)));
+							Integer.toString(sol--)).param("total", new Integer(count).toString()));
 				}
 			} else {
 				log.warning("Skipping collection, nothing new.");

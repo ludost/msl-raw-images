@@ -86,7 +86,7 @@ public class SiteParser {
 			MemoNode imageNode = null;
 			int count=0;
 			while ((line = reader.readLine()) != null) {
-				if (!found && !line.equals("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\" width=\"100%\">")) continue;
+				//if (!found && !line.equals("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\" width=\"100%\">")) continue;
 				found=true;
 				line=line.trim();
 				if (line.isEmpty()) continue;
@@ -175,7 +175,7 @@ public class SiteParser {
 			}
 			reader.close();
 			con.disconnect();
-			log.severe("Done:"+s_url+"?s="+sol+" found:"+images.size()+" new images");
+			log.severe("Done:"+s_url+"?s="+(sol>=0?sol:0)+" found:"+images.size()+" new images");
 			if (MemoNode.getRootNode().getChildByStringValue("newImagesFlag") == null) MemoNode.getRootNode().addChild(new MemoNode("newImagesFlag")).setPropertyValue("new", "false");
 			if (images.size()>0) MemoNode.getRootNode().getChildByStringValue("newImagesFlag").setPropertyValue("new","true");
 			return sol;

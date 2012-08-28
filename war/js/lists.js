@@ -469,7 +469,8 @@ function outputList() {
 	}
 	var list = selectedImagesList();
 	selectedImages().map(function(imageId) {
-		newPage += list[imageId].url + (html ? "<br>" : "\n");
+		var url = list[imageId].url;
+		newPage += (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2) + (html ? "<br>" : "\n");
 	});
 	if (conf.useWget)
 		newPage += "ENDOFURLS" + (html ? "<br>" : "\n");
@@ -581,7 +582,7 @@ $(document).ready(function() {
 			fjs.parentNode.insertBefore(js,fjs);
 		}}(document,"script","twitter-wjs")
 	;
-	stLight.options({
+	if (typeof stLight != "undefined") stLight.options({
 			publisher : "d1b23a5c-25a8-40b8-aa83-a7d19b05523d"
 	});
 });
