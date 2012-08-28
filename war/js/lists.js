@@ -131,8 +131,8 @@ function publishList(listId){
 	var list = JSON.stringify(local_lists[listId]);
 	console.log("sending:"+list);
 	$.ajax({
-		url:"/lists?publish",
-		type:"POST",
+		url:"/lists/id/"+listId,
+		type:"PUT",
 		processdata:false,
 		data:list
 	});

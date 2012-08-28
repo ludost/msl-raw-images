@@ -19,6 +19,25 @@
 		<filter-name>CORS</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping> -->
+	
+	<servlet>
+		<servlet-name>RESTServlet</servlet-name>
+		<servlet-class>org.apache.wink.server.internal.servlet.RestServlet</servlet-class>
+
+		<init-param>
+			<param-name>applicationConfigLocation</param-name>
+			<param-value>/WEB-INF/application</param-value>
+		</init-param>
+		<init-param>
+		    <param-name>propertiesLocation</param-name>
+		    <param-value>/WEB-INF/wink.properties</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>RESTServlet</servlet-name>
+		<url-pattern>/*</url-pattern>
+	</servlet-mapping>
+	
 	<servlet>
 	    <servlet-name>redirect</servlet-name>
 	    <servlet-class>org.stwerff.mslraws.RedirectServlet</servlet-class>
