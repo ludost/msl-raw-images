@@ -166,10 +166,12 @@ public class MslCollectorServlet extends HttpServlet {
 				MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue(
 						"msl-raw-images");
 				MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
-				int count= Integer.parseInt(total);
-				if (count >= allImagesNode.getChildren().size()){
-					log.warning("Skipping sol:"+req.getParameter("sol")+" because total is reached!");
-					return;
+				if (allImagesNode != null){
+					int count= Integer.parseInt(total);
+					if (allImagesNode.getChildren().size()>=count){
+						log.warning("Skipping sol:"+req.getParameter("sol")+" because total is reached!"+allImagesNode.getChildren().size()+"/"+total);
+						return;
+					}
 				}
 			}
 			SiteParser.fetch(BASEURL,

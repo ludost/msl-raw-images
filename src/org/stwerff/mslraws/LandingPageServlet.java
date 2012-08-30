@@ -1,5 +1,7 @@
 package org.stwerff.mslraws;
 
+import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
+
 import java.io.IOException;
 //import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -26,14 +28,20 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 //import com.google.appengine.api.files.FileWriteChannel;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import com.google.appengine.api.taskqueue.Queue;
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
 
 public class LandingPageServlet extends HttpServlet {
 	private static final long serialVersionUID = 8110001398162695563L;
 	static final ObjectMapper om = new ObjectMapper();
 	static MemcacheService memCache = MemcacheServiceFactory.getMemcacheService();
+	static Queue queue = QueueFactory.getDefaultQueue();
 	
 	static final String jpl = "http://mars.jpl.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol";
 	static final String msss = "http://mars.jpl.nasa.gov/msl-raw-images/msss";
+	
+	static MemoNode quickServe = null;
 	
 	public ArrayNode generateJSON(int sol, String camera, boolean countsOnly, boolean flat, boolean repair){
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
@@ -100,6 +108,7 @@ public class LandingPageServlet extends HttpServlet {
 								if (repair){
 									if (imgList != null && !imgList.contains(image)){
 										allImagesNode.addChild(image);
+										//adds image to allImagesNode if missing
 									}
 								}
 								ObjectNode imageNode = om.createObjectNode();
@@ -125,6 +134,7 @@ public class LandingPageServlet extends HttpServlet {
 			}
 		}
 		if (repair){
+			imgList.clear();
 			ArrayList<MemoNode> allImages = allImagesNode.getChildren();
 			HashSet<String> set = new HashSet<String>(allImages.size());
 			for (MemoNode image : allImages){
@@ -151,7 +161,10 @@ public class LandingPageServlet extends HttpServlet {
 		return result;
 	}
 	
-	
+	public void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws IOException {
+		doGet(req,resp);
+	}
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		
@@ -179,20 +192,44 @@ public class LandingPageServlet extends HttpServlet {
 		boolean countsOnly = (req.getParameter("counts") != null);
 		boolean flat = (req.getParameter("flat") != null);
 		boolean repair = (req.getParameter("repair")!=null);
+		boolean passOn = (req.getParameter("passOn")!=null);
 		
-		if (countsOnly || !flat || repair){
+		if (passOn){
+			TaskOptions options = withUrl("/landing");
+			if (repair) options.param("repair", "true");
+			if (flat) options.param("flat", "true");
+			if (fullReload) options.param("reload", "true");
+			if (sol>=0) options.param("sol", ssol);
+			if (!camera.equals("all")) options.param("cam", camera);
+			queue.add(options);
+			return;
+		}
+		
+		if (countsOnly || !flat){
 			fullReload=true;
 			mayCache=false;
+		}
+		if (repair){
+			fullReload=true;
 		}
 		String result="";
 		if (!fullReload && memCache.get("quickServe") != null && memCache.get("quickServe") != ""){
 			UUID uuid = new UUID((String)memCache.get("quickServe"));
-			byte[] val = new MemoNode(uuid).getValue();
+			byte[] val = null;
+			if (quickServe != null && quickServe.getId().equals(uuid)){
+				val = quickServe.getValue();
+				System.out.println("Got quickServe static node");
+			}
+			if (val == null){
+				val = new MemoNode(uuid).getValue();
+				System.out.println("Got datastore based static node:"+(quickServe != null?quickServe.getId():"")+"/"+uuid);
+			}
 			if (val != null && val.length>0){
 				result = new String(val);
 			}
 		}
 		if (result.equals("")) {
+			System.out.println("Re-generated JSON");
 			ArrayNode resultNode = generateJSON(sol,camera,countsOnly,flat,repair);
 			result=resultNode.toString();
 			if (mayCache){
@@ -204,13 +241,17 @@ public class LandingPageServlet extends HttpServlet {
 				} else {
 					lastServed = MemoNode.getRootNode().addChild(new MemoNode("msl-raws-lastServed"));
 				}
-				memCache.put("quickServe", lastServed.addChild(new MemoNode(result)).getId().toString());
+				quickServe = lastServed.addChild(new MemoNode(result));
+				memCache.put("quickServe", quickServe.getId().toString());
+				System.out.println("Stored for quickServe");
 			}
 		}
 		resp.setBufferSize(500000);
 		resp.setContentType("application/json");
 		resp.setContentLength(result.length());
 		resp.getWriter().write(result);
-		if (repair) MemoNode.flushDB();
+		if (repair){
+			MemoNode.flushDB();MemoNode.compactDB();
+		}
 	}
 }

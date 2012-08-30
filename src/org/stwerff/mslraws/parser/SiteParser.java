@@ -86,7 +86,7 @@ public class SiteParser {
 			MemoNode imageNode = null;
 			int count=0;
 			while ((line = reader.readLine()) != null) {
-				//if (!found && !line.equals("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\" width=\"100%\">")) continue;
+				if (!found && !line.equals("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\" width=\"100%\">")) continue;
 				found=true;
 				line=line.trim();
 				if (line.isEmpty()) continue;

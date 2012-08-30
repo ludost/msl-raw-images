@@ -44,13 +44,13 @@ if (typeof localStorage["msl-raws-lists"] != "undefined"
 		local_lists=tmp_lists;
 	} catch (e){ console.log("couldn't read lists:",e)}
 }
-subscribed_lists = {};
+subscriptions = [];
 if (typeof localStorage["msl-raws-subscriptions"] != "undefined"
 	&& localStorage["msl-raws-subscriptions"] != "") {
 	try {
 		var tmp_lists = JSON.parse(localStorage["msl-raws-subscriptions"]);
-		subscribed_lists=tmp_lists;
-	} catch (e){ console.log("couldn't read lists:",e)}
+		subscriptions=tmp_lists;
+	} catch (e){ console.log("couldn't read subscriptions:",e)}
 }
 
 /*
@@ -129,7 +129,6 @@ function deleteList(){
 }
 function publishList(listId){
 	var list = JSON.stringify(local_lists[listId]);
-	console.log("sending:"+list);
 	$.ajax({
 		url:"/lists/id/"+listId,
 		type:"PUT",
@@ -138,8 +137,24 @@ function publishList(listId){
 	});
 }
 function subscribeToList(listId){
-	$(".error")
-	.html("Sorry, that button hasn't been implemented yet!"+errorCloseButton);	
+	if ($.inArray(listId,subscriptions)< 0) subscriptions.push(listId);
+	localStorage["msl-raws-subscriptions"]=JSON.stringify(subscriptions);
+	updateSubscriptions();
+}
+function updateSubscriptions(){
+	$.ajax({
+		url:"/lists",
+		type:"POST",
+		data:{"listIds":subscriptions.join()},
+		statusCode:{
+			200: function(json){
+				subscribed_lists= json;
+				renderSubscriptions();
+			}
+		}
+	});
+	
+	//loop through subscribed_lists to get newest version
 }
 function addToList(){
 	var images = selectedImages();
@@ -168,13 +183,16 @@ function removeFromList(){
 }
 
 function openList(listId){
-	conf.current_list=local_lists[listId];
+	if (typeof local_lists[listId] != "undefined"){
+		conf.current_list=local_lists[listId];	
+	} else {
+		conf.current_list=subscribed_lists[listId];
+	}
 	conf.filter_list="complete";
 	$tabs.tabs('select',0);
 }
 
 function renderLists(){
-	
 	$('.listBrowser-target')
 	.replaceWith(
 			$('.listBrowser-template')
@@ -192,7 +210,7 @@ function renderLists(){
 								".listCount":"listItem.uuids.length",
 								".listDescr":"listItem.description",
 								".listUrl@href":"listItem.url",
-								".listUrl":function(a){ return a.item.url==""?"":"link"}
+								".listUrl":function(a){ return a.item.url==""?"":"Weblink"}
 							}
 						}
 					}).render(local_lists).removeClass('listBrowser-template')
@@ -387,7 +405,14 @@ function render() {
 	$(".tab-target .camSelectMulti").chosen();
 	$(".tab-target input.selector").enableCheckboxRangeSelection();
 	$(".tab-target input.selector").on('click',toggleSelector);
-	$(".tab-target .listSelect").val(conf.filter_list);
+	$(".tab-target #filter_list_"+conf.filter_list).attr("checked","checked");
+	$(".tab-target input:radio[name=filter_list]").on("click",function(){
+		conf.filter_list=$(this).val();
+		$(".listViewer").hide();
+		render();
+	});
+	var map = {"none":"N","include":"I","exclude":"E","complete":"F"}
+	$(".tab-target .listSelectFeedback").html("("+map[conf.filter_list]+")");
 	toggleSelector();
 
 	//Navigation stuff
@@ -436,6 +461,14 @@ function selectList(){
 	$(".tab-target input.selector").each(function(){
 		var $this = $(this);
 		$.inArray($this.attr('value'),conf.current_list.uuids)>=0?$this.attr("checked","checked"):$this.removeAttr("checked");
+	});
+	toggleSelector();
+}
+function deselectList(){
+	if (typeof conf.current_list.uuids == "undefined") return;
+	$(".tab-target input.selector").each(function(){
+		var $this = $(this);
+		$.inArray($this.attr('value'),conf.current_list.uuids)>=0?$this.removeAttr("checked"):$this.attr("checked","checked");
 	});
 	toggleSelector();
 }
@@ -500,8 +533,9 @@ function reload() {
 					$(".error")
 							.html(
 									"I'm sorry, but something went wrong while trying to reach the server, please try again."+errorCloseButton);
-				}
-			});
+			}
+	});
+	updateSubscriptions();
 }
 
 
@@ -519,6 +553,11 @@ $(document).ready(function() {
 	if (typeof listId != "undefined" && listId != "" && typeof local_lists[listId] != "undefined"){
 		conf.current_list=local_lists[listId];
 		conf.filter_list="complete";
+	}
+	
+	var subscriptionId = $.getUrlVar("subscribe");
+	if (typeof subscriptionId != "undefined" && subscriptionId != ""){
+		subscribeToList(subscriptionId);
 	}
 	$tabs = $(".tabContainer").tabs({
 		selected:0,
@@ -559,6 +598,7 @@ $(document).ready(function() {
 	});
 	render();
 	reload();
+	updateSubscriptions();
 	var _gaq = _gaq || [];
 	_gaq.push([ '_setAccount', 'UA-34102591-1' ]);
 	_gaq.push([ '_trackPageview' ]);

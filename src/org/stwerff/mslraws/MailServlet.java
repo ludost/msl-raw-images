@@ -37,13 +37,12 @@ public class MailServlet extends HttpServlet {
 		MemoNode newNode = baseNode.getChildByStringValue("newImages");
 		if (newNode == null) return;
 		log.warning("newNode:"+newNode.getId().toString());
-		
+				
 		int fullCount = checkAndCount(newNode,"full");
 		int dsCount = checkAndCount(newNode,"downscaled");
 		int subframeCount = checkAndCount(newNode,"subframe");
 		int thumbCount = checkAndCount(newNode,"thumbnail");
 		if (fullCount+dsCount+subframeCount+thumbCount == 0) return;
-		
 		log.warning("Found:F:"+fullCount+" S:"+subframeCount+" D:"+dsCount+" T:"+thumbCount);
 		
 		ArrayList<MemoNode> sols = newNode.getChildrenByRegEx(Pattern.compile("[0-9]+"), -1);
