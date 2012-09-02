@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cronentries>
   <cron>
+      <url>/landing?flat=cron</url>
+      <schedule>every 1 minutes</schedule>
+      <description>Keep alive exercise</description>
+  </cron>
+  <cron>
     <url>/collector</url>
     <description>Check and collect images every couple of minutes.</description>
     <schedule>every 5 minutes</schedule>

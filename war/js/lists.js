@@ -22,6 +22,7 @@ var settings = {
 	filter_new : false,
 	filter_list : "none",
 	current_list : {},
+	localList: true,
 	useWget : true,
 	wget_syntax : "wget -i -",
 	max_show:20,
@@ -35,6 +36,9 @@ if (typeof (localStorage["msl-raws-conf"]) != "undefined"
 	conf = JSON.parse(localStorage["msl-raws-conf"]);
 }
 conf = $.extend({}, settings, conf);
+if (typeof conf.personalId == "undefined"){
+	conf.personalId = new UUID();
+}
 
 local_lists = {};
 if (typeof localStorage["msl-raws-lists"] != "undefined"
@@ -99,6 +103,28 @@ function pad(number, length) {
 	return str;
 }
 
+function renderDate(date,utc){
+	if (isNaN(date.getTime())) return "---";
+	if (typeof utc != "undefined" && utc){
+		return date.getUTCFullYear()
+		+ "-" + pad(date.getUTCMonth() + 1,2)
+		+ "-" + pad(date.getUTCDate(),2)
+		+ " " + pad(date.getUTCHours(),2)
+		+ ":" + pad(date.getUTCMinutes(),2)
+		+ ":" + pad(date.getUTCSeconds(),2)
+		+ " UTC";		
+	} else {
+		var offset = -date.getTimezoneOffset() / 60;
+		return date.getFullYear()
+		+ "-" + pad(date.getMonth() + 1,2)
+		+ "-" + pad(date.getDate(),2)
+		+ " " + pad(date.getHours(),2)
+		+ ":" + pad(date.getMinutes(),2)
+		+ ":" + pad(date.getSeconds(),2)
+		+ " UTC" + (offset >= 0 ? "+":"-") + offset;
+	}
+}
+
 /**
  * List management
  */
@@ -106,11 +132,14 @@ function createList(){
 	if ($(".listCreate .listLabel").val() != ""){
 		conf.current_list = {
 			uuid: new UUID(),
+			creator: conf.personalId,
+			created: new Date().getTime(),
 			name: $(".listCreate .listLabel").val(),
 			description: $(".listCreate .listDescr").val(),
 			url: $(".listCreate .listURL").val(),
 			uuids: selectedImages()
 		}
+		conf.localList = true;
 		local_lists[conf.current_list.uuid.id]=(conf.current_list);
 		localStorage["msl-raws-lists"]=JSON.stringify(local_lists);
 		render();
@@ -128,16 +157,28 @@ function deleteList(){
 	render();
 }
 function publishList(listId){
-	var list = JSON.stringify(local_lists[listId]);
+	var list = local_lists[listId];
+	list.shared = new Date().getTime();
+	localStorage["msl-raws-lists"]=JSON.stringify(local_lists);
+	renderLists();
 	$.ajax({
 		url:"/lists/id/"+listId,
 		type:"PUT",
 		processdata:false,
-		data:list
+		data:JSON.stringify(list),
+		error : function() {
+			$(".error")
+				.html("I'm sorry, but something went wrong while trying to reach the server, please try again."+errorCloseButton);
+		}
 	});
 }
 function subscribeToList(listId){
 	if ($.inArray(listId,subscriptions)< 0) subscriptions.push(listId);
+	localStorage["msl-raws-subscriptions"]=JSON.stringify(subscriptions);
+	updateSubscriptions();
+}
+function unsubscribeList(listId){
+	subscriptions.splice($.inArray(listId,subscriptions),1);
 	localStorage["msl-raws-subscriptions"]=JSON.stringify(subscriptions);
 	updateSubscriptions();
 }
@@ -184,15 +225,23 @@ function removeFromList(){
 
 function openList(listId){
 	if (typeof local_lists[listId] != "undefined"){
-		conf.current_list=local_lists[listId];	
+		conf.current_list=local_lists[listId];
+		conf.localList = true;
 	} else {
 		conf.current_list=subscribed_lists[listId];
+		conf.localList = false;
 	}
 	conf.filter_list="complete";
 	$tabs.tabs('select',0);
 }
+function deselectCurrent(){
+	conf.current_list={};
+	conf.localList= true;
+	render();
+}
 
 function renderLists(){
+	$('.error').html("");
 	$('.listBrowser-target')
 	.replaceWith(
 			$('.listBrowser-template')
@@ -203,12 +252,31 @@ function renderLists(){
 								".listPublish@onClick":function(a){
 									return "publishList('"+a.item.uuid.id+"')";
 								},
+								".listPublishLink@href":function(a){
+									return "http://msl-raw-images.appspot.com/lists.html?subscribe="+a.item.uuid.id;
+								},
+								".listPublishLink@style":function(a){
+									if (typeof a.item.shared == "undefined" || a.item.shared == ""){
+										return "display:none";
+									}
+									return "";
+								},
+								".listLastShare" : function (a){
+									millis = parseFloat(a.item.shared);
+									date = new Date(millis);
+									return renderDate(date,conf.show_utc);
+								},
+								".listCreated" : function (a){
+									millis = parseFloat(a.item.created);
+									date = new Date(millis);
+									return renderDate(date,conf.show_utc);
+								},
 								".listLabel@onClick":function(a){
 									return "openList('"+a.item.uuid.id+"')";
 								},
 								".listLabel":"listItem.name",
 								".listCount":"listItem.uuids.length",
-								".listDescr":"listItem.description",
+								".listDescr pre":"listItem.description",
 								".listUrl@href":"listItem.url",
 								".listUrl":function(a){ return a.item.url==""?"":"Weblink"}
 							}
@@ -218,6 +286,7 @@ function renderLists(){
 	$(".listBrowser-target .line-filler").toggle($.isEmptyObject(local_lists));
 }
 function renderSubscriptions(){	
+	$('.error').html("");
 	$('.subscriptionBrowser-target')
 	.replaceWith(
 			$('.subscriptionBrowser-template')
@@ -225,12 +294,29 @@ function renderSubscriptions(){
 					.directives({
 						'.line-template' : {
 							'listItem<-context' : {
+								".unsubscribe@onClick":function(a){
+									return "unsubscribeList('"+a.item.uuid.id+"')";
+								},
+								".listPublishLink@href":function(a){
+									return "http://msl-raw-images.appspot.com/lists.html?subscribe="+a.item.uuid.id;
+								},
+								".listPublishLink@style":function(a){
+									if (typeof a.item.shared == "undefined" || a.item.shared == ""){
+										return "display:none";
+									}
+									return "";
+								},
+								".listLastShare" : function (a){
+									millis = parseFloat(a.item.shared);
+									date = new Date(millis);
+									return renderDate(date,conf.show_utc);
+								},
 								".listLabel@onClick":function(a){
 									return "openList('"+a.item.uuid.id+"')";
 								},
 								".listLabel":"listItem.name",
 								".listCount":"listItem.uuids.length",
-								".listDescr":"listItem.description",
+								".listDescr pre":"listItem.description",
 								".listUrl@href":"listItem.url",
 								".listUrl":function(a){ return a.item.url==""?"":"link"}
 							}
@@ -269,7 +355,7 @@ function filter(a) {
 			return false;		
 	}
 	dyn.totalImages++;
-	dyn.fullList.push(a.item.uuid);
+	dyn.fullList.push(a.item);
 	if (!dyn.temp_render_max && dyn.pagecount > conf.render_max)
 		return false;
 	if (dyn.pagecount > conf.show_count)
@@ -293,6 +379,8 @@ function sort(a, b) {
 function saveConf() {
 	localStorage["msl-raws-conf"] = JSON.stringify(conf);
 }
+
+
 function render() {
 	dyn.newLimit = new Date().getTime() - (24 * 3600 * 1000);
 	localStorage["msl-raws-conf"] = JSON.stringify(conf);
@@ -362,24 +450,7 @@ function render() {
 														millis = parseFloat(a.item.unixTimeStamp);
 														date = new Date(millis);
 													}
-													if (conf.show_utc) {
-														return date.getUTCFullYear()
-																+ "-" + pad(date.getUTCMonth() + 1,2)
-																+ "-" + pad(date.getUTCDate(),2)
-																+ " " + pad(date.getUTCHours(),2)
-																+ ":" + pad(date.getUTCMinutes(),2)
-																+ ":" + pad(date.getUTCSeconds(),2)
-																+ " UTC";
-													} else {
-														var offset = -date.getTimezoneOffset() / 60;
-														return date.getFullYear()
-														+ "-" + pad(date.getMonth() + 1,2)
-														+ "-" + pad(date.getDate(),2)
-														+ " " + pad(date.getHours(),2)
-														+ ":" + pad(date.getMinutes(),2)
-														+ ":" + pad(date.getSeconds(),2)
-														+ " UTC" + (offset >= 0 ? "+":"-") + offset;
-													}
+													return renderDate(date,conf.show_utc);
 												}
 											},
 											sort : function(a, b) {
@@ -411,8 +482,8 @@ function render() {
 		$(".listViewer").hide();
 		render();
 	});
-	var map = {"none":"N","include":"I","exclude":"E","complete":"F"}
-	$(".tab-target .listSelectFeedback").html("("+map[conf.filter_list]+")");
+	var map = {"none":"None","include":"Include","exclude":"Exclude","complete":"Full"}
+	$(".tab-target .listSelectFeedback").html(map[conf.filter_list]);
 	toggleSelector();
 
 	//Navigation stuff
@@ -430,14 +501,14 @@ function render() {
 	//Set some global info fields:
 	$(".tab-target .imageCount").html(
 			dyn.totalImages + " of " + dyn.data.length + " images selected");
-	$(".tab-target .currentList,.listDelete .currentList").html(typeof conf.current_list.name != "undefined"?conf.current_list.name:"####");
-	$(".tab-target .listCount").html(typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length+" images":"");
+	$(".tab-target .currentList,.listDelete .currentList").html(typeof conf.current_list.name != "undefined"?conf.current_list.name:"-none-");
+	$(".tab-target .listCount").html(typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length:"");
 	$('.tab-target .sol .newest').html(" ->" + dyn.highest_sol);
 	
 	$(".listInfo").html(($(".listInfo").clone().render(conf.current_list,{
 		".listLabel" : "name",
 		".listCount" : function(a){ return typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length+" images":"" },
-		".listDescr" : "description",
+		".listDescr pre" : "description",
 		".listURL" : function(a){ return conf.current_list.url==""?"":"<a href='"+conf.current_list.url+"' target='_blank'>"+conf.current_list.url+"</a>"}
 	})).html());
 	
@@ -450,12 +521,31 @@ function render() {
 	}
 	$(".tab-target input:button").button('refresh');
 
+
+	if (typeof conf.current_list.name == "undefined"){
+		$(".tab-target .msl-deSelectList .ui-icon").addClass('ui-state-disabled');
+	}
+	if (typeof conf.current_list.name == "undefined" || !conf.localList){
+		$(".tab-target .msl-dropList .ui-icon").addClass('ui-state-disabled');
+		$(".tab-target .msl-addToList .ui-icon").addClass('ui-state-disabled');
+		$(".tab-target .msl-removeFromList .ui-icon").addClass('ui-state-disabled');
+		$(".tab-target .msl-selectImages .ui-icon").addClass('ui-state-disabled');
+		$(".tab-target .msl-deSelectImages .ui-icon").addClass('ui-state-disabled');
+		$(".tab-target .msl-metaInfo .ui-icon").addClass('ui-state-disabled');			
+	}
+	
 	// ALthough not necessary on all redraws, no problem:
 	$(".prefixText").val(conf.wget_syntax);
 	$(".prefixBox").attr('checked', conf.useWget);
 	// Done
-}
 
+}
+function disabled(obj){
+	return !obj.find('.ui-icon').hasClass('ui-state-disabled');
+}
+function error(text){
+	$(".error").html(text+errorCloseButton);
+}
 function selectList(){
 	if (typeof conf.current_list.uuids == "undefined") return;
 	$(".tab-target input.selector").each(function(){
@@ -473,7 +563,31 @@ function deselectList(){
 	toggleSelector();
 }
 function toggleSelector(){
-	selectedImages().length>0?$(".toggleSelector").attr("checked","checked"):$(".toggleSelector").removeAttr("checked");
+	if (selectedImages().length > 0){
+		$(".toggleSelector").attr("checked","checked");
+		$(".tab-target .msl-export .ui-icon").removeClass('ui-state-disabled');
+		$(".tab-target .msl-createList .ui-icon").removeClass('ui-state-disabled');
+		if (typeof conf.current_list.name != "undefined" && conf.localList){
+			$(".tab-target .msl-addToList .ui-icon").removeClass('ui-state-disabled');
+			$(".tab-target .msl_delFromList .ui-icon").removeClass('ui-state-disabled');
+		}
+	}
+	if (selectedImages().length <= 0){
+		$(".toggleSelector").removeAttr("checked");
+		$(".tab-target .msl-export .ui-icon").addClass('ui-state-disabled');
+		$(".tab-target .msl-createList .ui-icon").addClass('ui-state-disabled');
+		$(".tab-target .msl-addToList .ui-icon").addClass('ui-state-disabled');
+		$(".tab-target .msl_delFromList .ui-icon").addClass('ui-state-disabled');
+	}
+	
+}
+function toggleAll(){
+	if ($('.toggleSelector').attr("checked") == "checked"){
+		$(".tab-target input.selector").attr({ checked:"checked"});	
+	} else {
+		$(".tab-target input.selector").removeAttr("checked");	
+	}
+	toggleSelector();
 }
 function selectedImages() {
 	var selected = new Array();
@@ -512,6 +626,7 @@ function outputList() {
 	p.document.write(newPage);
 	p.document.close();
 }
+
 function reload() {
 	$("div.reload").html("<span class='reloading'>Loading...</span>");
 	$(".error").html("");
@@ -538,6 +653,23 @@ function reload() {
 	updateSubscriptions();
 }
 
+function openGallery(){
+	var images = [];
+	dyn.fullList.map(function (image){
+		var url=image.url;
+		url = (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2);
+		var text="<a href='"+url+"' target='_blank'>Full Resolution</a><br>Filename: "+image.name+"<br>Taken on: "+renderDate(new Date(parseFloat(image.unixTimeStamp)),conf.show_utc);
+		images.push([url,text]);
+	});
+	if (images.length <= 0)return;
+	jQuery.slimbox(images, 0, {
+		loop:true, 
+		initialWidth: $(window).height()-150, 
+		initialHeight:$(window).height()-150,
+		captionAnimationDuration:1,
+		imageFadeDuration:1
+	});
+}
 
 	
 $(document).ready(function() {
@@ -552,6 +684,7 @@ $(document).ready(function() {
 	var listId = $.getUrlVar("list");
 	if (typeof listId != "undefined" && listId != "" && typeof local_lists[listId] != "undefined"){
 		conf.current_list=local_lists[listId];
+		conf.localList = true;
 		conf.filter_list="complete";
 	}
 	
@@ -625,4 +758,5 @@ $(document).ready(function() {
 	if (typeof stLight != "undefined") stLight.options({
 			publisher : "d1b23a5c-25a8-40b8-aa83-a7d19b05523d"
 	});
+	if (stButtons){stButtons.locateElements();}
 });

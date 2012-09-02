@@ -109,6 +109,7 @@
 		<web-resource-collection>
 			<web-resource-name>Memo</web-resource-name>
 			<url-pattern>/memo</url-pattern>
+			<url-pattern>/import.html</url-pattern>
 		</web-resource-collection>
 		<auth-constraint>
 			<role-name>admin</role-name>

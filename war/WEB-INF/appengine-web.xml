@@ -4,8 +4,8 @@
   <version>prod</version>
 
     <threadsafe>true</threadsafe>
-    <warmup-requests-enabled>1</warmup-requests-enabled>
-    <precompilation-enabled>1</precompilation-enabled>
+    <warmup-requests-enabled>true</warmup-requests-enabled>
+    <precompilation-enabled>true</precompilation-enabled>
     
   <!-- Configure java.util.logging -->
   <system-properties>

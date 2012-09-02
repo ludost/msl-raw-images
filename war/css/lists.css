@@ -22,17 +22,36 @@ input.max_show,input.render_max {
 .ui-tabs-nav {
 	font-size:8pt !important;
 }
-.listBrowser .listCount {
+.listCount {
 	text-align:center;
 }
-.listBrowser .listDescr {
-	max-width:500px;
-	max-height:3em;
+.listDescr {
+	display:block;
+	width:500px;
+	height:3em;
 	overflow:hidden;
 	white-space:normal !important;
 }
-.listBrowser .listDescr:hover {
+.listDescr:hover {
+	width:500px;
+	height:3em;
+}
+.listDescr:hover pre {
+	z-index:1004;
+	position:absolute;
 	max-height:999em;
+	max-width:999em;
+}
+pre {
+	min-width:494px;
+	min-height:3em;
+	background:white;
+	margin:1px;
+	border:1px solid #8a2d05;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	padding:1px;
 }
 .tabContainer {
 	 display: table; 
@@ -58,7 +77,7 @@ table {
 	text-align: left;
 	border-collapse:collapse;
 }
-td.sol,th.name { text-align: center }
+td.sol { text-align: center }
 td,th {
 	padding-left:0.25em;
 	padding-right:0.5em;
@@ -173,4 +192,11 @@ div.reload {
   	box-shadow:         1px 1px 2px 1px #8a2d05;
 	text-align: center;
 	width:100px;
+}
+div.navigation {
+	width : '300px';
+	float : 'left';
+}
+div.content {
+	display: block;
 }

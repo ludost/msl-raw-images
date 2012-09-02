@@ -19,6 +19,8 @@
 <script src="js/chosen.jquery.min.js"></script>
 <script src="js/range-select.js"></script>
 <script src="js/lists.js"></script>
+<script type="text/javascript" src="js/slimbox2.js"></script>
+<link rel="stylesheet" href="css/slimbox2.css" type="text/css" media="screen" />
 
 <script type="text/javascript"
 	src="http://w.sharethis.com/button/buttons.js"></script>
@@ -40,7 +42,7 @@
 		<ul>
 			<li><a href="#Images">Images</a></li>
 			<li><a href="#Lists">Local Lists</a></li>
-<!-- 			<li><a href="#Subscriptions">Subscribed Lists</a></li> -->
+			<li><a href="#Subscriptions">Subscribed Lists</a></li>
 		</ul>
 		<div class="imageBrowser" id="Images">
 			<table class="tab-target">
@@ -54,41 +56,43 @@
 				<tr class=header>
 					<th class="list" colspan=7> 
 						<div class="lists">
-							<a title="Export" href="#Export" class="listIcon" onClick="outputList()"><span class="ui-icon-arrowthickstop-1-s ui-icon inline"></span></a>
-							<a title="Create list" href="#CreateList" class="listIcon" onClick="if (selectedImages().length>0) $('.listCreate').dialog('open'); return false"><span	class="ui-icon-document ui-icon inline"></span></a>
+							<a title="Export" href="#Export" class="listIcon msl-export" onClick="disabled($(this))?outputList():error('You need to select at least one image!')"><span class="ui-icon-arrowthickstop-1-s ui-icon inline"></span></a>
+							<a title="Create list" href="#CreateList" class="listIcon msl-createList" onClick="disabled($(this))?$('.listCreate').dialog('open'):error('You need to select at least one image!')"><span	class="ui-icon-document ui-icon inline"></span></a>
 						    |
-						    <a title="Add to list" href="#AddImages" class="listIcon" onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') addToList(); return false"><span class="ui-icon-plus ui-icon inline"></span></a> 
-						    <a title="Remove from list" href="#RemoveImages" class="listIcon" onClick="if (selectedImages().length>0 && typeof conf.current_list.name != 'undefined') removeFromList(); return false"><span class="ui-icon-minus ui-icon inline"></span></a>
+						    <a title="Add to list" href="#AddImages" class="listIcon msl-addToList" onClick="disabled($(this))?addToList():error('You need to select at least one image and a local list.')"><span class="ui-icon-plus ui-icon inline"></span></a> 
+						    <a title="Remove from list" href="#RemoveImages" class="listIcon msl_delFromList" onClick="disabled($(this))?removeFromList():error('You need to select at least one image and a local list.')"><span class="ui-icon-minus ui-icon inline"></span></a>
 						    |
+							<a title="Select images" href="#SelectImages" class="listIcon msl-selectImages" onClick="disabled($(this))?selectList():error('Please select a local list first.')"><span class="ui-icon-check ui-icon inline"></span></a> 
+							<a title="Deselect images" href="#DeSelectImages" class="listIcon msl-deSelectImages" onClick="disabled($(this))?deselectList():error('Please select a local list first.')"><span class="ui-icon-circle-check ui-icon inline"></span></a> 
+							|
+							<a title="Deselect list" href="#DeSelectList" class="listIcon msl-deSelectList" onClick="disabled($(this))?deselectCurrent():error('You have no list selected to deselect...')"><span class="ui-icon-cancel ui-icon inline"></span></a>
+							<a title="Meta information" href="#Info" class="listIcon msl-metaInfo" onClick="disabled($(this))?$('.listInfo').dialog('open'):error('Please select a local list first.')"><span class="ui-icon-info ui-icon inline"></span></a>
+							<a title="Drop list!" href="#DropList" class="listIcon msl-dropList" onClick="disabled($(this))?$('.listDelete').dialog('open'):error('Please select a local list first.')"><span class="ui-icon-trash ui-icon inline"></span></a> 
+							|
+							<a title="Help" href="#Help" class="listIcon msl-help" onClick="$('.listHelp').dialog('open'); return false"><span class="ui-icon-help ui-icon inline"></span></a>
+							<a title="Preferences" href="#Setup" class="listIcon msl-prefs" onClick="$('.preferences').dialog('open');"><span class="ui-icon inline ui-icon-wrench"></span></a>
+						</div></th>
+				</tr>
+				<tr class="labels">
+					<th></th>
+					<th></th>
+					<th>
+							List:<span class="currentList">####</span>[<span class="listCount"></span>] 
 						    <div class="listSelectContainer">
-						    [<a title="Select list filter type" href="#Lists" class="cleanLink" onClick="$('.listViewer').toggle()"><span class="currentList">####</span> 
-						     <span class="ui-icon-triangle-1-s ui-icon inline"></span></a>
-						    ]<span class="listSelectFeedback"></span>
-						    	<div class="listViewer">
+						    <a title="Select list filter type" href="#Lists" class="cleanLink" onClick="$('.listViewer').toggle()">
+						    (
+						    	<span class="listSelectFeedback"></span>
+						    	<span class="ui-icon-triangle-1-s ui-icon inline"></span></a>
+						    )
+						    <div class="listViewer">
 		Selected list filter:<br>
 		<input type="radio" name="filter_list" align="left" value="none" id="filter_list_none">None</input><br>
 		<input type="radio" name="filter_list" align="left" value="exclude" id="filter_list_exclude">Exclude</input><br>
 		<input type="radio" name="filter_list" align="left" value="include" id="filter_list_include">Include</input><br>
 		<input type="radio" name="filter_list" align="left" value="complete" id="filter_list_complete">Entire</input><br>
 	</div>
-						    
 						    </div>
-						     <span class="listCount"></span> 
-							|
-							<a title="Select images" href="#SelectImages" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') selectList(); return false"><span class="ui-icon-check ui-icon inline"></span></a> 
-							<a title="Deselect images" href="#DeSelectImages" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') deselectList(); return false"><span class="ui-icon-circle-check ui-icon inline"></span></a> 
-							|
-							<a title="Meta information" href="#Info" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') $('.listInfo').dialog('open'); return false"><span class="ui-icon-info ui-icon inline"></span></a>
-							<a title="Drop list!" href="#DropList" class="listIcon" onClick="if (typeof conf.current_list.name != 'undefined') $('.listDelete').dialog('open'); return false"><span class="ui-icon-trash ui-icon inline"></span></a> 
-							|
-							<a title="Help" href="#Help" class="listIcon" onClick="$('.listHelp').dialog('open'); return false"><span class="ui-icon-help ui-icon inline"></span></a>
-							<a title="Preferences" href="#Setup" class="listIcon" onClick="$('.preferences').dialog('open');"><span class="ui-icon inline ui-icon-wrench"></span></a>
-						</div></th>
-				</tr>
-				<tr class="labels">
-					<th></th>
-					<th></th>
-					<th></th>
+					</th>
 					<th class="sol">Sol<span class="newest"></span></th>
 					<th>Date - (use Release:<input title="Sort on and show release date" class='sortBox' type="checkbox"
 						onClick="this.checked?conf.sort_type='modified':conf.sort_type='time'; render()" />)</th>
@@ -103,10 +107,10 @@
 					<th class="selector">&nbsp;
 					<input title="(de)Select all" class="toggleSelector"
 						type="checkbox"
-						onClick='this.checked?$(".tab-target input.selector").attr({ checked:"checked"}):$(".tab-target input.selector").removeAttr("checked")'>
+						onClick='toggleAll()'>
 					&nbsp;</th>
 					<th class="name">
-						 <span class="imageCount"></span>
+						 <input type="button" onClick="openGallery()" value="Gallery view"><span class="imageCount"></span>
 					</th>
 					<th class="sol">
 						 <input title="Select specific sol" class="solInput" type="text" value=""
@@ -206,24 +210,26 @@
 			</table>
 			<table class="listBrowser-template">
 				<tr>
-<!-- 					<th></th> -->
-<!-- 					<th>Shared on</th> -->
+					<th></th>
 					<th>Name</th>
 					<th>Count</th>
 					<th>Description</th>
 					<th>Url</th>
+					<th>Last Shared</th>
+					<th>Created</th>
 				</tr>
 				<tr class="line-template">
-					<td style="display: none"><input type=button onClick=""
-						class="listPublish" value="share"></td>
-					<td style="display: none" class="listLastShare"></td>
-<!-- 					<td><input type=button onClick="" -->
-<!-- 						class="listPublish" value="share"></td> -->
-<!-- 					<td class="listLastShare"></td> -->
+					<td><input type=button onClick=""
+						class="listPublish" value="share">
+						<a href="#" onClick=""
+						class="listPublishLink">Link</a>	
+					</td>
 					<td><a href="#" onClick="" class="listLabel"></a></td>
 					<td class="listCount"></td>
-					<td><div class="listDescr"></div></td>
+					<td><div class="listDescr"><pre></pre></div></td>
 					<td><a href="#" class="listUrl" target="_blank">Link</a></td>
+					<td class="listLastShare"></td>
+					<td class="listCreated"></td>
 				</tr>
 				<tr class="line-filler">
 					<td colspan=4>No lists exist yet, please create one in the
@@ -238,19 +244,23 @@
 			<table class="subscriptionBrowser-template">
 				<tr>
 					<th></th>
-					<th>Shared on</th>
 					<th>Name</th>
 					<th>Count</th>
 					<th>Description</th>
 					<th>Url</th>
+					<th>Last Update</th>
 				</tr>
 				<tr class="line-template">
-					<td></td>
-					<td class="listLastShare"></td>
+					<td>
+					<input type=button onClick="" 
+						class="unsubscribe" value="Unsubscribe"/>
+					<a href="#" onClick=""
+						class="listPublishLink">Link</a></td>
 					<td><a href="#" onClick="" class="listLabel"></a></td>
 					<td class="listCount"></td>
-					<td><div class="listDescr"></div></td>
+					<td><div class="listDescr"><pre></pre></div></td>
 					<td><a href="#" class="listUrl" target="_blank">Link</a></td>
+					<td class="listLastShare"></td>
 				</tr>
 				<tr class="line-filler">
 					<td colspan=4>You have not subscribed to any lists yet.</td>
@@ -298,8 +308,9 @@
 		Name: <span class="listLabel"></span><br> (<span
 			class="listCount"></span>)<br>
 		<hr>
-		<span class="listDescr"></span><br> <br> Weblink: <span
-			class="listURL"></span><br>
+		<span class="listDescr"><pre></pre></span>
+		Weblink: <span
+			class="listURL"></span>
 		<hr>
 		<input type="button" class="close" value="Close"
 			onClick="$('.listInfo').dialog('close')" />
@@ -323,6 +334,8 @@
 			<li style="white-space: nowrap"><span
 				class="ui-icon-circle-check ui-icon inline"></span> - Deselect all visible
 				images which are on the current list</li>
+			<li style="white-space: nowrap"><span
+				class="ui-icon-cancel ui-icon inline"></span> - Deselect the current list in the image viewer</li>
 			<li style="white-space: nowrap"><span
 				class="ui-icon-info ui-icon inline"></span> - Show the current
 				list's meta info</li>

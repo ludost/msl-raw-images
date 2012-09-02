@@ -41,7 +41,7 @@ public class LandingPageServlet extends HttpServlet {
 	static final String jpl = "http://mars.jpl.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol";
 	static final String msss = "http://mars.jpl.nasa.gov/msl-raw-images/msss";
 	
-	static MemoNode quickServe = null;
+	public static MemoNode quickServe = null;
 	
 	public ArrayNode generateJSON(int sol, String camera, boolean countsOnly, boolean flat, boolean repair){
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
@@ -221,7 +221,8 @@ public class LandingPageServlet extends HttpServlet {
 				System.out.println("Got quickServe static node");
 			}
 			if (val == null){
-				val = new MemoNode(uuid).getValue();
+				quickServe =new MemoNode(uuid); 
+				val = quickServe.getValue();
 				System.out.println("Got datastore based static node:"+(quickServe != null?quickServe.getId():"")+"/"+uuid);
 			}
 			if (val != null && val.length>0){
@@ -229,8 +230,9 @@ public class LandingPageServlet extends HttpServlet {
 			}
 		}
 		if (result.equals("")) {
-			System.out.println("Re-generated JSON");
+			System.out.println("Re-generating JSON");
 			ArrayNode resultNode = generateJSON(sol,camera,countsOnly,flat,repair);
+			System.out.println("Done regenerating JSON");
 			result=resultNode.toString();
 			if (mayCache){
 				MemoNode lastServed= MemoNode.getRootNode().getChildByStringValue("msl-raws-lastServed");
