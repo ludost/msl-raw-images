@@ -1,5 +1,7 @@
 package org.stwerff.mslraws.parser;
 
+import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -10,19 +12,20 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Logger;
 
+import org.stwerff.mslraws.LandingPageServlet;
+
 import com.chap.memo.memoNodes.MemoNode;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
-import static com.google.appengine.api.taskqueue.TaskOptions.Builder.*;
 
 
 public class SiteParser {
 	private static final Logger log = Logger.getLogger("msl-raw-images");
 	static Queue queue = QueueFactory.getDefaultQueue();
-	static MemcacheService memCache = MemcacheServiceFactory.getMemcacheService();;
    
+	static final String jpl = "http://mars.jpl.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol";
+	static final String msss = "http://mars.jpl.nasa.gov/msl-raw-images/msss";
+	
 	public static String getCamera(String filename){
 		String start = filename.substring(0, 3);
 		if (start.matches("[0-9]+")){
@@ -122,11 +125,13 @@ public class SiteParser {
 						containerNode = solcamNode.addChild(new MemoNode("images"));
 						containerNode.addParent(camsolNode);
 					}
+					res = res.replace(jpl,"J$").replace(msss,"M$");
 					if (containerNode.getChildByStringValue(res) == null){
-						if (containerNode.getChildByStringValue(res.replace(".jpg", ".JPG")) != null ||containerNode.getChildByStringValue(res.replace(".jpg", ".JPG")) != null ) continue;
+						if (containerNode.getChildByStringValue(res.replace(".jpg", ".JPG")) != null ||containerNode.getChildByStringValue(res.replace(".jpg", ".JPG")) != null ||
+								containerNode.getChildByStringValue(res.replace("J$", jpl).replace("M$", msss)) != null) continue;
 						imageNode=containerNode.addChild(new MemoNode(res))
 						.setPropertyValue("type",getType(filename))
-						.setPropertyValue("thumbnail",thumbnail)
+						.setPropertyValue("thumbnail",thumbnail.replace(jpl,"J$").replace(msss,"M$"))
 						.setParent(allImagesNode);
 						images.add(imageNode.getId().toString());
 						addToNew(imageNode, sol);
@@ -171,7 +176,7 @@ public class SiteParser {
 			}
 			if (list.length()>0){
 				queue.add(withUrl("/collector").param("imageUUIDs",list));
-				memCache.delete("quickServe");
+				LandingPageServlet.quickServe="";
 			}
 			reader.close();
 			con.disconnect();

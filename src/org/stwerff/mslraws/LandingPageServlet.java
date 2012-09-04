@@ -3,7 +3,6 @@ package org.stwerff.mslraws;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
 import java.io.IOException;
-//import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -15,19 +14,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.stwerff.mslraws.parser.SiteParser;
 
 import com.chap.memo.memoNodes.MemoNode;
-import com.eaio.uuid.UUID;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-//import com.google.appengine.api.blobstore.BlobKey;
-//import com.google.appengine.api.blobstore.BlobstoreService;
-//import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
-//import com.google.appengine.api.files.AppEngineFile;
-//import com.google.appengine.api.files.FileService;
-//import com.google.appengine.api.files.FileServiceFactory;
-//import com.google.appengine.api.files.FileWriteChannel;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
@@ -35,13 +24,12 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 public class LandingPageServlet extends HttpServlet {
 	private static final long serialVersionUID = 8110001398162695563L;
 	static final ObjectMapper om = new ObjectMapper();
-	static MemcacheService memCache = MemcacheServiceFactory.getMemcacheService();
 	static Queue queue = QueueFactory.getDefaultQueue();
 	
 	static final String jpl = "http://mars.jpl.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol";
 	static final String msss = "http://mars.jpl.nasa.gov/msl-raw-images/msss";
 	
-	public static MemoNode quickServe = null;
+	public static String quickServe = "";
 	
 	public ArrayNode generateJSON(int sol, String camera, boolean countsOnly, boolean flat, boolean repair){
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
@@ -156,7 +144,7 @@ public class LandingPageServlet extends HttpServlet {
 				statsNode.setPropertyValue("totalCount",totalCount);
 				System.out.println("Set count to:"+totalCount);
 			}
-			memCache.delete("quickServe");
+			quickServe="";	
 		}
 		return result;
 	}
@@ -213,38 +201,16 @@ public class LandingPageServlet extends HttpServlet {
 			fullReload=true;
 		}
 		String result="";
-		if (!fullReload && memCache.get("quickServe") != null && memCache.get("quickServe") != ""){
-			UUID uuid = new UUID((String)memCache.get("quickServe"));
-			byte[] val = null;
-			if (quickServe != null && quickServe.getId().equals(uuid)){
-				val = quickServe.getValue();
-				System.out.println("Got quickServe static node");
-			}
-			if (val == null){
-				quickServe =new MemoNode(uuid); 
-				val = quickServe.getValue();
-				System.out.println("Got datastore based static node:"+(quickServe != null?quickServe.getId():"")+"/"+uuid);
-			}
-			if (val != null && val.length>0){
-				result = new String(val);
-			}
-		}
-		if (result.equals("")) {
+		if (!fullReload && !quickServe.equals("")){
+			System.out.println("QuickServe string");
+			result = quickServe;
+		} else {
 			System.out.println("Re-generating JSON");
 			ArrayNode resultNode = generateJSON(sol,camera,countsOnly,flat,repair);
 			System.out.println("Done regenerating JSON");
 			result=resultNode.toString();
 			if (mayCache){
-				MemoNode lastServed= MemoNode.getRootNode().getChildByStringValue("msl-raws-lastServed");
-				if (lastServed != null){
-					for (MemoNode page : lastServed.getChildren()){
-						page.delete();
-					}
-				} else {
-					lastServed = MemoNode.getRootNode().addChild(new MemoNode("msl-raws-lastServed"));
-				}
-				quickServe = lastServed.addChild(new MemoNode(result));
-				memCache.put("quickServe", quickServe.getId().toString());
+				quickServe = result;
 				System.out.println("Stored for quickServe");
 			}
 		}

@@ -3,15 +3,10 @@ package org.stwerff.mslraws.images;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.stwerff.mslraws.LandingPageServlet;
-
 import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
 import com.chap.memo.memoNodes.MemoNode;
-import com.eaio.uuid.UUID;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 
 public class InitListener  implements ServletContextListener {
 
@@ -24,7 +19,6 @@ public class InitListener  implements ServletContextListener {
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
 		initData();
-		preLoadList();
 		initTwitter();
 	}
 
@@ -36,13 +30,6 @@ public class InitListener  implements ServletContextListener {
 		  .setOAuthAccessToken("784328444-PdhkGZ25pA1lz2atQHFJHfeiPB45IGLGw1fW3m9d")
 		  .setOAuthAccessTokenSecret("oUxXVYqWtDqrufP4jLkaJPcT6UsNdwFemEBBu5llvU");
 		tf = new TwitterFactory(cb.build());
-	}
-	public static void preLoadList(){
-		MemcacheService memCache = MemcacheServiceFactory.getMemcacheService();
-		if (memCache.get("quickServe") != null && memCache.get("quickServe") != ""){
-			UUID uuid = new UUID((String)memCache.get("quickServe"));
-			LandingPageServlet.quickServe = new MemoNode(uuid);
-		}
 	}
 	public static void initData(){
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");

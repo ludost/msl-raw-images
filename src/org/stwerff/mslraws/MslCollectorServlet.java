@@ -37,7 +37,10 @@ public class MslCollectorServlet extends HttpServlet {
 	static final String MOBILEURL="http://mars.jpl.nasa.gov/msl/multimedia/raw/";
 	static final String SITEURL="http://mars.jpl.nasa.gov/msl/multimedia/raw/";
 	static String BASEURL = SITEURL;
-	
+
+	static final String jpl = "http://mars.jpl.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol";
+	static final String msss = "http://mars.jpl.nasa.gov/msl-raw-images/msss";
+
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		doGet(req, resp);
@@ -70,6 +73,7 @@ public class MslCollectorServlet extends HttpServlet {
 	public void fetchHead(MemoNode imageNode) throws IOException {
 		// check head of image, store last-modified and date
 		String s_url = imageNode.getStringValue();
+		s_url=s_url.replace("J$", jpl).replace("M$", msss);
 		if (!s_url.startsWith("http")){
 			log.severe("invalid URL, no protocol:'"+s_url+"'");
 			return;
@@ -114,15 +118,16 @@ public class MslCollectorServlet extends HttpServlet {
 
 		resp.setContentType("text/plain");
 		InitListener.initData();
+		int damper=0;
 
 		if (req.getParameter("site") != null) BASEURL=SITEURL;
 		if (req.getParameter("mobile") != null) BASEURL=MOBILEURL;
-		
+		if (req.getParameter("damper") != null) damper=10;
 		if (req.getParameter("passOn") != null) {
 			if (req.getParameter("doHeads") != null) {
 				queue.add(withUrl("/collector").param("doHeads", "true"));
 			} else {
-				queue.add(withUrl("/collector"));
+				queue.add(withUrl("/collector").param("damper", new Integer(damper).toString()));
 			}
 			return;
 		}
@@ -184,7 +189,7 @@ public class MslCollectorServlet extends HttpServlet {
 			boolean doReload = true;
 			if (allImagesNode != null) {
 				try { 
-				if (count <= allImagesNode.getChildren().size())
+				if (count-damper <= allImagesNode.getChildren().size())
 					doReload = false;
 				} catch (Exception e){
 					log.severe("Warning:"+e.getLocalizedMessage());
@@ -197,7 +202,7 @@ public class MslCollectorServlet extends HttpServlet {
 				sol--;
 				while (sol >= 0) {
 					queue.add(withUrl("/collector").param("sol",
-							Integer.toString(sol--)).param("total", new Integer(count).toString()));
+							Integer.toString(sol--)).param("total", new Integer(count-damper).toString()));
 				}
 			} else {
 				log.warning("Skipping collection, nothing new.");
