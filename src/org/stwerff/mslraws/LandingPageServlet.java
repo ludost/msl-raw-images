@@ -178,7 +178,9 @@ public class LandingPageServlet extends HttpServlet {
 			mayCache=false;
 		}
 		boolean countsOnly = (req.getParameter("counts") != null);
-		boolean flat = (req.getParameter("flat") != null);
+		String flat_string = req.getParameter("flat"); 
+		boolean flat = (flat_string != null);
+		boolean cron = (flat && flat_string.equals("cron"));
 		boolean repair = (req.getParameter("repair")!=null);
 		boolean passOn = (req.getParameter("passOn")!=null);
 		
@@ -216,8 +218,13 @@ public class LandingPageServlet extends HttpServlet {
 		}
 		resp.setBufferSize(500000);
 		resp.setContentType("application/json");
-		resp.setContentLength(result.length());
-		resp.getWriter().write(result);
+		if (!cron){
+			resp.setContentLength(result.length());
+			resp.getWriter().write(result);
+		} else {
+			resp.setContentLength(2);
+			resp.getWriter().write("[]");
+		}
 		if (repair){
 			MemoNode.flushDB();MemoNode.compactDB();
 		}
