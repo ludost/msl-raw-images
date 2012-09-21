@@ -159,6 +159,7 @@ function deleteList(){
 function publishList(listId){
 	var list = local_lists[listId];
 	list.shared = new Date().getTime();
+	local_lists[listId]=list;
 	localStorage["msl-raws-lists"]=JSON.stringify(local_lists);
 	renderLists();
 	$.ajax({
@@ -194,8 +195,6 @@ function updateSubscriptions(){
 			}
 		}
 	});
-	
-	//loop through subscribed_lists to get newest version
 }
 function addToList(){
 	var images = selectedImages();
@@ -205,6 +204,8 @@ function addToList(){
 			list.push(uuid);
 		}
 	});
+	conf.current_list.uuids = list;
+	local_lists[conf.current_list.uuid.id]=(conf.current_list);
 	localStorage["msl-raws-lists"]=JSON.stringify(local_lists);
 	render();
 	selectList();
@@ -218,6 +219,8 @@ function removeFromList(){
 			list.splice(pos,1);
 		}
 	});
+	conf.current_list.uuids = list;
+	local_lists[conf.current_list.uuid.id]=(conf.current_list);
 	localStorage["msl-raws-lists"]=JSON.stringify(local_lists);
 	render();
 	selectList();
@@ -241,6 +244,7 @@ function deselectCurrent(){
 }
 
 function renderLists(){
+	//TODO: sort on last Modified, last Shared, etc.
 	$('.error').html("");
 	$('.listBrowser-target')
 	.replaceWith(
@@ -286,6 +290,7 @@ function renderLists(){
 	$(".listBrowser-target .line-filler").toggle($.isEmptyObject(local_lists));
 }
 function renderSubscriptions(){	
+	//TODO: sort on last Modified, last Shared, etc.
 	$('.error').html("");
 	$('.subscriptionBrowser-target')
 	.replaceWith(

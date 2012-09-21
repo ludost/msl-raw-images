@@ -32,9 +32,10 @@ public class InitListener  implements ServletContextListener {
 		tf = new TwitterFactory(cb.build());
 	}
 	public static void initData(){
-		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
+		MemoNode rootNode = MemoNode.getRootNode();
+		MemoNode baseNode = rootNode.getChildByStringValue("msl-raw-images");
 		if (baseNode == null){
-			baseNode = MemoNode.getRootNode().addChild(new MemoNode("msl-raw-images"));
+			baseNode = rootNode.addChild(new MemoNode("msl-raw-images"));
 			baseNode.addChild(new MemoNode("sols"));
 			baseNode.addChild(new MemoNode("NLA"));
 			baseNode.addChild(new MemoNode("NRA"));
@@ -53,13 +54,13 @@ public class InitListener  implements ServletContextListener {
 			baseNode.addChild(new MemoNode("FRB"));
 			baseNode.addChild(new MemoNode("FLB"));
 			baseNode.addChild(new MemoNode("CR0"));
-		}
-		baseNode = MemoNode.getRootNode().getChildByStringValue("mailList");
-		if (baseNode == null){
-			MemoNode.getRootNode().addChild(new MemoNode("mailList")).addChild(new MemoNode("ludo@stwerff.xs4all.nl"));
-			MemoNode.getRootNode().addChild(new MemoNode("newImagesFlag")).setPropertyValue("new", "false");
 			MemoNode.flushDB();
 		}
-		
+		baseNode = rootNode.getChildByStringValue("mailList");
+		if (baseNode == null){
+			rootNode.addChild(new MemoNode("mailList")).addChild(new MemoNode("ludo@stwerff.xs4all.nl"));
+			rootNode.addChild(new MemoNode("newImagesFlag")).setPropertyValue("new", "false");
+			MemoNode.flushDB();
+		}
 	}
 }

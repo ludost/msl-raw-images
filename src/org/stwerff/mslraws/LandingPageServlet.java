@@ -3,9 +3,10 @@ package org.stwerff.mslraws;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -14,8 +15,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.stwerff.mslraws.parser.SiteParser;
 
 import com.chap.memo.memoNodes.MemoNode;
+import com.eaio.uuid.UUID;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
@@ -31,12 +34,14 @@ public class LandingPageServlet extends HttpServlet {
 	
 	public static String quickServe = "";
 	
-	public ArrayNode generateJSON(int sol, String camera, boolean countsOnly, boolean flat, boolean repair){
+	public String generateJSON(int sol, String camera, boolean countsOnly, boolean flat, boolean repair) throws IOException{
+		long start = System.currentTimeMillis();
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
 		
-		ArrayList<MemoNode> imgList = null;
-		MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
+		List<MemoNode> imgList = null;
+		MemoNode allImagesNode = null;
 		if (repair){
+			allImagesNode = baseNode.getChildByStringValue("allImages");
 			if (allImagesNode == null){
 				allImagesNode = baseNode.addChild(new MemoNode("allImages"));
 			}
@@ -44,55 +49,56 @@ public class LandingPageServlet extends HttpServlet {
 		}
 
 		
-		ArrayList<MemoNode> cameras = baseNode.getChildren();
-		Iterator<MemoNode> iter = cameras.iterator();
-		ArrayNode result = om.createArrayNode();
+		JsonFactory f = new JsonFactory();
+		f.setCodec(om);
+		StringWriter resultWriter = new StringWriter();
+		JsonGenerator g = f.createJsonGenerator(resultWriter);
+		g.writeStartArray();
+		
+		int imageCount=0;
+		List<UUID> cameras = baseNode.getChildIds();
+		Iterator<UUID> iter = cameras.iterator();
 		while (iter.hasNext()){
-			MemoNode cam = iter.next();
+			MemoNode cam = new MemoNode(iter.next());
 			if (cam.getStringValue().equals("sols")) continue;
 			if (!camera.equals("all") && !cam.getStringValue().equals(camera)) continue;
 			
-			ArrayList<MemoNode> sols;
+			List<MemoNode> sols;
 			if (sol > 0){
-				sols = cam.getChildrenByStringValue("sol"+sol,1);
+				sols = cam.getChildrenByStringValue("sol"+sol,-1);
+				if (sols.size()>1){
+					System.out.println("Strange: sol"+sol+ " is duplicated!"+sols.size());
+				}
+				if (sols.size()==0){
+					System.out.println("Strange: sol"+sol+ " is not existing!");
+				}
 			} else {
 				sols = cam.getChildren();
 			}
 			if (sols.size()>0){
-				ObjectNode cameraNode = om.createObjectNode();
-				ObjectNode solNodes = om.createObjectNode();
-				if (!flat){
-					result.add(cameraNode);					
-					cameraNode.put("camera", cam.getStringValue());
-					cameraNode.put("sols", solNodes);
-				}
 				Iterator<MemoNode> soliter = sols.iterator();
 				while (soliter.hasNext()){
-					MemoNode node_sol = soliter.next();	
-					if (node_sol.getChildByStringValue("images") == null){
-						node_sol.addChild(new MemoNode("images"));
+					MemoNode node_sol = soliter.next();
+					MemoNode node_images = node_sol.getChildByStringValue("images");
+					if (node_images == null){
+						node_images = node_sol.addChild(new MemoNode("images"));
 					}
-					int nofc = 0;
-					if (node_sol.getChildByStringValue("images").getChildren() != null){
-						nofc = node_sol.getChildByStringValue("images").getChildren().size();
-					}
+					List<UUID> images = node_images.getChildIds();
+					int nofc = images.size();
+					imageCount+=nofc;
 					if (nofc > 0){
-						ObjectNode solNode = om.createObjectNode();
-						if (!flat){
-							solNodes.put(node_sol.getStringValue().replace("sol", ""),solNode);
-							solNode.put("count", nofc);
-						}
 						if (!countsOnly){
-							ArrayList<MemoNode> images = node_sol.getChildByStringValue("images").getChildren();
-							Iterator<MemoNode> image_iter = images.iterator();
-							ArrayNode imagesNode = om.createArrayNode();
-							if (!flat){
-								solNode.put("images", imagesNode);
-							}
+							Iterator<UUID> image_iter = images.iterator();
 							while(image_iter.hasNext()){
-								MemoNode image = image_iter.next();
+								MemoNode image = new MemoNode(image_iter.next());
 								String url = image.getStringValue();
-								if (url.equals(""))continue;
+								if (url.equals("")){
+									System.out.println("Skipping empty/deleted image URL:"+image.getId());
+									image.getParentIds();
+									image.delete();
+									imageCount--;
+									continue;
+								}
 								if (repair){
 									if (imgList != null && !imgList.contains(image)){
 										allImagesNode.addChild(image);
@@ -108,13 +114,9 @@ public class LandingPageServlet extends HttpServlet {
 								imageNode.put("unixTimeStamp", image.getPropertyValue("timestamp"));
 								imageNode.put("fileTimeStamp", image.getPropertyValue("fileTimeStamp"));
 								imageNode.put("lastModified", image.getPropertyValue("lastModified"));
-								if (flat){
-									imageNode.put("camera", cam.getStringValue());
-									imageNode.put("sol", node_sol.getStringValue().replace("sol", ""));
-									result.add(imageNode);
-								} else {
-									imagesNode.add(imageNode);
-								}
+								imageNode.put("camera", cam.getStringValue());
+								imageNode.put("sol", node_sol.getStringValue().replace("sol", ""));
+								g.writeTree(imageNode);
 							}
 						}
 					}
@@ -122,10 +124,11 @@ public class LandingPageServlet extends HttpServlet {
 			}
 		}
 		if (repair){
-			imgList.clear();
-			ArrayList<MemoNode> allImages = allImagesNode.getChildren();
+			imgList=null;
+			List<UUID> allImages = allImagesNode.getChildIds();
 			HashSet<String> set = new HashSet<String>(allImages.size());
-			for (MemoNode image : allImages){
+			for (UUID uuid : allImages){
+				MemoNode image = new MemoNode(uuid);
 				String url = image.getStringValue();
 				//remove duplicates
 				if (set.contains(url)){
@@ -140,13 +143,20 @@ public class LandingPageServlet extends HttpServlet {
 			}
 			MemoNode statsNode=baseNode.getChildByStringValue("imageStats");
 			if (statsNode != null){
-				String totalCount = new Integer(allImagesNode.getChildren().size()).toString();
+				String totalCount = new Integer(allImagesNode.getChildIds().size()).toString();
 				statsNode.setPropertyValue("totalCount",totalCount);
 				System.out.println("Set count to:"+totalCount);
 			}
-			quickServe="";	
+			if (imageCount != allImages.size()){
+				System.out.println("Returning less images than allImages!"+imageCount+"/"+allImages.size());
+			}
+			quickServe="";
 		}
-		return result;
+		g.writeEndArray();
+		g.flush();
+		String res =resultWriter.toString();
+		System.out.println(imageCount+ " images took:"+(System.currentTimeMillis()-start)+"ms");
+		return res;
 	}
 	
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -208,9 +218,8 @@ public class LandingPageServlet extends HttpServlet {
 			result = quickServe;
 		} else {
 			System.out.println("Re-generating JSON");
-			ArrayNode resultNode = generateJSON(sol,camera,countsOnly,flat,repair);
+			result = generateJSON(sol,camera,countsOnly,flat,repair);
 			System.out.println("Done regenerating JSON");
-			result=resultNode.toString();
 			if (mayCache){
 				quickServe = result;
 				System.out.println("Stored for quickServe");
@@ -226,7 +235,8 @@ public class LandingPageServlet extends HttpServlet {
 			resp.getWriter().write("[]");
 		}
 		if (repair){
-			MemoNode.flushDB();MemoNode.compactDB();
+			MemoNode.flushDB();
+			MemoNode.compactDB();
 		}
 	}
 }

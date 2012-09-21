@@ -2,6 +2,7 @@ package org.stwerff.mslraws;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -92,7 +93,7 @@ public class MailServlet extends HttpServlet {
 	}
 	public void sendMail(String msgBody){
 		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("mailList");
-		ArrayList<MemoNode> addresses = baseNode.getChildren();
+		List<MemoNode> addresses = baseNode.getChildren();
 		Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
 

@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
@@ -19,8 +19,6 @@ import org.stwerff.mslraws.parser.SiteParser;
 
 import com.chap.memo.memoNodes.MemoNode;
 import com.eaio.uuid.UUID;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.urlfetch.URLFetchService;
@@ -32,8 +30,6 @@ public class MslCollectorServlet extends HttpServlet {
 	static URLFetchService fs = URLFetchServiceFactory.getURLFetchService();
 	static Queue queue = QueueFactory.getDefaultQueue();
 	private static final Logger log = Logger.getLogger("msl-raw-images");
-	static MemcacheService memCache = MemcacheServiceFactory
-			.getMemcacheService();;
 	static final String MOBILEURL="http://mars.jpl.nasa.gov/msl/multimedia/raw/";
 	static final String SITEURL="http://mars.jpl.nasa.gov/msl/multimedia/raw/";
 	static String BASEURL = SITEURL;
@@ -140,7 +136,7 @@ public class MslCollectorServlet extends HttpServlet {
 					fetchHead(imageNode);
 				}
 			}
-			memCache.delete("quickServe");
+			LandingPageServlet.quickServe="";
 		} else if (req.getParameter("doHeads") != null) {
 			MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue(
 					"msl-raw-images");
@@ -150,21 +146,31 @@ public class MslCollectorServlet extends HttpServlet {
 				allImagesNode = baseNode.addChild(new MemoNode("allImages"));
 			}
 			log.warning("checking for images without head data.");
-			ArrayList<MemoNode> all = allImagesNode.getChildren();
+			List<UUID> all = allImagesNode.getChildIds();
 			int count = 0;
-			for (MemoNode image : all) {
+			System.out.println("Total images:"+all.size());
+			for (UUID uuid : all) {
+				MemoNode image = new MemoNode(uuid);
+				if (image.getParentIds().size() != 4) {
+					log.warning("Image has strange amount of parents:"+image.getParentIds().size()+ " -> "+image.getId());
+					if (image.getParentIds().size()==0) image.delete();
+					count++;
+					continue;
+				}
 				if (image.getPropertyValue("fileTimeStamp").equals("")) {
 					fetchHead(image);
-					if (count++ > 10) {
-						log.severe("Flushing DB after 100 heads fixed.");
+					count++;
+					if (count % 100 == 0) {
+						log.severe("Flushing DB after "+count+" heads fixed.");
 						MemoNode.flushDB();
-						count = 0;
 					}
 				}
 			}
-			if (all.size() > 0) {
-				memCache.delete("quickServe");
+			if (count > 0) {
+				LandingPageServlet.quickServe="";
 			}
+			System.out.println("Repaired:"+count+" images");
+
 		} else if (req.getParameter("sol") != null) {
 			String total="";
 			if ((total = req.getParameter("total")) != null){
@@ -173,8 +179,8 @@ public class MslCollectorServlet extends HttpServlet {
 				MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
 				if (allImagesNode != null){
 					int count= Integer.parseInt(total);
-					if (allImagesNode.getChildren().size()>=count){
-						log.warning("Skipping sol:"+req.getParameter("sol")+" because total is reached!"+allImagesNode.getChildren().size()+"/"+total);
+					if (allImagesNode.getChildIds().size()>=count){
+						log.warning("Skipping sol:"+req.getParameter("sol")+" because total is reached!"+allImagesNode.getChildIds().size()+"/"+total);
 						return;
 					}
 				}
@@ -189,7 +195,7 @@ public class MslCollectorServlet extends HttpServlet {
 			boolean doReload = true;
 			if (allImagesNode != null) {
 				try { 
-				if (count-damper <= allImagesNode.getChildren().size())
+				if (count-damper <= allImagesNode.getChildIds().size())
 					doReload = false;
 				} catch (Exception e){
 					log.severe("Warning:"+e.getLocalizedMessage());
@@ -205,7 +211,7 @@ public class MslCollectorServlet extends HttpServlet {
 							Integer.toString(sol--)).param("total", new Integer(count-damper).toString()));
 				}
 			} else {
-				log.warning("Skipping collection, nothing new.");
+				log.warning("Skipping collection, nothing new:"+count+"/"+allImagesNode.getChildIds().size()+" images");
 			}
 
 		}

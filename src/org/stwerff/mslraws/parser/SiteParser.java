@@ -36,6 +36,7 @@ public class SiteParser {
 		}
 	}
 	public static String getType(String filename){
+		try {
 		if (filename.charAt(16) == '_'){
 			if (filename.charAt(17) == 'T') return "thumbnail";
 			if (filename.charAt(17) == 'D') return "downscaled";
@@ -44,11 +45,22 @@ public class SiteParser {
 			return "unknown";
 		} else {
 			if (filename.charAt(16) == 'I') return "thumbnail";
+			if (filename.charAt(16) == 'U') return "thumbnail";
+			if (filename.charAt(16) == 'T') return "thumbnail";
+			if (filename.charAt(16) == 'Q') return "thumbnail";
+			
 			if (filename.charAt(16) == 'D') return "downscaled";
+			
 			if (filename.charAt(16) == 'C') return "subframe";
+			if (filename.charAt(16) == 'R') return "subframe";
+			if (filename.charAt(16) == 'S') return "subframe";
+			if (filename.charAt(16) == 'B') return "full";
 			if (filename.charAt(16) == 'E') return "full";
-			return "unknown";
 		}
+	} catch (Exception e){
+		System.out.println("Strange filename found:'"+filename+"'");
+	}
+		return "unknown";
 	}
 	
 	public static void addToNew(MemoNode imageNode, int sol){
@@ -56,13 +68,13 @@ public class SiteParser {
 		MemoNode newNode = baseNode.getChildByStringValue("newImages");
 		if (newNode == null) newNode = baseNode.addChild(new MemoNode("newImages"));
 		
-		//Add to camera counter
+		//Add to camera counter, check image duplication
 		String type = imageNode.getPropertyValue("type");
 		MemoNode camNode = newNode.getChildByStringValue(type);
 		if (camNode == null) camNode = newNode.addChild(new MemoNode(type));
 		camNode.setChild(imageNode);
 		
-		//Add to sol counter
+		//Add to sol counter, check image duplication
 		MemoNode solNode = newNode.getChildByStringValue(new Integer(sol).toString());
 		if (solNode == null) solNode = newNode.addChild(new MemoNode(new Integer(sol).toString()));
 		solNode.addChild(imageNode);
@@ -88,6 +100,7 @@ public class SiteParser {
 			MemoNode solNode = null;
 			MemoNode imageNode = null;
 			int count=0;
+			int imageCount = 0;
 			while ((line = reader.readLine()) != null) {
 				if (!found && !line.equals("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\" width=\"100%\">")) continue;
 				found=true;
@@ -95,6 +108,7 @@ public class SiteParser {
 				if (line.isEmpty()) continue;
 				int i = line.indexOf("./?rawid=");
 				if ( i > -1) {
+					imageCount++;
 					line=line.substring(i+9).trim();
 					if (sol == -1) sol=Integer.parseInt(line.split("&s=")[1].split("\">")[0]);
 					String filename = new String(line.substring(0,line.indexOf("&s")));
@@ -114,10 +128,12 @@ public class SiteParser {
 					}
 					MemoNode solcamNode = solNode.getChildByStringValue(camera);
 					if (solcamNode == null){
+//						log.severe("Adding solCamNode!");
 						solcamNode = solNode.addChild(new MemoNode(camera));
 					}
 					MemoNode camsolNode = camNode.getChildByStringValue("sol"+sol);
 					if (camsolNode == null){
+//						log.severe("Adding camSolNode!");
 						camsolNode = camNode.addChild(new MemoNode("sol"+sol));
 					}
 					MemoNode containerNode = solcamNode.getChildByStringValue("images");
@@ -127,14 +143,23 @@ public class SiteParser {
 					}
 					res = res.replace(jpl,"J$").replace(msss,"M$");
 					if (containerNode.getChildByStringValue(res) == null){
-						if (containerNode.getChildByStringValue(res.replace(".jpg", ".JPG")) != null ||containerNode.getChildByStringValue(res.replace(".jpg", ".JPG")) != null ||
+						if (containerNode.getChildByStringValue(res.replace(".jpg", ".JPG")) != null ||containerNode.getChildByStringValue(res.replace(".JPG", ".jpg")) != null ||
 								containerNode.getChildByStringValue(res.replace("J$", jpl).replace("M$", msss)) != null) continue;
-						imageNode=containerNode.addChild(new MemoNode(res))
+						MemoNode newImage = allImagesNode.getChildByStringValue(res.replace(".jpg", ".JPG"));
+						boolean old=true;
+						if (newImage == null){
+							newImage = allImagesNode.getChildByStringValue(res.replace(".JPG", ".jpg"));
+						}
+						if (newImage == null){
+							newImage = new MemoNode(res);
+							old=false;
+						}
+						imageNode=containerNode.addChild(newImage)
 						.setPropertyValue("type",getType(filename))
 						.setPropertyValue("thumbnail",thumbnail.replace(jpl,"J$").replace(msss,"M$"))
 						.setParent(allImagesNode);
 						images.add(imageNode.getId().toString());
-						addToNew(imageNode, sol);
+						if (!old) addToNew(imageNode, sol);
 					}
 				}
 				if (imageNode != null) i = line.indexOf("RawImageUTC");
@@ -149,9 +174,8 @@ public class SiteParser {
 						Date date = formatter.parse(stringDate);
 						if (date != null){
 							imageNode.setPropertyValue("timestamp",new Long(date.getTime()).toString());
-							if (count++ > 100){
+							if (count++ % 100 == 0){
 								MemoNode.flushDB();
-								count=0;
 							}
 						} else {
 							log.warning("Couldn't parse date:"+stringDate);
@@ -168,10 +192,9 @@ public class SiteParser {
 			String list="";
 			for (String image: images){
 				list+=image+";";
-				if (count++>50){
+				if (count>0 && count++ % 50 == 0){
 				    queue.add(withUrl("/collector").param("imageUUIDs",list));
 				    list="";
-					count=0;
 				}
 			}
 			if (list.length()>0){
@@ -180,7 +203,8 @@ public class SiteParser {
 			}
 			reader.close();
 			con.disconnect();
-			log.severe("Done:"+s_url+"?s="+(sol>=0?sol:0)+" found:"+images.size()+" new images");
+			log.severe("Done:"+s_url+"?s="+(sol>=0?sol:0)+" found:"+images.size()+" new images of total of:"+imageCount);
+			
 			if (MemoNode.getRootNode().getChildByStringValue("newImagesFlag") == null) MemoNode.getRootNode().addChild(new MemoNode("newImagesFlag")).setPropertyValue("new", "false");
 			if (images.size()>0) MemoNode.getRootNode().getChildByStringValue("newImagesFlag").setPropertyValue("new","true");
 			return sol;

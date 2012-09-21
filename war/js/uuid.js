@@ -52,13 +52,13 @@ UUID.prototype.createUUID = function(){
 	//
 	var dg = new Date(1582, 10, 15, 0, 0, 0, 0);
 	var dc = new Date();
-	var t = dc.getTime() - dg.getTime();
+	var t = (dc.getTime() - dg.getTime())+'0';
 	var h = '-';
 	var tl = UUID.getIntegerBits(t,0,31);
 	var tm = UUID.getIntegerBits(t,32,47);
-	var thv = UUID.getIntegerBits(t,48,59) + '1'; // version 1, security version is 2
-	var csar = UUID.getIntegerBits(UUID.rand(4095),0,7);
-	var csl = UUID.getIntegerBits(UUID.rand(4095),0,7);
+	var thv = '1' + UUID.getIntegerBits(t,48,59); // version 1, security version is 2
+	var csar = '8';
+	var csl = UUID.getIntegerBits(UUID.rand(4095),0,11);
 	// since detection of anything about the machine/browser is far to buggy,
 	// include some more random numbers here
 	// if NIC or an IP can be obtained reliably, that should be put in
