@@ -36,7 +36,9 @@ public class ListsProxy {
 		ObjectNode root = om.createObjectNode();
 		if (result != null){
 			for (ImageList list: result){
-				root.put(list.uuid, list.toNode());
+				if (list != null){
+					root.put(list.uuid, list.toNode());
+				}
 			}
 		}
 		return Response.ok(root.toString()).build();

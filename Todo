@@ -1,0 +1,10 @@
+-Combine sols into single files for faster loading, 
+-only load pages with new images.(how to cache old list?)
+-Show progress bar for loading imageLists
+
+-Smarter paging
+-Select "all", also non visible
+-Text search images (filter on free text)
+-Mosaic view enhancements: image meta info, image selection
+-Gallery view enhancements: add meta info, like sol.
+-Cleanup GUI

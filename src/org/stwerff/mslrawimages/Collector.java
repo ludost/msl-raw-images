@@ -86,7 +86,7 @@ public class Collector extends HttpServlet {
 			}
 			
 			url = new URL(BASEURL + "?s=" + (sol >= 0 ? sol : ""));
-			System.out.println("Opening:" + url.toString());
+//			System.out.println("Opening:" + url.toString());
 
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			con.setConnectTimeout(10000);
@@ -118,12 +118,12 @@ public class Collector extends HttpServlet {
 					try {
 						count = (Integer)syncCache.get("sol_cnt_"+i);
 					} catch (Exception e){
-						log.warning("Couldn't find sol cnt: sol_cnt_"+i);
+//						log.warning("Couldn't find sol cnt: sol_cnt_"+i);
 					};
 					imageCount+=count;
 				}
 				int serverCount = fetchImageCount();
-				log.warning("Comparing:"+imageCount+"/"+serverCount);
+//				log.warning("Comparing:"+imageCount+"/"+serverCount);
 				if (imageCount == serverCount){
 					log.warning("No need to run collector, total count reached:"+imageCount);
 					res.getWriter().println("No need to run collector, total count reached:"+imageCount);
@@ -161,7 +161,7 @@ public class Collector extends HttpServlet {
 					g.flush();
 					
 					String json = resultWriter.toString();
-					res.getWriter().append(json);
+//					res.getWriter().append(json);
 					
 					StorageIntf store = new GoogleCloudStorage();
 					Writer output = store.getWriter("sol_" + handler.sol + ".json",
@@ -176,17 +176,17 @@ public class Collector extends HttpServlet {
 					try {
 						count = (Integer)syncCache.get("sol_cnt_"+handler.sol);
 					} catch (Exception e){};
-					
-					String tweet = "Found "+(count>0?(handler.getImageCount()-count)+" ":"")+"new images for sol "+handler.sol+"."
+					if (handler.getImageCount()>count){
+						String tweet = "Found "+(count>0?(handler.getImageCount()-count)+" ":"")+"new images for sol "+handler.sol+"."
 						+" Check: http://msl-raw-images.appspot.com/";
-					try {
-						Twitter twitter = tf.getInstance();
-						twitter.updateStatus(tweet);
-					} catch (TwitterException e) {
-						e.printStackTrace();
-						log.severe("Twitter error!"+e.getLocalizedMessage());
+						try {
+							Twitter twitter = tf.getInstance();
+							twitter.updateStatus(tweet);
+						} catch (TwitterException e) {
+							e.printStackTrace();
+							log.severe("Twitter error!"+e.getLocalizedMessage());
+						}
 					}
-
 					Landing.quickServe="";
 				} else {
 					log.warning("Skipping sol:"+sol+" no new images: "+oldImageCount+"/"+handler.getImageCount());
@@ -333,7 +333,7 @@ class MyHandler extends DefaultHandler {
 				subframeCount++;
 				return "subframe";
 			}
-			if (cmp == 'F' || cmp == 'B' || cmp == 'E'){
+			if (cmp == 'F' || cmp == 'B' || cmp == 'E' || cmp == 'K'){
 				fullCount++;
 				return "full";
 			}

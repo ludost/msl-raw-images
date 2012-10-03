@@ -40,6 +40,7 @@ public class Landing extends HttpServlet {
 				sol = Integer.parseInt(req.getParameter("sol"));
 			} catch (Exception e) {
 			}
+			
 			if (sol < 0) {
 				if ("".equals(quickServe)) {
 					StorageIntf store = new GoogleCloudStorage();
@@ -70,12 +71,16 @@ public class Landing extends HttpServlet {
 
 					quickServe = writer.toString();
 				}
-				res.setContentLength(quickServe.length());
-				res.getWriter().append(quickServe);
+				if (!"cron".equals(req.getParameter("src"))){
+					res.setContentLength(quickServe.length());
+					res.getWriter().append(quickServe);
+				}
 			} else {
 				String data = getSol(sol).toString();
-				res.setContentLength(data.length());
-				res.getWriter().append(data);
+				if (!"cron".equals(req.getParameter("src"))){
+					res.setContentLength(data.length());
+					res.getWriter().append(data);
+				}
 			}
 		} catch (Exception e) {
 			log.severe("Exception getting landing:" + e.getLocalizedMessage());
