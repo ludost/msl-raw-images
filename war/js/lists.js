@@ -257,7 +257,7 @@ function renderLists(){
 									return "publishList('"+a.item.uuid.id+"')";
 								},
 								".listPublishLink@href":function(a){
-									return "http://msl-raw-images.appspot.com/lists.html?subscribe="+a.item.uuid.id;
+									return "http://msl-raw-images.appspot.com/?subscribe="+a.item.uuid.id;
 								},
 								".listPublishLink@style":function(a){
 									if (typeof a.item.shared == "undefined" || a.item.shared == ""){
@@ -303,7 +303,7 @@ function renderSubscriptions(){
 									return "unsubscribeList('"+a.item.uuid.id+"')";
 								},
 								".listPublishLink@href":function(a){
-									return "http://msl-raw-images.appspot.com/lists.html?subscribe="+a.item.uuid.id;
+									return "http://msl-raw-images.appspot.com/?subscribe="+a.item.uuid.id;
 								},
 								".listPublishLink@style":function(a){
 									if (typeof a.item.shared == "undefined" || a.item.shared == ""){
@@ -338,11 +338,11 @@ function filter(a) {
 		dyn.highest_sol = parseInt(a.item.sol);
 	var skip = typeof conf.current_list == "undefined" || typeof conf.current_list.name == "undefined";
 	if (!skip && conf.filter_list == "include"
-			&& $.inArray(a.item.uuid,conf.current_list.uuids) < 0) return false;
+			&& $.inArray(a.item.name,conf.current_list.uuids) < 0) return false;
 	if (!skip && conf.filter_list == "exclude"
-			&& $.inArray(a.item.uuid,conf.current_list.uuids) >= 0) return false;
+			&& $.inArray(a.item.name,conf.current_list.uuids) >= 0) return false;
 	if (!skip && conf.filter_list == "complete"){
-		if ($.inArray(a.item.uuid,conf.current_list.uuids) < 0){
+		if ($.inArray(a.item.name,conf.current_list.uuids) < 0){
 			return false;
 		}
 	} else {
@@ -352,6 +352,7 @@ function filter(a) {
 			return false;
 		if (conf.filter_sol >= 0 && a.item.sol != conf.filter_sol)
 			return false;
+		//console.log(a.item);
 		if (conf.filter_type.length > 0
 				&& $.inArray(a.item.type.substring(0,1).toUpperCase(), conf.filter_type) == -1)
 			return false;		
@@ -369,17 +370,22 @@ function filter(a) {
 	return true;
 }
 function sort(a, b) {
+	var ca=1;
+	var cb=0;
 	if (conf.sort_type == "time") {
-		return parseFloat(a.unixTimeStamp) < parseFloat(b.unixTimeStamp) ? 1
-				: -1;
+		ca = parseFloat(a.unixTimeStamp);
+		cb = parseFloat(b.unixTimeStamp);
 	} else {
-		if (a.lastModified == "")
-			a.lastModified = a.unixTimeStamp;
-		if (b.lastModified == "")
-			b.lastModified = b.unixTimeStamp;
-		return parseInt(a.lastModified) < parseInt(b.lastModified) ? 1 : -1;
+		if (a.lastModified == "") a.lastModified = a.unixTimeStamp;
+		if (b.lastModified == "") b.lastModified = b.unixTimeStamp;
+		ca = parseInt(a.lastModified);
+		cb = parseInt(b.lastModified);
 	}
-	return 1;
+	if (ca==cb){
+		ca = a.name;
+		cb = b.name;
+	}
+	return ca < cb ? 1	: -1;
 }
 function saveConf() {
 	localStorage["msl-raws-conf"] = JSON.stringify(conf);
@@ -423,7 +429,7 @@ function render() {
 												'.name@href' : function(a){
 													return a.item.url[1]=="$"?(a.item.url[0]=="J"?jpl:msss)+a.item.url.substring(2):a.item.url;
 												},
-												'input.selector@value' : 'image.uuid',
+												'input.selector@value' : 'image.name',
 												'.sol' : 'image.sol',
 												'.type' : 'image.type',
 												'.cam' : 'image.camera',
@@ -607,8 +613,8 @@ function selectedImagesList() {
 		return {};
 	var result = {};
 	dyn.data.map(function(image) {
-		if ($.inArray(image.uuid, selected) >= 0) {
-			result[image.uuid] = image;
+		if ($.inArray(image.name, selected) >= 0) {
+			result[image.name] = image;
 		}
 	});
 	return result;
@@ -632,29 +638,81 @@ function outputList() {
 	p.document.close();
 }
 
-function reload() {
+function load_sol(sol,nocache){
+	console.log("Loading sol:"+sol);
+	$.ajax({
+		url : "http://msl-raw-images.storage.googleapis.com/sol_"+sol+".json",
+		crossDomain: true,
+		cache:!nocache,
+		dataType:"json",
+		statusCode : {
+			200 : function(json) {
+				if (typeof json == "string"){
+					console.log("string parsing:",json);
+					json = JSON.parse(json);
+				}
+				if (typeof json.responseText == "string"){
+					console.log("responseText parsing:",json.responseText);
+					json = JSON.parse(json.responseText);
+				}
+				dyn.data = dyn.data.concat(json);
+			}
+		}
+	});
+}
+function reload(nocache) {
 	$("div.reload").html("<span class='reloading'>Loading...</span>");
 	$(".error").html("");
 	if (typeof _gaq != "undefined"){
 		_gaq.push(['_trackEvent', "imageList", "Reload"]);
 	}
+	nocache=typeof nocache == "undefined"?false:nocache;
 	$.ajax({
-				url : "/landing?flat",
-				statusCode : {
-					200 : function(json) {
-						dyn.data = json;
-						if (typeof dyn.data == "string"){
-							dyn.data = JSON.parse(json);
-						}
-						render();
-					}
-				},
-				error : function() {
-					$(".error")
-							.html(
-									"I'm sorry, but something went wrong while trying to reach the server, please try again."+errorCloseButton);
+		url : "http://msl-raw-images.storage.googleapis.com/MaxSol",
+		crossDomain: true,
+		cache: false,
+		dataType:"json",
+		statusCode : {
+			200 : function(json){
+				if (typeof json == "string"){
+					console.log("parsing:",json);
+					json = JSON.parse(json);
+				}
+				if (typeof json.responseText == "string"){
+					json = JSON.parse(json.responseText);
+				}
+				dyn.data=[]
+				for (var i=0; i<json.maxsol+1; i++){
+					load_sol(i,nocache);
+				}
 			}
-	});
+		},
+		complete:function(res){
+			if (res.readyState == 0 && res.status==0){
+				console.log("CORS error?, falling back to landing page!");
+				$.ajax({
+					url : "/landing",
+					dataType:"json",
+					statusCode : {
+						200 : function(json) {
+							if (typeof json == "string"){
+								console.log("parsing:",json);
+								json = JSON.parse(json);
+							}
+							if (typeof json.responseText == "string"){
+								json = JSON.parse(json.responseText);
+							}
+							dyn.data = json;
+						}
+					},
+					error : function() {
+						$(".error").html(
+							"I'm sorry, but something went wrong while trying to reach the server, please try again."+errorCloseButton);
+					}
+				});
+			}
+		}
+	})
 	updateSubscriptions();
 }
 
@@ -662,7 +720,7 @@ function openGallery(){
 	var images = [];
 	dyn.fullList.map(function (image){
 		var url=image.url;
-		url = (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2);
+		url = (url[1]=="$"?(url[0]=="J"?jpl:msss)+url.substring(2):url);
 		var text="<a href='"+url+"' target='_blank'>Full Resolution</a><br>Filename: "+image.name+"<br>Taken on: "+renderDate(new Date(parseFloat(image.unixTimeStamp)),conf.show_utc);
 		images.push([url,text]);
 	});
@@ -675,15 +733,34 @@ function openGallery(){
 		imageFadeDuration:1
 	});
 }
+function openGrid(){
+	var container = $("<div class='gridContainer'>");
+	dyn.fullList.slice(0,conf.render_max).map(function (image){
+		var url=image.url;
+		var thumb=image.thumbnailUrl;
+		url = (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2);
+		thumb = (thumb[1]=="$"?(thumb[0]=="J"?jpl:msss):"")+thumb.substring(2);
+		container.append("<div><a target='_blank' href="+url+"><img src='"+thumb+"' title='"+image.name+"'/></a></div>");
+	});
+	console.log(container);
+	container.dialog({
+		autoOpen : true,
+		title : "GridView",
+		modal : true,
+		width : "90%"		
+	});
+}
 
 	
 $(document).ready(function() {
-	var reloadString = "<a href='#' class='reload cleanLink' onClick='reload()'>Reload</a>";
+	var reloadString = "<a href='#' class='reload cleanLink' onClick='reload(true)'>Reload</a>";
 	$("div.reload").html(reloadString);
 	$("div.reload").ajaxStart(function() {
 		$(this).html("<span class='reloading'>Loading...</span>")})
 	.ajaxStop(function() {
-		$(this).html(reloadString)});
+		$(this).html(reloadString);
+		render();
+	});
 	$("input:button").button();
 
 	var listId = $.getUrlVar("list");

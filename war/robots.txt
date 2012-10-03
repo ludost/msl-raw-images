@@ -1,6 +1,4 @@
 User-agent: *
-Disallow: /landing
 Disallow: /collector
-Disallow: /json
-Disallow: /memo
+Disallow: /landing
 Sitemap: http://msl-raw-images.appspot.com/sitemap.xml

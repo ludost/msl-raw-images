@@ -1,5 +1,6 @@
-package org.stwerff.mslraws;
+package org.stwerff.mslrawimages;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.ws.rs.FormParam;
@@ -11,9 +12,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-import com.chap.memo.memoNodes.MemoNode;
-import com.eaio.uuid.UUID;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -27,13 +25,19 @@ public class ListsProxy {
 	@Produces("application/json")
 	public Response getLists(@FormParam("listIds") String ids){
 		String[] listIds = new String[0];
+		List<ImageList> result=null;
 		if (ids != null && !ids.equals("")){
 			listIds = ids.split(",");
+			result = ImageList.getListsByUuid(listIds);
 		}
-		log.warning("Requesting lists:"+ids);
+		if (listIds.length == 0){
+			result = ImageList.getAllLists();
+		}
 		ObjectNode root = om.createObjectNode();
-		for (String id : listIds){
-			root.put(id,getJsonList(id));
+		if (result != null){
+			for (ImageList list: result){
+				root.put(list.uuid, list.toNode());
+			}
 		}
 		return Response.ok(root.toString()).build();
 	}
@@ -42,40 +46,24 @@ public class ListsProxy {
 	public Response getListsPost(@FormParam("listIds") String ids){
 		return getLists(ids);
 	}
-	public JsonNode getJsonList(String uuid){
-		JsonNode node = om.createObjectNode();
-		try {
-			UUID id = new UUID(uuid);
-			if (id != null){
-				MemoNode listNode = new MemoNode(id);
-				node = om.readTree(new String(listNode.getValue()));
-			}
-		} catch (Exception e){}
-		return node;
-	}
 	@PUT
 	@Path("/id/{uuid}")
 	public Response publishList(@PathParam("uuid") String uuid, String json){
-		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raws-published");
-		if (baseNode == null){
-			baseNode = MemoNode.getRootNode().addChild(new MemoNode("msl-raws-published"));
+		ImageList list = ImageList.getListByUuid(uuid);
+		if (list == null){
+			list = new ImageList();
 		}
-		try {
-			UUID id = new UUID(uuid);
-			if (id != null){
-				MemoNode listNode = baseNode.addChild(new MemoNode(id));
-				listNode.update(json);
-				log.warning("Stored list:"+json);
-				return Response.ok().build();
-			}
-		} catch (Exception e){}
-		return Response.status(Response.Status.BAD_REQUEST).build();
+		list.json=json;
+		list.uuid=uuid;
+		list.store();
+		log.warning("Stored list:"+json);
+		return Response.ok().build();
 	}
 	
 	@GET
 	@Path("/id/{uuid}")
 	@Produces("application/json")
 	public Response getList(@PathParam("uuid") String uuid){
-		return Response.ok(getJsonList(uuid).toString()).build();
+		return Response.ok(ImageList.getListByUuid(uuid).toString()).build();
 	}
 }

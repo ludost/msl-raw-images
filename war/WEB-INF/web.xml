@@ -1,130 +1,45 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?><web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.5" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
-<!--  	<filter>
-		<filter-name>CORS</filter-name>
-		<filter-class>com.thetransactioncompany.cors.CORSFilter</filter-class>
-    	<init-param>
-		    <param-name>cors.supportedHeaders</param-name>
-		    <param-value>Content-Type, Accept, Origin, x-session_id</param-value>
-		</init-param>
-		<init-param>
-		    <param-name>cors.supportedMethods</param-name>
-		    <param-value>GET, POST, HEAD, PUT, DELETE, OPTIONS</param-value>
-		</init-param>
-		<init-param>
-		    <param-name>cors.maxAge</param-name>
-		    <param-value>3600</param-value>
-		</init-param>
-	</filter>
-	<filter-mapping>
-		<filter-name>CORS</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping> -->
-	
 	<servlet>
+		<servlet-name>Collector</servlet-name>
+		<servlet-class>org.stwerff.mslrawimages.Collector</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Collector</servlet-name>
+		<url-pattern>/collector</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>Landing</servlet-name>
+		<servlet-class>org.stwerff.mslrawimages.Landing</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Landing</servlet-name>
+		<url-pattern>/landing</url-pattern>
+	</servlet-mapping>	
+		<servlet>
 		<servlet-name>RESTServlet</servlet-name>
 		<servlet-class>org.apache.wink.server.internal.servlet.RestServlet</servlet-class>
-
 		<init-param>
 			<param-name>applicationConfigLocation</param-name>
 			<param-value>/WEB-INF/application</param-value>
 		</init-param>
-		<init-param>
-		    <param-name>propertiesLocation</param-name>
-		    <param-value>/WEB-INF/wink.properties</param-value>
-		</init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>RESTServlet</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
-	
-	<servlet>
-	    <servlet-name>redirect</servlet-name>
-	    <servlet-class>org.stwerff.mslraws.RedirectServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-	    <servlet-name>redirect</servlet-name>
-	    <url-pattern>/redirect</url-pattern>
-	</servlet-mapping>
-    <servlet>
-	    <servlet-name>landingPage</servlet-name>
-	    <servlet-class>org.stwerff.mslraws.LandingPageServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-	    <servlet-name>landingPage</servlet-name>
-<!--  	    <servlet-name>redirect</servlet-name> -->
-	    <url-pattern>/landing</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>collector</servlet-name>
-		<servlet-class>org.stwerff.mslraws.MslCollectorServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>collector</servlet-name>
-		<url-pattern>/collector</url-pattern>
-	</servlet-mapping>
-		<servlet>
-	    <servlet-name>Mailer</servlet-name>
-	    <servlet-class>org.stwerff.mslraws.MailServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-	    <servlet-name>Mailer</servlet-name>
-	    <url-pattern>/mailer</url-pattern>
-	</servlet-mapping>
-		<servlet>
-		<servlet-name>JSON</servlet-name>
-		<servlet-class>com.chap.memo.memoNodes.servlet.MemoJSONServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>JSON</servlet-name>
-		<url-pattern>/json</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>Memo</servlet-name>
-		<servlet-class>com.chap.memo.memoNodes.servlet.MemoServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>Memo</servlet-name>
-		<url-pattern>/memo</url-pattern>
-	</servlet-mapping>	
-	<servlet>
-		<servlet-name>MemoTest</servlet-name>
-		<servlet-class>com.chap.memo.memoNodes.servlet.MemoTestServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>MemoTest</servlet-name>
-		<url-pattern>/test</url-pattern>
-	</servlet-mapping>	
-		<welcome-file-list>
+	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
-	<mime-mapping>
-	    <extension>json</extension>
-	    <mime-type>application/json</mime-type>   
-	</mime-mapping> 
-	<listener>
-	    <listener-class>org.stwerff.mslraws.images.InitListener</listener-class>
-	</listener>
-	<security-constraint>
-		<web-resource-collection>
-			<web-resource-name>Memo</web-resource-name>
-			<url-pattern>/memo</url-pattern>
-			<url-pattern>/import.html</url-pattern>
-		</web-resource-collection>
-		<auth-constraint>
-			<role-name>admin</role-name>
-		</auth-constraint>
-	</security-constraint>
-<!--  <servlet>
-  <servlet-name>SystemServiceServlet</servlet-name>
-  <servlet-class>com.google.api.server.spi.SystemServiceServlet</servlet-class>
-  <init-param>
-   <param-name>services</param-name>
-   <param-value/>
-  </init-param>
- </servlet>
- <servlet-mapping>
-  <servlet-name>SystemServiceServlet</servlet-name>
-  <url-pattern>/_ah/spi/*</url-pattern>
- </servlet-mapping> -->
+<!--  <servlet> -->
+<!--   <servlet-name>SystemServiceServlet</servlet-name> -->
+<!--   <servlet-class>com.google.api.server.spi.SystemServiceServlet</servlet-class> -->
+<!--   <init-param> -->
+<!--    <param-name>services</param-name> -->
+<!--    <param-value/> -->
+<!--   </init-param> -->
+<!--  </servlet> -->
+<!--  <servlet-mapping> -->
+<!--   <servlet-name>SystemServiceServlet</servlet-name> -->
+<!--   <url-pattern>/_ah/spi/*</url-pattern> -->
+<!--  </servlet-mapping> -->
 </web-app>
