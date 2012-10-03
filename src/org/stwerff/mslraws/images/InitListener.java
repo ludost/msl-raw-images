@@ -9,7 +9,8 @@ import twitter4j.conf.ConfigurationBuilder;
 import com.chap.memo.memoNodes.MemoNode;
 
 public class InitListener  implements ServletContextListener {
-
+	public static MemoNode baseNode = null; 
+	public static MemoNode allImagesNode = null; 
 	public static TwitterFactory tf=null;
 	
 	@Override

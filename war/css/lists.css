@@ -8,6 +8,12 @@ html {
 body {
 	margin-top:3px;
 }
+.gridContainer div{
+	display:block;
+	float:left;
+	height:80px;
+	margin:5px;
+}
 .preferences {
 	white-space:nowrap;
 }

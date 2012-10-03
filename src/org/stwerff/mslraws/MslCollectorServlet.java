@@ -68,6 +68,8 @@ public class MslCollectorServlet extends HttpServlet {
 
 	public void fetchHead(MemoNode imageNode) throws IOException {
 		// check head of image, store last-modified and date
+//		System.out.println("FetchHead called for image:"+imageNode.getStringValue());
+//		long start = System.currentTimeMillis();
 		String s_url = imageNode.getStringValue();
 		s_url=s_url.replace("J$", jpl).replace("M$", msss);
 		if (!s_url.startsWith("http")){
@@ -107,6 +109,7 @@ public class MslCollectorServlet extends HttpServlet {
 			}
 		}
 		con.disconnect();
+//		System.out.println("FetchHead done for image:"+imageNode.getStringValue()+" ("+(System.currentTimeMillis()-start)+" ms)");
 	}
 
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -127,6 +130,18 @@ public class MslCollectorServlet extends HttpServlet {
 			}
 			return;
 		}
+		MemoNode baseNode = InitListener.baseNode;
+		MemoNode allImagesNode = InitListener.allImagesNode;
+		if (baseNode == null){
+			baseNode = MemoNode.getRootNode().getChildByStringValue(
+				"msl-raw-images");
+		}
+		if (allImagesNode == null){
+			allImagesNode = baseNode.getChildByStringValue("allImages");
+			if (allImagesNode == null){
+				allImagesNode = baseNode.addChild(new MemoNode("allImages"));
+			}
+		}
 		String images = req.getParameter("imageUUIDs");
 		if (images != null) {
 			log.warning("checking head:" + images);
@@ -138,13 +153,6 @@ public class MslCollectorServlet extends HttpServlet {
 			}
 			LandingPageServlet.quickServe="";
 		} else if (req.getParameter("doHeads") != null) {
-			MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue(
-					"msl-raw-images");
-			MemoNode allImagesNode = baseNode
-					.getChildByStringValue("allImages");
-			if (allImagesNode == null) {
-				allImagesNode = baseNode.addChild(new MemoNode("allImages"));
-			}
 			log.warning("checking for images without head data.");
 			List<UUID> all = allImagesNode.getChildIds();
 			int count = 0;
@@ -160,7 +168,7 @@ public class MslCollectorServlet extends HttpServlet {
 				if (image.getPropertyValue("fileTimeStamp").equals("")) {
 					fetchHead(image);
 					count++;
-					if (count % 100 == 0) {
+					if (count % 500 == 0) {
 						log.severe("Flushing DB after "+count+" heads fixed.");
 						MemoNode.flushDB();
 					}
@@ -174,9 +182,6 @@ public class MslCollectorServlet extends HttpServlet {
 		} else if (req.getParameter("sol") != null) {
 			String total="";
 			if ((total = req.getParameter("total")) != null){
-				MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue(
-						"msl-raw-images");
-				MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
 				if (allImagesNode != null){
 					int count= Integer.parseInt(total);
 					if (allImagesNode.getChildIds().size()>=count){
@@ -189,9 +194,6 @@ public class MslCollectorServlet extends HttpServlet {
 					Integer.parseInt(req.getParameter("sol")));
 		} else {
 			int count = fetchImageCount();
-			MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue(
-					"msl-raw-images");
-			MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
 			boolean doReload = true;
 			if (allImagesNode != null) {
 				try { 

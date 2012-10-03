@@ -675,6 +675,23 @@ function openGallery(){
 		imageFadeDuration:1
 	});
 }
+function openGrid(){
+	var container = $("<div class='gridContainer'>");
+	dyn.fullList.slice(0,conf.render_max).map(function (image){
+		var url=image.url;
+		var thumb=image.thumbnailUrl;
+		url = (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2);
+		thumb = (thumb[1]=="$"?(thumb[0]=="J"?jpl:msss):"")+thumb.substring(2);
+		container.append("<div><a target='_blank' href="+url+"><img src='"+thumb+"' title='"+image.name+"'/></a></div>");
+	});
+	console.log(container);
+	container.dialog({
+		autoOpen : true,
+		title : "GridView",
+		modal : true,
+		width : "90%"		
+	});
+}
 
 	
 $(document).ready(function() {

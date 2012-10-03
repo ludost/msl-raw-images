@@ -13,8 +13,10 @@ import java.util.Date;
 import java.util.logging.Logger;
 
 import org.stwerff.mslraws.LandingPageServlet;
+import org.stwerff.mslraws.images.InitListener;
 
 import com.chap.memo.memoNodes.MemoNode;
+import com.eaio.uuid.UUID;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 
@@ -81,10 +83,19 @@ public class SiteParser {
 	}
 	
 	public static int fetch(String s_url, int sol) {
-		MemoNode baseNode = MemoNode.getRootNode().getChildByStringValue("msl-raw-images");
-		MemoNode allImagesNode = baseNode.getChildByStringValue("allImages");
-		if (allImagesNode == null) allImagesNode = baseNode.addChild(new MemoNode("allImages"));
-		ArrayList<String> images = new ArrayList<String>(100);
+		MemoNode baseNode = InitListener.baseNode;
+		MemoNode allImagesNode = InitListener.allImagesNode;
+		if (baseNode == null){
+			baseNode = MemoNode.getRootNode().getChildByStringValue(
+				"msl-raw-images");
+		}
+		if (allImagesNode == null){
+			allImagesNode = baseNode.getChildByStringValue("allImages");
+			if (allImagesNode == null){
+				allImagesNode = baseNode.addChild(new MemoNode("allImages"));
+			}
+		}
+		ArrayList<UUID> images = new ArrayList<UUID>(100);
 		try {
 			URL url = new URL(s_url+"?s="+(sol>=0?sol:""));
 			System.out.println("Now opening:"+s_url+"?s="+(sol>=0?sol:""));
@@ -101,6 +112,7 @@ public class SiteParser {
 			MemoNode imageNode = null;
 			int count=0;
 			int imageCount = 0;
+			//Replace this by smarter lookup: read(X) and check of first char falls into search string, if true, look back in earlier buffer to check entire string;
 			while ((line = reader.readLine()) != null) {
 				if (!found && !line.equals("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\" width=\"100%\">")) continue;
 				found=true;
@@ -158,7 +170,7 @@ public class SiteParser {
 						.setPropertyValue("type",getType(filename))
 						.setPropertyValue("thumbnail",thumbnail.replace(jpl,"J$").replace(msss,"M$"))
 						.setParent(allImagesNode);
-						images.add(imageNode.getId().toString());
+						images.add(imageNode.getId());
 						if (!old) addToNew(imageNode, sol);
 					}
 				}
@@ -189,16 +201,17 @@ public class SiteParser {
 			con.disconnect();
 			
 			count=0;
-			String list="";
-			for (String image: images){
-				list+=image+";";
+			StringBuilder list=new StringBuilder();
+			for (UUID image: images){
+				list.append(image.toString());
+				list.append(";");
 				if (count>0 && count++ % 50 == 0){
-				    queue.add(withUrl("/collector").param("imageUUIDs",list));
-				    list="";
+				    queue.add(withUrl("/collector").param("imageUUIDs",list.toString()));
+				    list=new StringBuilder();
 				}
 			}
 			if (list.length()>0){
-				queue.add(withUrl("/collector").param("imageUUIDs",list));
+				queue.add(withUrl("/collector").param("imageUUIDs",list.toString()));
 				LandingPageServlet.quickServe="";
 			}
 			reader.close();

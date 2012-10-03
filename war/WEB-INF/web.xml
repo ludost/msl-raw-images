@@ -51,11 +51,16 @@
 	    <servlet-class>org.stwerff.mslraws.LandingPageServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
-	    <servlet-name>landingPage</servlet-name>
-<!--  	    <servlet-name>redirect</servlet-name> -->
+<!-- 	    <servlet-name>landingPage</servlet-name> -->
+ 	    <servlet-name>redirect</servlet-name>
 	    <url-pattern>/landing</url-pattern>
 	</servlet-mapping>
-	<servlet>
+	<servlet-mapping>
+	    <servlet-name>landingPage</servlet-name>
+<!--  	    <servlet-name>redirect</servlet-name> -->
+	    <url-pattern>/landing2</url-pattern>
+	</servlet-mapping>
+		<servlet>
 		<servlet-name>collector</servlet-name>
 		<servlet-class>org.stwerff.mslraws.MslCollectorServlet</servlet-class>
 	</servlet>
@@ -102,9 +107,9 @@
 	    <extension>json</extension>
 	    <mime-type>application/json</mime-type>   
 	</mime-mapping> 
-	<listener>
-	    <listener-class>org.stwerff.mslraws.images.InitListener</listener-class>
-	</listener>
+<!-- 	<listener> -->
+<!-- 	    <listener-class>org.stwerff.mslraws.images.InitListener</listener-class> -->
+<!-- 	</listener> -->
 	<security-constraint>
 		<web-resource-collection>
 			<web-resource-name>Memo</web-resource-name>
