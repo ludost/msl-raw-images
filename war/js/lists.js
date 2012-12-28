@@ -10,12 +10,14 @@ dyn = {
 	newLimit:0,
 	fullList:[],
 	temp_render_max:false
-}
+};
 
 var settings = {
-	sort_type : "time",
+	sort_column : "unixTimeStamp",
+	sort_reverse : false,
 	show_thumbs : false,
 	show_utc : true,
+	display_mode: "normal",
 	filter_sol : -1,
 	filter_cam : [],
 	filter_type : ["F","S","D"],
@@ -27,8 +29,9 @@ var settings = {
 	wget_syntax : "wget -i -",
 	max_show:20,
 	show_count : 20,
-	render_max:500
-}
+	render_max:500,
+	font_size:12
+};
 
 conf = {};
 if (typeof (localStorage["msl-raws-conf"]) != "undefined"
@@ -46,7 +49,7 @@ if (typeof localStorage["msl-raws-lists"] != "undefined"
 	try {
 		var tmp_lists = JSON.parse(localStorage["msl-raws-lists"]);
 		local_lists=tmp_lists;
-	} catch (e){ console.log("couldn't read lists:",e)}
+	} catch (e){ console.log("couldn't read lists:",e);}
 }
 subscriptions = [];
 if (typeof localStorage["msl-raws-subscriptions"] != "undefined"
@@ -54,7 +57,7 @@ if (typeof localStorage["msl-raws-subscriptions"] != "undefined"
 	try {
 		var tmp_lists = JSON.parse(localStorage["msl-raws-subscriptions"]);
 		subscriptions=tmp_lists;
-	} catch (e){ console.log("couldn't read subscriptions:",e)}
+	} catch (e){ console.log("couldn't read subscriptions:",e);}
 }
 
 /*
@@ -103,7 +106,16 @@ function pad(number, length) {
 	return str;
 }
 
-function renderDate(date,utc){
+function render_timezone(){
+	if (conf.show_utc){
+		return "UTC";
+	}
+	var date = new Date();
+	var offset = -date.getTimezoneOffset() / 60;
+	return "UTC" + (offset >= 0 ? "+":"-") + offset;
+}
+
+function renderDate(date,utc,addUTC){
 	if (isNaN(date.getTime())) return "---";
 	if (typeof utc != "undefined" && utc){
 		return date.getUTCFullYear()
@@ -112,7 +124,7 @@ function renderDate(date,utc){
 		+ " " + pad(date.getUTCHours(),2)
 		+ ":" + pad(date.getUTCMinutes(),2)
 		+ ":" + pad(date.getUTCSeconds(),2)
-		+ " UTC";		
+		+ (addUTC?" UTC":"");		
 	} else {
 		var offset = -date.getTimezoneOffset() / 60;
 		return date.getFullYear()
@@ -121,7 +133,7 @@ function renderDate(date,utc){
 		+ " " + pad(date.getHours(),2)
 		+ ":" + pad(date.getMinutes(),2)
 		+ ":" + pad(date.getSeconds(),2)
-		+ " UTC" + (offset >= 0 ? "+":"-") + offset;
+		+ (addUTC?" UTC" + (offset >= 0 ? "+":"-") + offset:"");
 	}
 }
 
@@ -138,7 +150,7 @@ function createList(){
 			description: $(".listCreate .listDescr").val(),
 			url: $(".listCreate .listURL").val(),
 			uuids: selectedImages()
-		}
+		};
 		conf.localList = true;
 		local_lists[conf.current_list.uuid.id]=(conf.current_list);
 		localStorage["msl-raws-lists"]=JSON.stringify(local_lists);
@@ -282,7 +294,7 @@ function renderLists(){
 								".listCount":"listItem.uuids.length",
 								".listDescr pre":"listItem.description",
 								".listUrl@href":"listItem.url",
-								".listUrl":function(a){ return a.item.url==""?"":"Weblink"}
+								".listUrl":function(a){ return a.item.url==""?"":"Weblink"; }
 							}
 						}
 					}).render(local_lists).removeClass('listBrowser-template')
@@ -323,7 +335,7 @@ function renderSubscriptions(){
 								".listCount":"listItem.uuids.length",
 								".listDescr pre":"listItem.description",
 								".listUrl@href":"listItem.url",
-								".listUrl":function(a){ return a.item.url==""?"":"link"}
+								".listUrl":function(a){ return a.item.url==""?"":"link";}
 							}
 						}
 					}).render(subscribed_lists).removeClass('subscriptionBrowser-template')
@@ -370,116 +382,157 @@ function filter(a) {
 	return true;
 }
 function sort(a, b) {
-	var ca=1;
+	var ca=0;
 	var cb=0;
-	if (conf.sort_type == "time") {
-		ca = parseFloat(a.unixTimeStamp);
-		cb = parseFloat(b.unixTimeStamp);
-	} else {
-		if (a.lastModified == "") a.lastModified = a.unixTimeStamp;
-		if (b.lastModified == "") b.lastModified = b.unixTimeStamp;
-		ca = parseInt(a.lastModified);
-		cb = parseInt(b.lastModified);
+	if (conf.sort_column != "name"){
+		ca= parseFloat(a[conf.sort_column]);
+		cb= parseFloat(b[conf.sort_column]);	
+		if (ca==cb){
+			ca = parseFloat(a.unixTimeStamp);
+			cb = parseFloat(b.unixTimeStamp);
+		}
 	}
 	if (ca==cb){
 		ca = a.name;
 		cb = b.name;
 	}
-	return ca < cb ? 1	: -1;
+	var result = (ca <= cb ? 1	: -1);
+	if (conf.sort_reverse) result*=-1;
+	return result;
 }
 function saveConf() {
 	localStorage["msl-raws-conf"] = JSON.stringify(conf);
 }
 
+var odd=true;
+var normal_directives={
+		'.line-template' : {
+			'image<-context' : {
+				'@class+' : function(a) {
+					odd=!odd;
+					return odd?" odd":" even";
+				},
+				'.name' : 'image.name',
+				'.name@href' : function(a) {
+					return a.item.url[1]=="$"?(a.item.url[0]=="J"?jpl:msss)+a.item.url.substring(2):a.item.url;
+				},
+				'input.selector@value' : 'image.name',
+				'input.selector@id' : 'image.name',
+				'.sol' : 'image.sol',
+				'.type' : 'image.type',
+				'.cam' : 'image.camera',
+				'.newImage@class+' : function(a) {
+					if (parseFloat(a.item.lastModified == "" ? a.item.unixTimeStamp	: a.item.lastModified) >= dyn.newLimit) {
+						return " show";
+					}
+					return "";
+				},
+				'.thumbnail' : function(a) {
+					if (conf.show_thumbs) {
+						return '<img src="'
+								+ (a.item.thumbnailUrl[1]=="$"?(a.item.url[0]=="J"?jpl:msss)+a.item.thumbnailUrl.substring(2):a.item.thumbnailUrl)
+								+ '">';
+					}
+					return "";
+				},
+				'.taken' : function(a) {
+					var millis = parseFloat(a.item.unixTimeStamp);
+					var date = new Date(millis);
+					return renderDate(date,conf.show_utc,false);
+				},
+				'.released' : function(a){
+					var millis = parseFloat(a.item.lastModified);
+					var date = new Date(millis);
+					return renderDate(date,conf.show_utc,false);													 
+				},
+				'.lag' : function(a){
+					return Math.round((parseFloat(a.item.lastModified) - parseFloat(a.item.unixTimeStamp))/3600000);
+				}
+			},
+			sort : function(a, b) {
+				return sort(a, b);
+			},
+			filter : function(a) {
+				return filter(a);
+			}
+		}
+	};
 
+var mosaic_directives = {
+		".image" : {
+			"image<-context" : {
+				"@id":"image.name",
+				"a@href":function(a){
+					return (a.item.url[1]=="$"?(a.item.url[0]=="J"?jpl:msss)+a.item.url.substring(2):a.item.url);
+				},
+				"img@src":function(a){
+					return (a.item.thumbnailUrl[1]=="$"?(a.item.thumbnailUrl[0]=="J"?jpl:msss)+a.item.thumbnailUrl.substring(2):a.item.thumbnailUrl);
+				}
+			},
+			sort : function(a, b) {
+				return sort(a, b);
+			},
+			filter : function(a) {
+				return filter(a);
+			}
+		}
+};
+
+var normal_rfn = null;
+var mosaic_rfn = null;
 function render() {
+	var selected = selectedImages();
+	if (normal_rfn == null){
+		normal_rfn = $('.tab-template').compile(normal_directives);
+		mosaic_rfn = $('.mosaic-template').compile(mosaic_directives);
+	}
 	dyn.newLimit = new Date().getTime() - (24 * 3600 * 1000);
 	localStorage["msl-raws-conf"] = JSON.stringify(conf);
-
 	$('.tab-target th.name').html("Name (loading....)");
 	$('.error').html("");
 	dyn.pagecount = 0;
 	dyn.totalImages = 0;
 	dyn.fullList=[];
 	
-	$('.tab-target')
+	odd=true;
+	$('.tab-target tbody')
 			.replaceWith(
-					$('.tab-template')
-							.clone()
-							.directives(
-									{
-										'.thumbBox@checked' : function(a) {
-											return conf.show_thumbs ? "checked" : ""
-										},
-										'.solBox@checked' : function(a) {
-											return conf.filter_sol >= 0 ? "" : "checked"
-										},
-										'.sortBox@checked' : function(a) {
-											return conf.sort_type == "modified" ? "checked"	: ""
-										},
-										'.newBox@checked' : function(a) {
-											return conf.filter_new ? "checked" : ""
-										},
-										'.utcBox@checked' : function(a) {
-											return conf.show_utc ? "checked" : ""
-										},
-										'.line-template' : {
-											'image<-context' : {
-												'.name' : 'image.name',
-												'.name@href' : function(a){
-													return a.item.url[1]=="$"?(a.item.url[0]=="J"?jpl:msss)+a.item.url.substring(2):a.item.url;
-												},
-												'input.selector@value' : 'image.name',
-												'.sol' : 'image.sol',
-												'.type' : 'image.type',
-												'.cam' : 'image.camera',
-												'.newImage@class+' : function(a) {
-													if (parseFloat(a.item.lastModified == "" ? a.item.unixTimeStamp	: a.item.lastModified) >= dyn.newLimit) {
-														return " show";
-													}
-													return "";
-												},
-												'.thumbnail' : function(a) {
-													if (conf.show_thumbs) {
-														return '<img src="'
-																+ (a.item.thumbnailUrl[1]=="$"?(a.item.url[0]=="J"?jpl:msss)+a.item.thumbnailUrl.substring(2):a.item.thumbnailUrl)
-																+ '">';
-													}
-													return "";// TODO: link to
-																// load single
-																// image
-												},
-												'.date' : function(a) {
-													var millis = 0;
-													var date = new Date(millis);
-													if (conf.sort_type == "modified") {
-														if (a.item.lastModified != "") {
-															millis = parseFloat(a.item.lastModified);
-															date = new Date(millis);
-														}
-													} else {
-														millis = parseFloat(a.item.unixTimeStamp);
-														date = new Date(millis);
-													}
-													return renderDate(date,conf.show_utc);
-												}
-											},
-											sort : function(a, b) {
-												return sort(a, b);
-											},
-											filter : function(a) {
-												return filter(a);
-											}
-										}
-									}).render(dyn.data).removeClass('tab-template')
-							.addClass('tab-target'));
-
+					$(conf.display_mode=="normal"?'.tab-template':'.mosaic-template')
+						.clone()
+						.render(dyn.data,conf.display_mode=="normal"?normal_rfn:mosaic_rfn)
+						.removeClass("tab-template mosaic-template")
+			);
+	
+	if (conf.display_mode=="mosaic"){
+		$('.tab-target .image')
+			.on("click",function(){
+				$(this).toggleClass("selected");
+				toggleSelector();
+			});
+	}
+	$(".labels").toggle(conf.display_mode!="mosaic");
+	
+	// Reselect selected images (if still visible):
+	selected.map(function(image_name){
+		if (conf.display_mode=="normal"){
+			$('#'+image_name).attr("checked","checked");
+		}
+		if (conf.display_mode=="mosaic"){
+			$('#'+image_name).toggleClass("selected",true);
+		}
+	});
+	
 	// Revert input fields to conf values:
 	if (conf.filter_sol < 0) {
 		$(".solInput").val(dyn.highest_sol);
 	} else {
 		$(".solInput").val(conf.filter_sol);
 	}
+
+	if (conf.show_thumbs) $('.thumbBox').attr("checked", "checked");
+	if (conf.filter_sol < 0) $('.solBox').attr("checked", "checked");
+	if (conf.filter_new) $('.newBox').attr("checked", "checked");
+	
 	$(".tab-target .typeSelectMulti").val(conf.filter_type);
 	$(".tab-target .typeSelectMulti").chosen();
 	
@@ -493,10 +546,24 @@ function render() {
 		$(".listViewer").hide();
 		render();
 	});
-	var map = {"none":"None","include":"Include","exclude":"Exclude","complete":"Full"}
+	var map = {"none":"None","include":"Include","exclude":"Exclude","complete":"Full"};
 	$(".tab-target .listSelectFeedback").html(map[conf.filter_list]);
 	toggleSelector();
 
+	//Sorting stuff
+	$(".tab-target .sortable .sortIndicator").remove();
+	$(".tab-target .sortable").on("click",function(){
+		if (conf.sort_column == this.id){
+			conf.sort_reverse = !conf.sort_reverse;
+		} else {
+			conf.sort_reverse=false;
+		}
+		conf.sort_column = this.id;
+		console.log(conf.sort_column,conf.sort_reverse);
+		render();
+	});
+	$(".tab-target #"+conf.sort_column).append("<span class='sortIndicator inline ui-icon "+(conf.sort_reverse?"ui-icon-carat-1-n":" ui-icon-carat-1-s")+"'></span>");
+	
 	//Navigation stuff
 	$(".line-infolist").toggle(conf.filter_list=="complete" && typeof conf.current_list.name != "undefined");
 	$(".tab-target .line-filler").toggle(dyn.totalImages==0); 
@@ -510,22 +577,22 @@ function render() {
 	$(".tab-target .all").val("all "+dyn.totalImages);
 
 	//Set some global info fields:
-	$(".tab-target .imageCount").html(
-			dyn.totalImages + " of " + dyn.data.length + " images selected");
+	$(".tab-target .imageCount").html("showing:"+(Math.min(conf.show_count,dyn.totalImages))+
+			" of "+dyn.totalImages+ " filtered images (total:" + dyn.data.length + ")");
 	$(".tab-target .currentList,.listDelete .currentList").html(typeof conf.current_list.name != "undefined"?conf.current_list.name:"-none-");
 	$(".tab-target .listCount").html(typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length:"");
-	$('.tab-target .sol .newest').html(" ->" + dyn.highest_sol);
+	$('.tab-target .labels .newest').html(" ->" + dyn.highest_sol);
 	
 	$(".listInfo").html(($(".listInfo").clone().render(conf.current_list,{
 		".listLabel" : "name",
-		".listCount" : function(a){ return typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length+" images":"" },
+		".listCount" : function(a){ return typeof conf.current_list.name != "undefined"?conf.current_list.uuids.length+" images":""; },
 		".listDescr pre" : "description",
-		".listURL" : function(a){ return conf.current_list.url==""?"":"<a href='"+conf.current_list.url+"' target='_blank'>"+conf.current_list.url+"</a>"}
+		".listURL" : function(a){ return conf.current_list.url==""?"":"<a href='"+conf.current_list.url+"' target='_blank'>"+conf.current_list.url+"</a>";}
 	})).html());
-	
+	$('th.listFilter').css("visibility",typeof conf.current_list.name != "undefined"?"visible":"hidden");
 	$('input.render_max').val(conf.render_max);
 	$('input.max_show').val(conf.max_show);
-
+	$('.timezone').html(render_timezone());
 	if (dyn.pagecount >= conf.render_max) {
 		$(".error")
 		.html("Sorry, cowardly refusing to render more than "+conf.render_max+" images in one page!"+errorCloseButton+"<br><a href='#' onClick='dyn.temp_render_max=true;render();'>Temporary lift limit, really sure?</a>");
@@ -545,7 +612,10 @@ function render() {
 		$(".tab-target .msl-metaInfo .ui-icon").addClass('ui-state-disabled');			
 	}
 	
-	// ALthough not necessary on all redraws, no problem:
+	// Although not necessary on all redraws, no problem:
+	$("style#dynCss").html("* { font-size:"+conf.font_size+"pt }");
+	$(".utcBox").attr('checked',conf.show_utc);
+	$(".font_size").val(conf.font_size);
 	$(".prefixText").val(conf.wget_syntax);
 	$(".prefixBox").attr('checked', conf.useWget);
 	// Done
@@ -557,6 +627,7 @@ function disabled(obj){
 function error(text){
 	$(".error").html(text+errorCloseButton);
 }
+
 function selectList(){
 	if (typeof conf.current_list.uuids == "undefined") return;
 	$(".tab-target input.selector").each(function(){
@@ -594,7 +665,7 @@ function toggleSelector(){
 }
 function toggleAll(){
 	if ($('.toggleSelector').attr("checked") == "checked"){
-		$(".tab-target input.selector").attr({ checked:"checked"});	
+		$(".tab-target input.selector").attr({ checked:"checked"});
 	} else {
 		$(".tab-target input.selector").removeAttr("checked");	
 	}
@@ -604,6 +675,9 @@ function selectedImages() {
 	var selected = new Array();
 	$('.tab-target input.selector:checked').each(function() {
 		selected.push($(this).attr('value'));
+	});
+	$('.tab-target .selected').each(function(){
+		selected.push($(this).attr('id'));
 	});
 	return selected;
 }
@@ -619,15 +693,25 @@ function selectedImagesList() {
 	});
 	return result;
 }
+function selectedImagesArray(){
+	var selected = selectedImages();
+	var result = [];
+	if (selected.length == 0) return result;
+	dyn.data.map(function(image){
+		if ($.inArray(image.name, selected) >= 0) {
+			result.push(image);
+		}
+	});
+	return result;
+}
 function outputList() {
 	var newPage = "";
 	var html = $.inArray(BrowserDetect.browser, [ "Safari", "Chrome" ]) >= 0;
 	if (conf.useWget) {
 		newPage += conf.wget_syntax + ' << ENDOFURLS' + (html ? "<br>" : "\n");
 	}
-	var list = selectedImagesList();
-	selectedImages().map(function(imageId) {
-		var url = list[imageId].url;
+	selectedImagesArray().map(function(image){
+		var url = image.url;
 		newPage += (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2) + (html ? "<br>" : "\n");
 	});
 	if (conf.useWget)
@@ -638,52 +722,55 @@ function outputList() {
 	p.document.close();
 }
 
-function load_sol(sol,nocache){
-	console.log("Loading sol:"+sol);
+function load_sol(sol,ifmodified){
 	$.ajax({
-		url : "http://msl-raw-images.storage.googleapis.com/sol_"+sol+".json",
-		crossDomain: true,
-		cache:!nocache,
+		//url : "http://msl-raw-images.storage.googleapis.com/sol_"+sol+".json",
+		url : "json?sol="+sol,
+		ifModified:ifmodified,
+		cache:true,
 		dataType:"json",
-		statusCode : {
-			200 : function(json) {
-				if (typeof json == "string"){
-					console.log("string parsing:",json);
-					json = JSON.parse(json);
+		success: function (result, textStatus, jqXHR) {
+	        // if 304, re-request the data
+	        if (typeof result == "undefined" && textStatus == 'notmodified') {
+	           load_sol(sol,false);
+	        } else {
+	        	if (result == null || typeof result == "undefined"){
+	        		return;
+	        	}
+	        	if (typeof result == "string"){
+	        		result = JSON.parse(result);
 				}
-				if (typeof json.responseText == "string"){
-					console.log("responseText parsing:",json.responseText);
-					json = JSON.parse(json.responseText);
+				if (typeof result.responseText == "string"){
+					result = JSON.parse(result.responseText);
 				}
-				dyn.data = dyn.data.concat(json);
-			}
+				dyn.data = dyn.data.concat(result);
+	        }
 		}
 	});
 }
-function reload(nocache) {
+function reload() {
 	$("div.reload").html("<span class='reloading'>Loading...</span>");
 	$(".error").html("");
 	if (typeof _gaq != "undefined"){
 		_gaq.push(['_trackEvent', "imageList", "Reload"]);
 	}
-	nocache=typeof nocache == "undefined"?false:nocache;
 	$.ajax({
-		url : "http://msl-raw-images.storage.googleapis.com/MaxSol",
-		crossDomain: true,
-		cache: false,
+		//url : "http://msl-raw-images.storage.googleapis.com/MaxSol",
+		url : "json?sol=-1",
 		dataType:"json",
+		cache:false,
+		ifModified:false,
 		statusCode : {
 			200 : function(json){
 				if (typeof json == "string"){
-					console.log("parsing:",json);
 					json = JSON.parse(json);
 				}
 				if (typeof json.responseText == "string"){
 					json = JSON.parse(json.responseText);
 				}
-				dyn.data=[]
-				for (var i=0; i<json.maxsol+1; i++){
-					load_sol(i,nocache);
+				dyn.data=[];
+				for (var i=0; i<json.sol+1; i++){
+					load_sol(i,true);
 				}
 			}
 		},
@@ -696,7 +783,6 @@ function reload(nocache) {
 					statusCode : {
 						200 : function(json) {
 							if (typeof json == "string"){
-								console.log("parsing:",json);
 								json = JSON.parse(json);
 							}
 							if (typeof json.responseText == "string"){
@@ -712,13 +798,15 @@ function reload(nocache) {
 				});
 			}
 		}
-	})
+	});
 	updateSubscriptions();
 }
 
 function openGallery(){
 	var images = [];
-	dyn.fullList.map(function (image){
+	var list = selectedImagesArray();
+	if (list.length == 0) list = dyn.fullList;
+	list.map(function (image){
 		var url=image.url;
 		url = (url[1]=="$"?(url[0]=="J"?jpl:msss)+url.substring(2):url);
 		var text="<a href='"+url+"' target='_blank'>Full Resolution</a><br>Filename: "+image.name+"<br>Taken on: "+renderDate(new Date(parseFloat(image.unixTimeStamp)),conf.show_utc);
@@ -733,30 +821,33 @@ function openGallery(){
 		imageFadeDuration:1
 	});
 }
+function openNormal(){
+	conf.display_mode='normal';render();
+}
 function openGrid(){
-	var container = $("<div class='gridContainer'>");
-	dyn.fullList.slice(0,conf.render_max).map(function (image){
-		var url=image.url;
-		var thumb=image.thumbnailUrl;
-		url = (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2);
-		thumb = (thumb[1]=="$"?(thumb[0]=="J"?jpl:msss):"")+thumb.substring(2);
-		container.append("<div><a target='_blank' href="+url+"><img src='"+thumb+"' title='"+image.name+"'/></a></div>");
-	});
-	console.log(container);
-	container.dialog({
-		autoOpen : true,
-		title : "GridView",
-		modal : true,
-		width : "90%"		
-	});
+	conf.display_mode='mosaic';render();
+//	var container = $("<div class='gridContainer'>");
+//	dyn.fullList.slice(0,conf.render_max).map(function (image){
+//		var url=image.url;
+//		var thumb=image.thumbnailUrl;
+//		url = (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2);
+//		thumb = (thumb[1]=="$"?(thumb[0]=="J"?jpl:msss):"")+thumb.substring(2);
+//		container.append("<div><a target='_blank' href="+url+"><img src='"+thumb+"' title='"+image.name+"'/></a></div>");
+//	});
+//	container.dialog({
+//		autoOpen : true,
+//		title : "GridView",
+//		modal : true,
+//		width : "90%"		
+//	});
 }
 
 	
 $(document).ready(function() {
-	var reloadString = "<a href='#' class='reload cleanLink' onClick='reload(true)'>Reload</a>";
+	var reloadString = "<a href='#' class='reload cleanLink' onClick='reload(true)'><span class='ui-icon ui-icon-refresh inline'/>Reload</a>";
 	$("div.reload").html(reloadString);
 	$("div.reload").ajaxStart(function() {
-		$(this).html("<span class='reloading'>Loading...</span>")})
+		$(this).html("<span class='reloading'>Loading...</span>");})
 	.ajaxStop(function() {
 		$(this).html(reloadString);
 		render();
@@ -811,6 +902,14 @@ $(document).ready(function() {
 		modal : true,
 		width : "35em"
 	});
+	
+//	$(".tweetRSS").rssfeed('http://search.twitter.com/search.atom?q=from:MslRawImages&rpp=1',{
+//		limit:1,
+//		header:false,
+//		snippet:false,
+//		media:false,
+//		content:false
+//	});
 	render();
 	reload();
 	updateSubscriptions();

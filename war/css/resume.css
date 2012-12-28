@@ -1,0 +1,30 @@
+
+.header {
+	text-align:center;
+	border-bottom:1px solid black;
+	margin-left:auto;
+	margin-right:auto;
+	width:98%;
+	padding-bottom:1em;
+}
+
+.name {
+	font-size:x-large;
+	font-weight:bold;
+}
+.paragraph {
+	padding-bottom:1em;
+}
+.multiple_entries {
+	padding-bottom:1em;
+}
+.title {
+	font-size:larger;
+	font-weight:bold;
+}
+.subtitle {
+	font-weight:bold;
+}
+.tags {
+	font-style:italic;
+}

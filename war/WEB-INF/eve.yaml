@@ -1,0 +1,10 @@
+# Eve settings
+
+# context settings (for persistency)
+context:
+  class: FileContextFactory
+  path: .eveagents
+
+# scheduler settings (for tasks)
+scheduler:
+  class: RunnableScheduler

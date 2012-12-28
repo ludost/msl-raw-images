@@ -6,21 +6,24 @@
 	content="Follow the raw images Curiosity sends back to Earth each sol. This site is focused on downloading, listing and organizing the raw images.">
 <meta http-equiv="content-type" content="text/html;charset=UTF-8">
 
-<script src="js/jquery-1.8.0.min.js"></script>
+<script src="js/jquery-1.8.2.min.js"></script>
 <script src="js/json2.js"></script>
 <script src="js/browser-detect.js"></script>
 <script src="js/jquery-ui-1.8.23.custom.min.js"></script>
-<script src="js/pure_min.js"></script>
+<script src="js/pure.min.js"></script>
 <script src="js/uuid.js"></script>
 <link rel="styleSheet" href="css/lists.css"></link>
+<link rel="styleSheet" href="css/jquery.zrssfeed.css"></link>
 <link rel="styleSheet" href="css/chosen.css"></link>
 <link rel="styleSheet" href="css/custom-theme/jquery-ui-1.8.23.custom.css"></link>
 <script src="js/chosen.jquery.min.js"></script>
 <script src="js/range-select.js"></script>
+<script src="js/jquery.zrssfeed.min.js" type="text/javascript"></script>
 <script src="js/lists.js"></script>
 <script type="text/javascript" src="js/slimbox2.js"></script>
 <link rel="stylesheet" href="css/slimbox2.css" type="text/css" media="screen" />
 <script src="js/jquery.masonry.min.js"></script>
+
 
 <script type="text/javascript"
 	src="http://w.sharethis.com/button/buttons.js"></script>
@@ -31,12 +34,17 @@
 </script>
 </head>
 <body>
+<style id='dynCss'> 
+* { font-size:10pt }
+</style>
+	<div class="tweetRSS"></div>
 	<div class="buttonDiv">
 <span class='st_twitterfollow_hcount' displayText='Twitter Follow' st_username='MSLRawImages'></span>
 <span class='st_fblike_hcount' displayText='Facebook Like'></span>
 <span class='st_twitter_hcount' displayText='Tweet'></span>
 <span class='st_linkedin_hcount' displayText='LinkedIn'></span>
 <span class='st_plusone_hcount' displayText='Google +1'></span>
+<span>(<a href="http://search.twitter.com/search.atom?q=from:MslRawImages&rpp=1&result_type=recent"><img class="rssFeed" alt="RSS feed" title="RSS feed" src="images/rss-icon.png"/></a></span> through Twitter)
 	</div>
 	<div class="reload"></div>
 	<div class="headerDiv">
@@ -51,16 +59,14 @@
 		</ul>
 		<div class="imageBrowser" id="Images">
 			<table class="tab-target">
-				<tr>
-					<td>Loading data, please wait..... (Sadly this can take upto a
-						minute, working on it...)</td>
-				</tr>
-			</table>
-
-			<table class="tab-template">
+				<thead>
 				<tr class=header>
-					<th class="list" colspan=7> 
+					<th class="list" colspan=5> 
 						<div class="lists">
+							<a title="Gallery" href="#Gallery" class="listIcon msl-gallery" onClick="openGallery()"><span class="ui-icon-image ui-icon inline"></span></a>
+							<a title="Mosaic" href="#Mosaic" class="listIcon msl-grid" onClick="openGrid()"><span class="ui-icon-calculator ui-icon inline"></span></a>
+							<a title="Normal" href="#Normal" class="listIcon msl-calculator" onClick="openNormal()"><span class="ui-icon-calculator ui-icon inline"></span></a>
+						
 							<a title="Export" href="#Export" class="listIcon msl-export" onClick="disabled($(this))?outputList():error('You need to select at least one image!')"><span class="ui-icon-arrowthickstop-1-s ui-icon inline"></span></a>
 							<a title="Create list" href="#CreateList" class="listIcon msl-createList" onClick="disabled($(this))?$('.listCreate').dialog('open'):error('You need to select at least one image!')"><span	class="ui-icon-document ui-icon inline"></span></a>
 						    |
@@ -77,11 +83,28 @@
 							<a title="Help" href="#Help" class="listIcon msl-help" onClick="$('.listHelp').dialog('open'); return false"><span class="ui-icon-help ui-icon inline"></span></a>
 							<a title="Preferences" href="#Setup" class="listIcon msl-prefs" onClick="$('.preferences').dialog('open');"><span class="ui-icon inline ui-icon-wrench"></span></a>
 						</div></th>
+						<th class="thImageCount" colspan=4><span class="imageCount"></span></th>
 				</tr>
 				<tr class="labels">
+					<th class="thumbnail">Thumbnail</th>
+					<th class="selector">&nbsp;
+					<input title="(de)Select all" class="toggleSelector"
+						type="checkbox"
+						onClick='toggleAll()'>
+					&nbsp;</th>
+					<th id="name" class="sortable">Name</th>					
+					<th>Sol<span class="newest"></span></th>
+					<th id="unixTimeStamp" class="sortable">Taken (<span class="timezone"></span>)</th>
+					<th>Lag (hours)</th>
+					<th id="lastModified" class="sortable">Released (<span class="timezone"></span>)</th>
+					<th>Image Type</th>
+					<th>Camera</th>
+				</tr>
+				<tr class=filter>
+					<th>Show:<input title="Show thumbnails" class="thumbBox" type="checkbox"
+						onClick="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();"></th>
 					<th></th>
-					<th></th>
-					<th>
+					<th class="listFilter">
 							List:<span class="currentList">####</span>[<span class="listCount"></span>] 
 						    <div class="listSelectContainer">
 						    	<a title="Select list filter type" href="#Lists" class="cleanLink" onClick="$('.listViewer').toggle()">
@@ -98,37 +121,18 @@
 								</div>
 							</div>
 					</th>
-					<th class="sol">Sol<span class="newest"></span></th>
-					<th>Date - (use Release:<input title="Sort on and show release date" class='sortBox' type="checkbox"
-						onClick="this.checked?conf.sort_type='modified':conf.sort_type='time'; render()" />)</th>
-					<th>Image Type</th>
-					<th>Camera</th>
-				</tr>
-				<tr class=filter>
-					<th class="thumbnail">
-						<input title="Show thumbnails" class="thumbBox" type="checkbox"
-						onClick="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();">Thumbnails
-					</th>
-					<th class="selector">&nbsp;
-					<input title="(de)Select all" class="toggleSelector"
-						type="checkbox"
-						onClick='toggleAll()'>
-					&nbsp;</th>
-					<th class="name">
-						 <input type="button" onClick="openGallery()" value="Gallery view"><input type="button" onClick="openGrid()" value="Mosaic view"><span class="imageCount"></span>
-					</th>
 					<th class="sol">
 						 <input title="Select specific sol" class="solInput" type="text" value=""
 						onChange="if ($('.solBox:checked').length==0){conf.filter_sol=this.value; render()}" />
 						All:<input title="Show all sols" class='solBox' type="checkbox"
 						onClick="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()" />
 					</th>
+					<th></th>
+					<th></th>
 					<th>New only:<input title="Show only new images (<1 day)" class="newBox" type="checkbox"
 						onClick="this.checked?conf.filter_new=true:conf.filter_new=false; render()" />
-						Show UTC:<input title="Show date in UTC timezone" class="utcBox" type="checkbox"
-						onClick="this.checked?conf.show_utc=true:conf.show_utc=false; render()" />
 					</th>
-					<th class="type">
+					<th class="typeContainer"><div class="type">
 						 <select title="Select image type" class="typeSelectMulti" data-placeholder="All"
 						multiple="multiple"
 						onChange="conf.filter_type=$(this).val()!=null?$(this).val():[];render()">
@@ -136,9 +140,9 @@
 							<option value="S">Subframe</option>
 							<option value="D">Downscaled</option>
 							<option value="T">Thumbnail</option>
-					</select>
+					</select></div>
 					</th>
-					<th class="cam">
+					<th class="camContainer"><div class="cam">
 						 <select title="Select camera type" class="camSelectMulti" data-placeholder="All"
 						multiple="multiple"
 						onChange="conf.filter_cam=$(this).val()!=null?$(this).val():[];render()">
@@ -157,7 +161,7 @@
 								<option value="RRA">(RRA) Rear Right HazCam</option>
 								<option value="MD">(MD) MARDI DescentCam</option>
 							</optgroup>
-							<optgroup label="secondary engineering cameras">
+							<optgroup label="backup cameras">
 								<option value="NLB">(NLB) NavCam Left</option>
 								<option value="NRB">(NRB) NavCam Right</option>
 								<option value="FLB">(FLB) Front Left HazCam</option>
@@ -165,9 +169,35 @@
 								<option value="RLB">(RLB) Rear Left HazCam</option>
 								<option value="RRB">(RRB) Rear Right HazCam</option>
 							</optgroup>
-					</select>
+					</select></div>
 					</th>
 				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<td>Loading data, please wait..... (Sadly this can take upto a
+						minute, working on it...)</td>
+				</tr>
+				</tbody>
+				<tfoot>
+				<tr class="footer">
+					<td colspan=9>
+						Showing max:<span class="now"></span> <input
+						class="base" type="button"
+						onClick="conf.show_count=conf.max_show;render()" /> <input
+						class="less" type="button"
+						onClick="conf.show_count-=conf.max_show;render()" /> <input
+						class="more" type="button"
+						onClick="conf.show_count+=conf.max_show;render(false)" /> <input
+						class="all" type="button"
+						onClick="conf.show_count=999999;render(false)" />
+					</td>
+				</tr>
+				</tfoot>	
+			</table>
+
+			<table>
+			<tbody class="tab-template">
 				<tr class="line-infolist">
 					<td colspan=2 class="hidden"></td>
 					<td colspan=3>(Showing entire list, other filters are
@@ -181,7 +211,9 @@
 					<td><span class="newImage">*</span><a href="" class="name"
 						target="_blank"></a></td>
 					<td class="sol"></td>
-					<td class="date"></td>
+					<td class="taken"></td>
+					<td class="lag"></td>
+					<td class="released"></td>
 					<td class="type"></td>
 					<td class="cam"></td>
 				</tr>
@@ -194,19 +226,12 @@
 					<td class="type"></td>
 					<td class="cam"></td>
 				</tr>
-				<tr>
-					<td colspan=8>
-						<hr> Showing max:<span class="now"></span> <input
-						class="base" type="button"
-						onClick="conf.show_count=conf.max_show;render()" /> <input
-						class="less" type="button"
-						onClick="conf.show_count-=conf.max_show;render()" /> <input
-						class="more" type="button"
-						onClick="conf.show_count+=conf.max_show;render(false)" /> <input
-						class="all" type="button"
-						onClick="conf.show_count=999999;render(false)" />
-					</td>
-				</tr>
+			</tbody>
+			<tbody class="mosaic-template">
+				<tr><td colspan=9>
+					<div class="image"><a href=""><img src=""/></a></div>
+				</td></tr>
+			</tbody>
 			</table>
 		</div>
 		<div class="listBrowser" id="Lists">
@@ -274,6 +299,7 @@
 		</div>
 	</div>
 	<div class="footer">
+		<br>
 		<div itemscope itemtype="http://data-vocabulary.org/Person">
 			This site is developed by <span itemprop="name">Ludo
 				Stellingwerff</span>&nbsp;(<span itemprop="role">Senior Software
@@ -322,6 +348,8 @@
 	</div>
 	<div class="listHelp">
 		<ul>
+			<li style="white-space: nowrap"><span class="ui-icon-image ui-icon inline"></span> - Show current filtered list in a popup gallery</li>
+			<li style="white-space: nowrap"><span class="ui-icon-calculator ui-icon inline"></span> - Show current filtered list in a mosaic viewer</li>
 			<li style="white-space: nowrap"><span
 				class="ui-icon-arrowthickstop-1-s ui-icon inline"></span> - Export selected images (for downloading with wget);</li>
 			<li style="white-space: nowrap"><span
@@ -353,12 +381,16 @@
 			onClick="$('.listHelp').dialog('close');" />
 	</div>
 	<div class="preferences">
+		<input class="font_size"
+			onChange="conf.font_size=$(this).val();saveConf();render()"/> Font size (in pt.).<br>
 		<input class="max_show"
 			onChange="conf.max_show=$(this).val();saveConf();render()" /> Page
 		size increment.<br> <input class="render_max"
 			onChange="conf.render_max=$(this).val();saveConf();render()" />
 		Maximum render limit.<br>
 		<hr>
+		<input title="Show date in UTC timezone" class="utcBox" type="checkbox"
+			onClick="this.checked?conf.show_utc=true:conf.show_utc=false; render()" /> Show times in UTC.<br>
 		<input type="checkbox" class="prefixBox"
 			onClick="this.checked?conf.useWget=true:conf.useWget=false;saveConf()" />
 		Export command wrap?<br> <input type="text" class="prefixText"
