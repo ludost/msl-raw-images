@@ -25,6 +25,11 @@ public class TwitterAgent extends Agent {
 
 	public void sendMessage(@Name("tweet") String tweet){
 		try {
+			//Don't actually send anything from development.
+			if ("Development".equals(getAgentFactory().getEnvironment())){
+				System.err.println("Suppressing sending of tweet:"+tweet);
+				return;
+			}
 			Twitter twitter = tf.getInstance();
 			twitter.updateStatus(tweet);
 		} catch (TwitterException e) {

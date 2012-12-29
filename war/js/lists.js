@@ -774,7 +774,7 @@ function reload() {
 		//url : "http://msl-raw-images.storage.googleapis.com/MaxSol",
 		url : "json?sol=-1",
 		dataType:"json",
-		cache:false,
+		cache:true,
 		ifModified:false,
 		statusCode : {
 			200 : function(json){

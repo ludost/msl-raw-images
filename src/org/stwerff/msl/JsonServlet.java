@@ -55,7 +55,7 @@ public class JsonServlet extends HttpServlet {
 			}
 			if (sol == -1){
 				MaxSolAgent maxsol = (MaxSolAgent) factory.getAgent("max");
-				res.setHeader("Cache-Control", "no-cache");
+				res.setHeader("Cache-Control", "max-age=0,public,must-revalidate,proxy-revalidate");
 				res.getWriter().println("{\"sol\":"+maxsol.getMaxSol()+"}");
 				return;
 			}
@@ -96,7 +96,7 @@ public class JsonServlet extends HttpServlet {
 					WRITE_HTTPDATE);
 			res.setHeader("Last-Modified", lastChange);
 			res.setContentLength(list.toString().length());
-			res.setHeader("Cache-Control", "public,must-revalidate");
+			res.setHeader("Cache-Control", "max-age=600,public,must-revalidate,proxy-revalidate");
 			res.getWriter().write(list.toString());
 		} catch (Exception e) {
 			e.printStackTrace();

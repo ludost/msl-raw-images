@@ -13,6 +13,7 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.json.annotation.Name;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SuppressWarnings("unchecked")
 public class StatsAgent extends Agent {
@@ -80,14 +81,25 @@ public class StatsAgent extends Agent {
 			if (getContext().containsKey("stats")){
 				stats.putAll((Map<Integer,SolStats>)getContext().get("stats"));
 			}
-			//TODO: compare for new images/twitter function
+			String message = "";
 			if (stats.containsKey(sol)){
 				SolStats oldStats = stats.get(sol);
 				if (solstats.getNofImages()> oldStats.getNofImages()){
-					System.err.println("Found "+(solstats.getNofImages()-oldStats.getNofImages())+" new images for sol:"+sol);
+					message = ("Found "+(solstats.getNofImages()-oldStats.getNofImages())+" new images for sol:"+sol);
 				}
 			} else {
-				System.err.println("Found "+(solstats.getNofImages())+" new images for new sol:"+sol);				
+				message = ("Found "+(solstats.getNofImages())+" new images for new sol:"+sol);				
+			}
+			if (!"".equals(message)){
+				System.err.println(message);
+				message += " Check: http://msl-raw-images.com/";
+				ObjectNode params = om.createObjectNode();
+				params.put("tweet",message);
+				try {
+					send("http://localhost:8080/MSLAgents/agents/twitter","sendMessage",params);
+				} catch (Exception e) {
+					System.err.println("Failed to contact twitter agent.");
+				}
 			}
 			stats.put(sol, solstats);
 			getContext().put("stats",stats);
