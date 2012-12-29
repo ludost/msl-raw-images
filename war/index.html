@@ -37,6 +37,9 @@
 <style id='dynCss'> 
 * { font-size:10pt }
 </style>
+	<div class="list_import" style="display:none">
+		Copy list text here : <input id="list_import" tabindex="0"><input type=button name="import" value="import" onClick="list_import()">
+	</div>
 	<div class="tweetRSS"></div>
 	<div class="buttonDiv">
 <span class='st_twitterfollow_hcount' displayText='Twitter Follow' st_username='MSLRawImages'></span>
@@ -71,7 +74,7 @@
 							<a title="Create list" href="#CreateList" class="listIcon msl-createList" onClick="disabled($(this))?$('.listCreate').dialog('open'):error('You need to select at least one image!')"><span	class="ui-icon-document ui-icon inline"></span></a>
 						    |
 						    <a title="Add to list" href="#AddImages" class="listIcon msl-addToList" onClick="disabled($(this))?addToList():error('You need to select at least one image and a local list.')"><span class="ui-icon-plus ui-icon inline"></span></a> 
-						    <a title="Remove from list" href="#RemoveImages" class="listIcon msl_delFromList" onClick="disabled($(this))?removeFromList():error('You need to select at least one image and a local list.')"><span class="ui-icon-minus ui-icon inline"></span></a>
+						    <a title="Remove from list" href="#RemoveImages" class="listIcon msl-delFromList" onClick="disabled($(this))?removeFromList():error('You need to select at least one image and a local list.')"><span class="ui-icon-minus ui-icon inline"></span></a>
 						    |
 							<a title="Select images" href="#SelectImages" class="listIcon msl-selectImages" onClick="disabled($(this))?selectList():error('Please select a local list first.')"><span class="ui-icon-check ui-icon inline"></span></a> 
 							<a title="Deselect images" href="#DeSelectImages" class="listIcon msl-deSelectImages" onClick="disabled($(this))?deselectList():error('Please select a local list first.')"><span class="ui-icon-circle-check ui-icon inline"></span></a> 

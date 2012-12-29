@@ -74,6 +74,9 @@ $.extend({
             for(var i = 0; i < hashes.length; i++) {
                     hash = hashes[i].split('=');
                     vars.push(hash[0]);
+                    if (typeof hash[1] != "string"){
+                    	hash[1]="";
+                    }
                     vars[hash[0]] = hash[1];
             }
             return vars;
@@ -140,6 +143,18 @@ function renderDate(date,utc,addUTC){
 /**
  * List management
  */
+
+function list_import(){
+	var new_lists = JSON.parse($("#list_import").val());
+	if (typeof new_lists != "undefined"){
+		$.extend(local_lists,new_lists);
+		localStorage["msl-raws-lists"]=JSON.stringify(local_lists);
+		renderLists();
+		$tabs.tabs('select',1);
+	} else {
+		alert("Sorry, can't parse lists, try again!");
+	}	
+}
 function createList(){
 	if ($(".listCreate .listLabel").val() != ""){
 		conf.current_list = {
@@ -599,14 +614,15 @@ function render() {
 	}
 	$(".tab-target input:button").button('refresh');
 
-
+	$(".tab-target .ui-icon").removeClass('ui-state-disabled');
+	//List management buttons
 	if (typeof conf.current_list.name == "undefined"){
 		$(".tab-target .msl-deSelectList .ui-icon").addClass('ui-state-disabled');
 	}
 	if (typeof conf.current_list.name == "undefined" || !conf.localList){
 		$(".tab-target .msl-dropList .ui-icon").addClass('ui-state-disabled');
 		$(".tab-target .msl-addToList .ui-icon").addClass('ui-state-disabled');
-		$(".tab-target .msl-removeFromList .ui-icon").addClass('ui-state-disabled');
+		$(".tab-target .msl-delFromList .ui-icon").addClass('ui-state-disabled');
 		$(".tab-target .msl-selectImages .ui-icon").addClass('ui-state-disabled');
 		$(".tab-target .msl-deSelectImages .ui-icon").addClass('ui-state-disabled');
 		$(".tab-target .msl-metaInfo .ui-icon").addClass('ui-state-disabled');			
@@ -651,7 +667,7 @@ function toggleSelector(){
 		$(".tab-target .msl-createList .ui-icon").removeClass('ui-state-disabled');
 		if (typeof conf.current_list.name != "undefined" && conf.localList){
 			$(".tab-target .msl-addToList .ui-icon").removeClass('ui-state-disabled');
-			$(".tab-target .msl_delFromList .ui-icon").removeClass('ui-state-disabled');
+			$(".tab-target .msl-delFromList .ui-icon").removeClass('ui-state-disabled');
 		}
 	}
 	if (selectedImages().length <= 0){
@@ -659,7 +675,7 @@ function toggleSelector(){
 		$(".tab-target .msl-export .ui-icon").addClass('ui-state-disabled');
 		$(".tab-target .msl-createList .ui-icon").addClass('ui-state-disabled');
 		$(".tab-target .msl-addToList .ui-icon").addClass('ui-state-disabled');
-		$(".tab-target .msl_delFromList .ui-icon").addClass('ui-state-disabled');
+		$(".tab-target .msl-delFromList .ui-icon").addClass('ui-state-disabled');
 	}
 	
 }
@@ -854,6 +870,9 @@ $(document).ready(function() {
 	});
 	$("input:button").button();
 
+	if (typeof $.getUrlVar("list_import") == "string"){
+		$(".list_import").show();
+	} 
 	var listId = $.getUrlVar("list");
 	if (typeof listId != "undefined" && listId != "" && typeof local_lists[listId] != "undefined"){
 		conf.current_list=local_lists[listId];
