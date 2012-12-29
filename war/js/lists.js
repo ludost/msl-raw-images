@@ -280,7 +280,7 @@ function renderLists(){
 					.directives({
 						'.line-template' : {
 							'listItem<-context' : {
-								".listPublish@onClick":function(a){
+								/*".listPublish@onClick":function(a){
 									return "publishList('"+a.item.uuid.id+"')";
 								},
 								".listPublishLink@href":function(a){
@@ -296,7 +296,7 @@ function renderLists(){
 									millis = parseFloat(a.item.shared);
 									date = new Date(millis);
 									return renderDate(date,conf.show_utc);
-								},
+								},*/
 								".listCreated" : function (a){
 									millis = parseFloat(a.item.created);
 									date = new Date(millis);
