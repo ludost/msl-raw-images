@@ -1,4 +1,3 @@
 User-agent: *
-Disallow: /collector
-Disallow: /landing
-Sitemap: http://msl-raw-images.appspot.com/sitemap.xml
+Disallow: /json
+Sitemap: http://msl-raw-images.com/sitemap.xml
