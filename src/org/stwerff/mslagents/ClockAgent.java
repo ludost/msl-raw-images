@@ -121,7 +121,7 @@ public class ClockAgent extends Agent {
 		String url = "http://localhost:8080/MSLAgents/agents/stats";
 		String method = "getIncompleteSols";
 		ObjectNode params = JOM.createObjectNode();
-		params.put("type", "lmst");
+		params.put("type", "spice");
 		TotalRet total = new TotalRet();
 		try {
 			List<Integer> sols;
@@ -185,7 +185,6 @@ public class ClockAgent extends Agent {
 
 		getScheduler().createTask(request, delay);
 	}
-
 	
 	private class TotalRet {
 		int total=-1;

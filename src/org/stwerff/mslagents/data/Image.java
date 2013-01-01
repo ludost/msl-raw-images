@@ -13,6 +13,7 @@ public class Image {
 	String fileTimeStamp;
 	String lastModified;
 	String lmst;
+	String bearing;
 	String camera;
 	int sol;
 
@@ -81,6 +82,12 @@ public class Image {
 	}
 	public void setLmst(String lmst) {
 		this.lmst = lmst;
+	}
+	public String getBearing() {
+		return bearing;
+	}
+	public void setBearing(String bearing) {
+		this.bearing = bearing;
 	}
 	public String getCamera() {
 		return camera;

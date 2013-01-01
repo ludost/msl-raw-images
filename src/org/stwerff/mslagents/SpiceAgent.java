@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 import org.stwerff.mslagents.data.Image;
 
@@ -39,13 +40,13 @@ public class SpiceAgent extends Agent {
 			}
 			if (todo.size()==0) return result;
 			String cmd_line="";
-			for (int i=0; i<todo.size(); i++){
-				Image image = todo.get(i);
-				DateTime time = new DateTime(image.getUnixTimeStamp());
+			for (Image image : todo){
+				DateTime time = new DateTime(image.getUnixTimeStamp()).toDateTime(DateTimeZone.UTC);
 				cmd_line+=" "+time.toString(ISODateTimeFormat.dateHourMinuteSecond());
 			}
 			Process proc = Runtime.getRuntime().exec("./msl_lmst"+cmd_line, null,pathFile);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+			
 			for (int i=0; i<todo.size(); i++){
 				String lmst = reader.readLine();
 				String[] fields = lmst.split(":");

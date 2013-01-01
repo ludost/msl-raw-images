@@ -134,6 +134,22 @@ public class SolAgent extends Agent {
 				System.err.println("UpdateList error:" + e);
 			}
 
+			url = "http://localhost:8080/MSLAgents/agents/bearing";
+			params = om.createObjectNode();
+			params.put("list", list);
+			params.put("reload", reload);
+			result = om.createArrayNode();
+			try {
+				result = send(url, "updateList", params, ArrayNode.class);
+				list = ImageList.merge(list, result);
+				if (result.size() > 0
+						|| !getContext().containsKey("lastChange")) {
+					getContext().put("lastChange", DateTime.now().toString());
+				}
+			} catch (Exception e) {
+				System.err.println("UpdateList error:" + e);
+			}
+
 			getContext().put("list", list.toString());
 			url = "http://localhost:8080/MSLAgents/agents/stats";
 			params = om.createObjectNode();

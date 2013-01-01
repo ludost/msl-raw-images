@@ -11,7 +11,8 @@
 
 // SPICE furnsh file
 #define KFILE   "msl_pointing.dat"
-#define ZROT 1.2
+//Arbitrary rotation for display purposes:
+#define ZROT 0.0 
 
 #include <stdio.h>
 #include <stdlib.h>

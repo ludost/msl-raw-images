@@ -65,7 +65,7 @@ public class StatsAgent extends Agent {
 		}
 		Integer sol = list.get(0).get("sol").asInt();
 		SolStats solstats = new SolStats(sol);
-		solstats.setIncomplete("lmst", false);
+		solstats.setIncomplete("spice", false);
 		solstats.setIncomplete("heads", false);
 		for (int i=0; i<list.size(); i++){
 			try {
@@ -75,8 +75,11 @@ public class StatsAgent extends Agent {
 				if (!solstats.isIncomplete("heads") && image.getFileTimeStamp() == null){
 					solstats.setIncomplete("heads",true);
 				}
-				if (!solstats.isIncomplete("lmst") && image.getLmst() == null){
-					solstats.setIncomplete("lmst",true);
+				if (!solstats.isIncomplete("spice") && image.getLmst() == null){
+					solstats.setIncomplete("spice",true);
+				}
+				if (!solstats.isIncomplete("spice") && image.getBearing() == null){
+					solstats.setIncomplete("spice",true);
 				}
 			} catch (Exception e){
 				System.err.println("Invalid image found:"+list.get(i).toString());
@@ -125,7 +128,7 @@ public class StatsAgent extends Agent {
 				stats.putAll((Map<Integer,SolStats>)getContext().get("stats"));
 			}
 			for (SolStats sol : stats.values()){
-				sol.setIncomplete("lmst", true);
+				sol.setIncomplete(type, true);
 				stats.put(sol.getSol(), sol);
 			}
 			getContext().put("stats",stats);			
