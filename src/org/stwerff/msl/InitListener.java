@@ -34,6 +34,9 @@ public class InitListener implements ServletContextListener {
 				long delay = 12000; // milliseconds
 				clock.getScheduler().createTask(request, delay);
 
+				request = new JSONRequest("updateSpice",params);
+				clock.getScheduler().createTask(request, delay);
+
 				params.put("reload", new Boolean(false));
 				delay = 2000;
 				request = new JSONRequest("updateSols", params);

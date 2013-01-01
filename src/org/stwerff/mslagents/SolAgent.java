@@ -113,6 +113,37 @@ public class SolAgent extends Agent {
 		}
 
 	}
+	public void updateSpice(@Name("reload") @Required(false) Boolean reload) {
+		ArrayNode list = om.createArrayNode();
+		if(reload==null)reload=false;
+		try {
+			list = (ArrayNode) om.readTree((String) getContext().get("list"));
+			String url = "http://localhost:8080/MSLAgents/agents/spice";
+			ObjectNode params = om.createObjectNode();
+			params.put("list", list);
+			params.put("reload", reload);
+			ArrayNode result = om.createArrayNode();
+			try {
+				result = send(url, "updateList", params, ArrayNode.class);
+				list = ImageList.merge(list, result);
+				if (result.size() > 0
+						|| !getContext().containsKey("lastChange")) {
+					getContext().put("lastChange", DateTime.now().toString());
+				}
+			} catch (Exception e) {
+				System.err.println("UpdateList error:" + e);
+			}
+
+			getContext().put("list", list.toString());
+			url = "http://localhost:8080/MSLAgents/agents/stats";
+			params = om.createObjectNode();
+			params.put("list", list);
+			send(url, "updateSol", params, void.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
 
 	@Override
 	public String getDescription() {

@@ -65,7 +65,7 @@
 			<table class="tab-target">
 				<thead>
 				<tr class=header>
-					<th class="list" colspan=5> 
+					<th class="list" colspan=6> 
 						<div class="lists">
 							<a title="Gallery" href="#Gallery" class="listIcon msl-gallery" onClick="openGallery()"><span class="ui-icon-image ui-icon inline"></span></a>
 							<a title="Mosaic" href="#Mosaic" class="listIcon msl-grid" onClick="openGrid()"><span class="ui-icon-calculator ui-icon inline"></span></a>
@@ -99,7 +99,8 @@
 					<th id="name" class="sortable">Name</th>					
 					<th>Sol<span class="newest"></span></th>
 					<th id="unixTimeStamp" class="sortable">Taken (<span class="timezone"></span>)</th>
-					<th>Lag (hours)</th>
+ 					<th id="lmst" class="sortable">LMST</th>
+ 					<th>Lag (hours)</th>
 					<th id="lastModified" class="sortable">Released (<span class="timezone"></span>)</th>
 					<th>Image Type</th>
 					<th>Camera</th>
@@ -132,7 +133,8 @@
 						onClick="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()" />
 					</th>
 					<th></th>
-					<th></th>
+	 				<th></th>
+	 				<th></th>
 					<th>New only:<input title="Show only new images (<1 day)" class="newBox" type="checkbox"
 						onClick="this.checked?conf.filter_new=true:conf.filter_new=false; render()" />
 					</th>
@@ -216,6 +218,7 @@
 						target="_blank"></a></td>
 					<td class="sol"></td>
 					<td class="taken"></td>
+ 					<td class="lmst"></td>
 					<td class="lag"></td>
 					<td class="released"></td>
 					<td class="type"></td>
@@ -226,8 +229,9 @@
 					<td class="selector"></td>
 					<td>No images found for current selection!</td>
 					<td class="sol"></td>
-					<td class="date"></td>
-					<td class="type"></td>
+					<td class="taken"></td>
+ 					<td class="lmst"></td>
+ 					<td class="type"></td>
 					<td class="cam"></td>
 				</tr>
 			</tbody>

@@ -96,7 +96,7 @@ public class JsonServlet extends HttpServlet {
 					WRITE_HTTPDATE);
 			res.setHeader("Last-Modified", lastChange);
 			res.setContentLength(list.toString().length());
-			res.setHeader("Cache-Control", "max-age=600,public,must-revalidate,proxy-revalidate");
+			res.setHeader("Cache-Control", "max-age=60,public,must-revalidate,proxy-revalidate");
 			res.getWriter().write(list.toString());
 		} catch (Exception e) {
 			e.printStackTrace();

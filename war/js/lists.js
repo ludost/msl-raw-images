@@ -399,7 +399,21 @@ function filter(a) {
 function sort(a, b) {
 	var ca=0;
 	var cb=0;
-	if (conf.sort_column != "name"){
+	if (conf.sort_column == "lmst"){
+		la = a["lmst"].match(/\d/g);
+		lb = b["lmst"].match(/\d/g);
+		if (typeof la == "undefined" || la == null || typeof lb == "undefined" || lb == null) {
+			ca = parseFloat(a.unixTimeStamp);
+			cb = parseFloat(b.unixTimeStamp);
+		} else {
+			ca= parseFloat(la.join(""));
+			cb= parseFloat(lb.join(""));	
+		}
+		if (ca==cb){
+			ca = parseFloat(a.unixTimeStamp);
+			cb = parseFloat(b.unixTimeStamp);
+		}
+	} else if (conf.sort_column != "name"){
 		ca= parseFloat(a[conf.sort_column]);
 		cb= parseFloat(b[conf.sort_column]);	
 		if (ca==cb){
@@ -455,6 +469,7 @@ var normal_directives={
 					var date = new Date(millis);
 					return renderDate(date,conf.show_utc,false);
 				},
+				'.lmst' : 'image.lmst', 
 				'.released' : function(a){
 					var millis = parseFloat(a.item.lastModified);
 					var date = new Date(millis);
@@ -567,7 +582,7 @@ function render() {
 
 	//Sorting stuff
 	$(".tab-target .sortable .sortIndicator").remove();
-	$(".tab-target .sortable").on("click",function(){
+	$(".tab-target .sortable").unbind("click").on("click",function(){
 		if (conf.sort_column == this.id){
 			conf.sort_reverse = !conf.sort_reverse;
 		} else {
@@ -576,6 +591,7 @@ function render() {
 		conf.sort_column = this.id;
 		console.log(conf.sort_column,conf.sort_reverse);
 		render();
+		return false;
 	});
 	$(".tab-target #"+conf.sort_column).append("<span class='sortIndicator inline ui-icon "+(conf.sort_reverse?"ui-icon-carat-1-n":" ui-icon-carat-1-s")+"'></span>");
 	
@@ -825,7 +841,9 @@ function openGallery(){
 	list.map(function (image){
 		var url=image.url;
 		url = (url[1]=="$"?(url[0]=="J"?jpl:msss)+url.substring(2):url);
-		var text="<a href='"+url+"' target='_blank'>Full Resolution</a><br>Filename: "+image.name+"<br>Taken on: "+renderDate(new Date(parseFloat(image.unixTimeStamp)),conf.show_utc);
+		var text="<a href='"+url+"' target='_blank'>Full Resolution</a><br>Filename: "+image.name
+				+"<br>Taken on: "+renderDate(new Date(parseFloat(image.unixTimeStamp)),conf.show_utc)
+				+"(LMST:"+image.lmst+")";
 		images.push([url,text]);
 	});
 	if (images.length <= 0)return;

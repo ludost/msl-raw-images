@@ -1,6 +1,10 @@
 package org.stwerff.mslagents.data;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class SolStats implements Serializable {
 	private static final long serialVersionUID = 5820895314015075546L;
@@ -12,9 +16,11 @@ public class SolStats implements Serializable {
 	int nofSubframe;
 	int nofThumbnail;
 	boolean incompleteHeads=false;
+	Map<String,Boolean> incomplete;
 	
 	public SolStats(int sol){
 		this.sol=sol;
+		this.incomplete = new HashMap<String,Boolean>();
 	}
 	public int getSol() {
 		return sol;
@@ -73,11 +79,31 @@ public class SolStats implements Serializable {
 	public void setNofThumbnail(int nofThumbnail) {
 		this.nofThumbnail = nofThumbnail;
 	}
-	public boolean isIncompleteHeads() {
-		return incompleteHeads;
+	public void setIncompleteHeads(boolean incompleteHeads){
+		incomplete.put("heads", incompleteHeads);
 	}
-	public void setIncompleteHeads(boolean incompleteHeads) {
-		this.incompleteHeads = incompleteHeads;
+	public Map<String,Boolean> getIncomplete(){
+		return incomplete;
+	}
+	public void setIncomplete(Map<String,Boolean> incomplete){
+		this.incomplete=incomplete;
+	}
+	@JsonIgnore
+	public boolean isIncomplete(String type) {
+		if (this.incomplete == null) this.incomplete = new HashMap<String,Boolean>();
+		if (this.incomplete.get(type) == null){
+			if ("heads".equals(type)){
+				setIncompleteHeads(this.incompleteHeads);
+				return this.incompleteHeads;
+			}
+			return true;
+		}
+		return this.incomplete.get(type);
+	}
+	@JsonIgnore
+	public void setIncomplete(String type, boolean incomplete) {
+		if (this.incomplete == null) this.incomplete = new HashMap<String,Boolean>();
+		this.incomplete.put(type,incomplete);
 	}
 	
 }

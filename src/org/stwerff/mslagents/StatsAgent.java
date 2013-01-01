@@ -20,14 +20,14 @@ public class StatsAgent extends Agent {
 	final static ObjectMapper om = new ObjectMapper();
 	Map<Integer,SolStats> stats = Collections.synchronizedMap(new HashMap<Integer,SolStats>());
 	
-	public List<Integer> getIncompleteSols(){
+	public List<Integer> getIncompleteSols(@Name("type") String type){
 		List<Integer> result = new ArrayList<Integer>(10);
 		synchronized(stats){
 			if (getContext().containsKey("stats")){
 				stats.putAll((Map<Integer,SolStats>)getContext().get("stats"));
 			}
 			for (SolStats sol : stats.values()){
-				if (sol.isIncompleteHeads()){
+				if (sol.isIncomplete(type)){
 					result.add(sol.getSol());
 				}
 			}
@@ -65,13 +65,18 @@ public class StatsAgent extends Agent {
 		}
 		Integer sol = list.get(0).get("sol").asInt();
 		SolStats solstats = new SolStats(sol);
+		solstats.setIncomplete("lmst", false);
+		solstats.setIncomplete("heads", false);
 		for (int i=0; i<list.size(); i++){
 			try {
 				Image image = om.treeToValue(list.get(i),Image.class);
 				solstats.addImage();
 				solstats.addGenImage(image.getType());
-				if (!solstats.isIncompleteHeads() && image.getFileTimeStamp() == null){
-					solstats.setIncompleteHeads(true);
+				if (!solstats.isIncomplete("heads") && image.getFileTimeStamp() == null){
+					solstats.setIncomplete("heads",true);
+				}
+				if (!solstats.isIncomplete("lmst") && image.getLmst() == null){
+					solstats.setIncomplete("lmst",true);
 				}
 			} catch (Exception e){
 				System.err.println("Invalid image found:"+list.get(i).toString());
@@ -112,6 +117,18 @@ public class StatsAgent extends Agent {
 				stats.putAll((Map<Integer,SolStats>)getContext().get("stats"));
 			}
 			return om.valueToTree(stats.values());
+		}
+	}
+	public void resetIncomplete(@Name("type") String type){
+		synchronized(stats){
+			if (getContext().containsKey("stats")){
+				stats.putAll((Map<Integer,SolStats>)getContext().get("stats"));
+			}
+			for (SolStats sol : stats.values()){
+				sol.setIncomplete("lmst", true);
+				stats.put(sol.getSol(), sol);
+			}
+			getContext().put("stats",stats);			
 		}
 	}
 	@Override
