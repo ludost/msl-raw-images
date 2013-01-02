@@ -21,10 +21,12 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.json.annotation.Name;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
+@ThreadSafe(true)
 public class CollectorAgent extends Agent {
 	static final ObjectMapper om = new ObjectMapper();
 	static final String NEWURL = "http://mars.jpl.nasa.gov/msl/admin/modules/multimedia/module/inc_ListImages_Raw.cfm";

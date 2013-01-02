@@ -81,6 +81,7 @@ void forTime(int count, SpiceDouble et,char* cameraFrame){
 	camOpticalAxis[2] = 100000 ;  // z
 
 	// rotate the optical axis to the topo frame using cmat
+
 	// camtopovec will be in rectilinear xyz coordinates 
 	mxv_c(cmat,camOpticalAxis,camtopovec) ;
 
@@ -99,6 +100,13 @@ int main(int argc, char **argv)
 {
 	SpiceDouble et ;	// MSL ephemeris time -- seconds since 1/1/1970
 	char cameraFrame[100] ;  // camera frame name string
+	SPICEDOUBLE_CELL        ( cover, 200000 );
+        SpiceDouble             b;
+        SpiceDouble             e;
+     	SpiceInt                niv;
+            #define  TIMLEN         51
+        SPICEINT_CELL           ( ids,   1000 );     
+	SpiceChar               timstr  [ TIMLEN ];
 
 	// usage
 	if (argc < 3) {
@@ -110,10 +118,19 @@ int main(int argc, char **argv)
 	furnsh_c(KFILE) ;
 	getCamFrame(argv[1],cameraFrame);
 
+	ckobj_c ( "msl_surf_rsm_tlmenc.bc", &ids );
+	scard_c ( 0,  &cover ); 
+	ckcov_c("msl_surf_rsm_tlmres.bc",SPICE_CELL_ELEM_I( &ids, 0 ),SPICEFALSE,"SEGMENT",10.0,"TDB",&cover);
+	niv = wncard_c( &cover );
+	wnfetd_c ( &cover, niv-1, &b, &e );
 	int i=2;
 	for (i; i<argc; i++){
    	    str2et_c( ( ConstSpiceChar * ) argv[i], &et );
-	    forTime(i-2, et, cameraFrame);
+	    if (et>e){
+		printf("%d:%f:%s\n",i-2,et,"---");
+	    } else {
+	    	forTime(i-2, et, cameraFrame);
+	    }
    	}
 	exit(0) ;
 }

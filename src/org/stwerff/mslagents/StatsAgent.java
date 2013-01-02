@@ -10,12 +10,14 @@ import org.stwerff.mslagents.data.Image;
 import org.stwerff.mslagents.data.SolStats;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.json.annotation.Name;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SuppressWarnings("unchecked")
+@ThreadSafe(true)
 public class StatsAgent extends Agent {
 	final static ObjectMapper om = new ObjectMapper();
 	Map<Integer,SolStats> stats = Collections.synchronizedMap(new HashMap<Integer,SolStats>());
@@ -78,7 +80,7 @@ public class StatsAgent extends Agent {
 				if (!solstats.isIncomplete("spice") && image.getLmst() == null){
 					solstats.setIncomplete("spice",true);
 				}
-				if (!solstats.isIncomplete("spice") && image.getBearing() == null){
+				if (!solstats.isIncomplete("spice") && (image.getBearing() == null|| image.getBearing().equals("---"))){
 					solstats.setIncomplete("spice",true);
 				}
 			} catch (Exception e){

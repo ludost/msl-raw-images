@@ -98,10 +98,9 @@
 					&nbsp;</th>
 					<th id="name" class="sortable">Name</th>					
 					<th>Sol<span class="newest"></span></th>
-					<th id="unixTimeStamp" class="sortable">Taken (<span class="timezone"></span>)</th>
- 					<th id="lmst" class="sortable">LMST</th>
- 					<th>Lag (hours)</th>
-					<th id="lastModified" class="sortable">Released (<span class="timezone"></span>)</th>
+					<th id="lmst" class="sortable">LMST</th>
+ 					<th id="unixTimeStamp" class="sortable">Taken (<span class="timezone"></span>)</th>
+ 					<th id="lastModified" class="sortable">Released (<span class="timezone"></span>)</th>
 					<th>Image Type</th>
 					<th>Camera</th>
 				</tr>
@@ -133,7 +132,6 @@
 						onClick="this.checked?conf.filter_sol=-1:conf.filter_sol=$('.solInput').val(); render()" />
 					</th>
 					<th></th>
-	 				<th></th>
 	 				<th></th>
 					<th>New only:<input title="Show only new images (<1 day)" class="newBox" type="checkbox"
 						onClick="this.checked?conf.filter_new=true:conf.filter_new=false; render()" />
@@ -214,12 +212,11 @@
 					<td class="thumbnail"></td>
 					<td class="selector">&nbsp;<input type="checkbox" class="selector"
 						name="selector">&nbsp;</td>
-					<td><span class="newImage">*</span><a href="" class="name"
-						target="_blank"></a></td>
+					<td class="name_container"><div class="name_box"><span class="newImage">*</span><a href="" class="name"
+						target="_blank"></a></div><div class="orientation"></div></td>
 					<td class="sol"></td>
+					<td class="lmst"></td>
 					<td class="taken"></td>
- 					<td class="lmst"></td>
-					<td class="lag"></td>
 					<td class="released"></td>
 					<td class="type"></td>
 					<td class="cam"></td>
@@ -229,9 +226,10 @@
 					<td class="selector"></td>
 					<td>No images found for current selection!</td>
 					<td class="sol"></td>
+					<td class="lmst"></td>
 					<td class="taken"></td>
- 					<td class="lmst"></td>
- 					<td class="type"></td>
+ 					<td class="released"></td>
+					<td class="type"></td>
 					<td class="cam"></td>
 				</tr>
 			</tbody>
@@ -309,15 +307,16 @@
 	<div class="footer">
 		<br>
 		<div itemscope itemtype="http://data-vocabulary.org/Person">
-			This site is developed by <span itemprop="name"><a href="https://plus.google.com/105877938645351113436?rel=author">Ludo
+			This site is developed by <span itemprop="name"><a href="https://plus.google.com/105877938645351113436?rel=author" target="_blank">Ludo
 				Stellingwerff</a></span>&nbsp;(<span itemprop="role">Senior Software
 				Engineer</span> - <span itemprop="location">Rotterdam, The
 				Netherlands</span>).<br>
 		</div>
 		I don't own any images on this site, massive thanks go to NASA,
 		Caltech and Malin (MSSS) for sharing this with all of us.<br>
+		LMST and orientation data are obtained using NASA's Naif Spice Toolkit; Thanks go to Joe Knapp of <a href="http://curiositymsl.com" target="_blank">Curiositymsl.com</a> for his help in obtaining them.<br> 
 		Source images:<a href="http://mars.jpl.nasa.gov/msl/multimedia/raw/"
-			target="_blank">http://mars.jpl.nasa.gov/msl/multimedia/raw/</a>. <br>
+			target="_blank">http://mars.jpl.nasa.gov/msl/multimedia/raw/</a>.<br>
 		<a
 			href="mailto:msl_site_maintainer@stwerff.xs4all.nl?subject=Website%20feedback%20and%20tips">Mailto:Site
 			Maintainer</a><br>
@@ -399,6 +398,10 @@
 		<hr>
 		<input title="Show date in UTC timezone" class="utcBox" type="checkbox"
 			onClick="this.checked?conf.show_utc=true:conf.show_utc=false; render()" /> Show times in UTC.<br>
+		<input title="Show lag with release date." class="lagBox" type="checkbox"
+			onClick="this.checked?conf.show_lag=true:conf.show_lag=false; render()" /> Show lag with release date.<br>
+		<input title="Show camera orientation below name." class="bearingBox" type="checkbox"
+			onClick="this.checked?conf.show_orientation=true:conf.show_orientation=false; render()" /> Show the camera orientation below the image name.<br>
 		<input type="checkbox" class="prefixBox"
 			onClick="this.checked?conf.useWget=true:conf.useWget=false;saveConf()" />
 		Export command wrap?<br> <input type="text" class="prefixText"

@@ -13,10 +13,12 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.annotation.ThreadSafe;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.CharMatcher;
 
+@ThreadSafe(true)
 public class ServerCountAgent extends Agent {
 	static final ObjectMapper om = new ObjectMapper();
 	static final String NEWURL = "http://mars.jpl.nasa.gov/msl/admin/modules/multimedia/module/inc_ListImages_Raw.cfm";

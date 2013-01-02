@@ -6,8 +6,10 @@ import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.json.annotation.Name;
 
+@ThreadSafe(true)
 public class TwitterAgent extends Agent {
 	public static TwitterFactory tf=null;
 

@@ -11,11 +11,13 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.stwerff.mslagents.data.Image;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
+@ThreadSafe(true)
 public class SpiceAgent extends Agent {
 	public static final ObjectMapper om = new ObjectMapper();
 	

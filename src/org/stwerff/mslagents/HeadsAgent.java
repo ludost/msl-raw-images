@@ -7,10 +7,12 @@ import java.net.URL;
 import org.stwerff.mslagents.data.Image;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.json.annotation.Name;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
+@ThreadSafe(true)
 public class HeadsAgent extends Agent {
 	static final String jpl = "http://mars.jpl.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol";
 	static final String msss = "http://mars.jpl.nasa.gov/msl-raw-images/msss";

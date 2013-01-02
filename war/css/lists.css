@@ -35,6 +35,24 @@ input.max_show,input.render_max,input.font_size {
 .ui-tabs-panel {
 	padding: 0px !important;
 }
+/* .name_container{
+	position:relative;
+}
+.name_box {
+	display:block;
+	max-width:25em;
+	overflow:hidden;
+}
+.name_box:hover {
+	position:absolute;
+	max-width:999em;
+	border:1px black solid;
+	width:auto;
+	top:0px;
+	left:0px;
+	z-index:10;
+	background:white;
+} */
 .ui-tabs-nav {
 	font-size:8pt !important;
 }
@@ -47,14 +65,17 @@ input.max_show,input.render_max,input.font_size {
 .filter .cam,.filter .type {
 	display:block;
 	height:2em;
+	width:7em;
 	overflow:hidden;
 	white-space:normal !important;
 }
 .filter .cam:hover,.filter .type:hover {
 	top:0px;
 	min-height:999em;
+	width:auto;
 	height:auto;
 	position:absolute;
+	z-index:10;
 }
 .listDescr {
 	display:block;
@@ -102,6 +123,7 @@ pre {
 	position:absolute;
 	top:1.4em;
 	left:0px;
+	z-index:20;
 	background:white;
 	border:1px solid #8a2d05;
 	-webkit-border-radius: 5px;
@@ -122,8 +144,8 @@ span {
 	vertical-align: top;
 }
 td,th {
-	padding-left:0.25em;
-	padding-right:0.5em;
+	padding-left:1em;
+	padding-right:1em;
 	vertical-align: top;
 	white-space:nowrap;
 }

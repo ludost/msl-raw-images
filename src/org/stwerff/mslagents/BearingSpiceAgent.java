@@ -14,21 +14,26 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.stwerff.mslagents.data.Image;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
+@ThreadSafe(true)
 public class BearingSpiceAgent extends Agent {
 	public static final ObjectMapper om = new ObjectMapper();
 	
 	public boolean filter(DateTime time){
 		if (time.isBefore(new DateTime("2012-08-06T05:18:40Z"))) return true;
 		if (time.isAfter(new DateTime("2012-08-08T04:34:41Z")) && time.isBefore(new DateTime("2012-08-08T04:45:02Z"))) return true;
+		if (time.isAfter(new DateTime("2012-08-20T13:39:39Z")) && time.isBefore(new DateTime("2012-08-20T13:53:58Z"))) return true;
+		if (time.isAfter(new DateTime("2012-09-06T00:08:21Z")) && time.isBefore(new DateTime("2012-09-06T00:14:12Z"))) return true;
 		if (time.isAfter(new DateTime("2012-09-20T07:56:16Z")) && time.isBefore(new DateTime("2012-09-20T08:07:11Z"))) return true;
 		if (time.isAfter(new DateTime("2012-09-20T08:08:33Z")) && time.isBefore(new DateTime("2012-09-20T08:14:40Z"))) return true;
 		return false;
 	}
+	 
 	
 	public ArrayNode updateList(@Name("list") ArrayNode list, @Name("reload") @Required(false) Boolean reload){
 		ArrayNode result = om.createArrayNode();
@@ -54,32 +59,32 @@ public class BearingSpiceAgent extends Agent {
 				}
 			}
 			if (todo.size()==0) return result;
-			String cmd_line="";
+			
 			for (Entry<String,ArrayList<Image>> entry : todo.entrySet()){
-				int count=0;
+				String cmd_line="";
 				ArrayList<Image> camTodo = new ArrayList<Image>(entry.getValue().size());
 				for (Image image : entry.getValue()){
 					DateTime time = new DateTime(image.getUnixTimeStamp()).toDateTime(DateTimeZone.UTC);
 					if (filter(time)){
-						image.setBearing("---");
+						image.setBearing("----");
 						result.add(om.valueToTree(image));
 						continue;
 					}
 					cmd_line+=" "+time.toString(ISODateTimeFormat.dateHourMinuteSecond());
 					camTodo.add(image);
-					if (count++>500) break;
 				}
-				//System.err.println("Doing: ./msl_pointing "+entry.getKey()+cmd_line);
+//				System.err.println("Doing: ./msl_pointing "+entry.getKey()+cmd_line);
 				Process proc = Runtime.getRuntime().exec("./msl_pointing "+entry.getKey()+cmd_line, null,pathFile);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 				for (int i=0; i<camTodo.size(); i++){
-					String lmst = reader.readLine();
-					if (lmst == null || "".equals(lmst.trim())){
+					String line = reader.readLine();
+//					System.err.println(line);
+					if (line == null || "".equals(line.trim())){
 						System.err.println("Empty result?"+i+" from:"+entry.getKey()+cmd_line);
 						continue;
 					}
-					String[] fields = lmst.split(":");
-					Image image = entry.getValue().get(new Integer(fields[0]));
+					String[] fields = line.split(":");
+					Image image = camTodo.get(new Integer(fields[0]));
 					
 					if (new Integer(fields[0]) != i){
 						System.err.println("MSL_POINTING tool didn't return the all records? "+i+"/'"+fields[0]+"'");

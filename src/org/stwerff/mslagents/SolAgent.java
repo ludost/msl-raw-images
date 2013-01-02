@@ -4,12 +4,14 @@ import org.joda.time.DateTime;
 import org.stwerff.mslagents.data.ImageList;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@ThreadSafe(true)
 public class SolAgent extends Agent {
 	static final ObjectMapper om = new ObjectMapper();
 

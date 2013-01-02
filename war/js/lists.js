@@ -17,6 +17,8 @@ var settings = {
 	sort_reverse : false,
 	show_thumbs : false,
 	show_utc : true,
+	show_lag : true,
+	show_orientation : true,
 	display_mode: "normal",
 	filter_sol : -1,
 	filter_cam : [],
@@ -30,7 +32,7 @@ var settings = {
 	max_show:20,
 	show_count : 20,
 	render_max:500,
-	font_size:12
+	font_size:10
 };
 
 conf = {};
@@ -470,13 +472,14 @@ var normal_directives={
 					return renderDate(date,conf.show_utc,false);
 				},
 				'.lmst' : 'image.lmst', 
+				'.orientation': function(a){
+					return conf.show_orientation?a.item.bearing:"";
+				},
 				'.released' : function(a){
 					var millis = parseFloat(a.item.lastModified);
 					var date = new Date(millis);
-					return renderDate(date,conf.show_utc,false);													 
-				},
-				'.lag' : function(a){
-					return Math.round((parseFloat(a.item.lastModified) - parseFloat(a.item.unixTimeStamp))/3600000);
+					var lag = Math.round((parseFloat(a.item.lastModified) - parseFloat(a.item.unixTimeStamp))/3600000);
+					return renderDate(date,conf.show_utc,false)+(conf.show_lag?" (+"+lag+"h)":"");
 				}
 			},
 			sort : function(a, b) {
@@ -534,7 +537,7 @@ function render() {
 			);
 	
 	if (conf.display_mode=="mosaic"){
-		$('.tab-target .image')
+		$('.tab-target .image').onbind("click")
 			.on("click",function(){
 				$(this).toggleClass("selected");
 				toggleSelector();
@@ -562,6 +565,8 @@ function render() {
 	if (conf.show_thumbs) $('.thumbBox').attr("checked", "checked");
 	if (conf.filter_sol < 0) $('.solBox').attr("checked", "checked");
 	if (conf.filter_new) $('.newBox').attr("checked", "checked");
+	if (conf.show_lag) $('.lagBox').attr("checked", "checked");
+	if (conf.show_orientation) $('.bearingBox').attr("checked", "checked");
 	
 	$(".tab-target .typeSelectMulti").val(conf.filter_type);
 	$(".tab-target .typeSelectMulti").chosen();
@@ -571,7 +576,7 @@ function render() {
 	$(".tab-target input.selector").enableCheckboxRangeSelection();
 	$(".tab-target input.selector").on('click',toggleSelector);
 	$(".tab-target #filter_list_"+conf.filter_list).attr("checked","checked");
-	$(".tab-target input:radio[name=filter_list]").on("click",function(){
+	$(".tab-target input:radio[name=filter_list]").unbind("click").on("click",function(){
 		conf.filter_list=$(this).val();
 		$(".listViewer").hide();
 		render();
