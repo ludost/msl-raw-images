@@ -759,6 +759,9 @@ function outputList() {
 	p.document.close();
 }
 
+function updateProgress(){
+	$("div.reload").progressbar({value: dyn.data.length });
+}
 function load_sol(sol,ifmodified){
 	$.ajax({
 		//url : "http://msl-raw-images.storage.googleapis.com/sol_"+sol+".json",
@@ -781,12 +784,12 @@ function load_sol(sol,ifmodified){
 					result = JSON.parse(result.responseText);
 				}
 				dyn.data = dyn.data.concat(result);
+				updateProgress();
 	        }
 		}
 	});
 }
 function reload() {
-	$("div.reload").html("<span class='reloading'>Loading...</span>");
 	$(".error").html("");
 	if (typeof _gaq != "undefined"){
 		_gaq.push(['_trackEvent', "imageList", "Reload"]);
@@ -806,6 +809,10 @@ function reload() {
 					json = JSON.parse(json.responseText);
 				}
 				dyn.data=[];
+				if (typeof json.count != "undefined"){
+					dyn.totalImages=json.count;
+					$("div.reload").progressbar({value:0,max:dyn.totalImages});
+				}
 				for (var i=0; i<json.sol+1; i++){
 					load_sol(i,true);
 				}
@@ -888,6 +895,7 @@ $(document).ready(function() {
 	$("div.reload").ajaxStart(function() {
 		$(this).html("<span class='reloading'>Loading...</span>");})
 	.ajaxStop(function() {
+		$(this).progressbar("destroy");
 		$(this).html(reloadString);
 		render();
 	});

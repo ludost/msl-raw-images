@@ -12,6 +12,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.stwerff.mslagents.MaxSolAgent;
 import org.stwerff.mslagents.SolAgent;
+import org.stwerff.mslagents.StatsAgent;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
@@ -55,8 +56,9 @@ public class JsonServlet extends HttpServlet {
 			}
 			if (sol == -1){
 				MaxSolAgent maxsol = (MaxSolAgent) factory.getAgent("max");
+				StatsAgent stats = (StatsAgent) factory.getAgent("stats");
 				res.setHeader("Cache-Control", "max-age=0,public,must-revalidate,proxy-revalidate");
-				res.getWriter().println("{\"sol\":"+maxsol.getMaxSol()+"}");
+				res.getWriter().println("{\"sol\":"+maxsol.getMaxSol()+",\"count\":"+stats.getTotalCount()+"}");
 				return;
 			}
 			

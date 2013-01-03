@@ -8,6 +8,12 @@ html {
 body {
 	margin-top:3px;
 }
+.ui-progressbar {
+	height:1em;
+}
+.ui-progressbar .ui-progressbar-value { 
+	background: #8a2d05 repeat ;
+}
 img.rssFeed {
 	width:16px;
 	height:16px;
