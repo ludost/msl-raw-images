@@ -49,7 +49,7 @@ public class BearingSpiceAgent extends Agent {
 			Map<String,ArrayList<Image>> todo = new HashMap<String,ArrayList<Image>>();
 			for (int i=0; i<list.size(); i++){
 				Image image = om.treeToValue(list.get(i),Image.class);
-				if (reload || image.getBearing() == null){
+				if (reload || (image.getBearing() == null || image.getBearing().equals("---"))){
 					ArrayList<Image> camTodo = todo.get(image.getCamera()); 
 					if (camTodo == null){
 						camTodo = new ArrayList<Image>();

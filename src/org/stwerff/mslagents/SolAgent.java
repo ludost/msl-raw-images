@@ -1,6 +1,7 @@
 package org.stwerff.mslagents;
 
 import org.joda.time.DateTime;
+import org.stwerff.mslagents.data.Image;
 import org.stwerff.mslagents.data.ImageList;
 
 import com.almende.eve.agent.Agent;
@@ -160,9 +161,28 @@ public class SolAgent extends Agent {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
 
+	//Reload list, redetermining image type and reloading stats.
+	public void reloadList(){
+		ArrayNode list = om.createArrayNode();
+		ArrayNode result = om.createArrayNode();
+		try {
+			list = (ArrayNode) om.readTree((String) getContext().get("list"));
+			for (int i=0; i<list.size(); i++){
+				Image image = om.treeToValue(list.get(i),Image.class);
+				result.add(om.valueToTree(image));
+			}
+			getContext().put("list", result.toString());
+			String url = "http://localhost:8080/MSLAgents/agents/stats";
+			ObjectNode params = om.createObjectNode();
+			params.put("list", result);
+			send(url, "updateSol", params, void.class);
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public String getDescription() {
 		return "Collects and stores sol "

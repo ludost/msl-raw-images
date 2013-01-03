@@ -51,7 +51,7 @@ public class Image {
 			if (cmp == 'C' || cmp == 'R' || cmp == 'S') {
 				return "subframe";
 			}
-			if (cmp == 'F' || cmp == 'B' || cmp == 'E' || cmp == 'K') {
+			if (cmp == 'F' || cmp == 'B' || cmp == 'E' || cmp == 'K' || cmp == 'L' || cmp == 'M') {
 				return "full";
 			}
 		} catch (Exception e) {

@@ -479,7 +479,7 @@ var normal_directives={
 					var millis = parseFloat(a.item.lastModified);
 					var date = new Date(millis);
 					var lag = Math.round((parseFloat(a.item.lastModified) - parseFloat(a.item.unixTimeStamp))/3600000);
-					return renderDate(date,conf.show_utc,false)+(conf.show_lag?" (+"+lag+"h)":"");
+					return renderDate(date,conf.show_utc,false)+((conf.show_lag && !isNaN(lag))?" (+"+lag+"h)":"");
 				}
 			},
 			sort : function(a, b) {

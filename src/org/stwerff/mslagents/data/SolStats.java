@@ -15,6 +15,7 @@ public class SolStats implements Serializable {
 	int nofDownScaled;
 	int nofSubframe;
 	int nofThumbnail;
+	int nofUnknown;
 	boolean incompleteHeads=false;
 	Map<String,Boolean> incomplete;
 	
@@ -30,9 +31,11 @@ public class SolStats implements Serializable {
 	}
 	public void addGenImage(String type){
 		if ("full".equals(type)) addFull();
-		if ("downscaled".equals(type)) addDownScaled();
-		if ("subframe".equals(type)) addSubframe();
-		if ("thumbnail".equals(type)) addThumbnail();
+		else if ("downscaled".equals(type)) addDownScaled();
+		else if ("subframe".equals(type)) addSubframe();
+		else if ("thumbnail".equals(type)) addThumbnail();
+		else if ("unknown".equals(type)) addUnknown();
+		else System.err.println("Unknown type: '"+type+"' found! sol:"+this.sol);
 	}
 	public void addImage(){
 		this.nofImages++;
@@ -78,6 +81,18 @@ public class SolStats implements Serializable {
 	}
 	public void setNofThumbnail(int nofThumbnail) {
 		this.nofThumbnail = nofThumbnail;
+	}
+	public void addUnknown(){
+		this.nofUnknown++;
+	}
+	public int getNofUnknown() {
+		return nofUnknown;
+	}
+	public void setNofUnknown(int nofUnknown) {
+		this.nofUnknown = nofUnknown;
+	}
+	public boolean getStrange(){
+		return (this.nofFull+this.nofSubframe+this.nofDownScaled+this.nofThumbnail+this.nofUnknown != this.nofImages);
 	}
 	public void setIncompleteHeads(boolean incompleteHeads){
 		incomplete.put("heads", incompleteHeads);
