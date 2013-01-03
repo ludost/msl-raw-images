@@ -31,11 +31,13 @@
 		);
 
 		image = $('<div id="lbImage" />').appendTo(center).append(
-			sizer = $('<div style="position: relative;" />').append([
+			sizer = $('<div style="position: relative;" />'))[0];
+		
+		$(center).append([
 				prevLink = $('<a id="lbPrevLink" href="#" />').click(previous)[0],
 				nextLink = $('<a id="lbNextLink" href="#" />').click(next)[0]
-			])[0]
-		)[0];
+			]);
+		//);
 
 		bottom = $('<div id="lbBottom" />').appendTo(bottomContainer).append([
 			$('<a id="lbCloseLink" href="#" />').add(overlay).click(close)[0],
@@ -196,8 +198,7 @@
 		        .css("filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='.myBackground.jpg', sizingMethod='scale');" +
 		        		"-ms-filter: \"progid:DXImageTransform.Microsoft.AlphaImageLoader(src='myBackground.jpg', sizingMethod='scale')\";");
 		
-		$(sizer).width(preload.width);
-		$([sizer, prevLink, nextLink]).height(preload.height);
+		$(sizer).width(preload.width).height(preload.height);
 
 		$(caption).html(images[activeImage][1] || "");
 		$(number).html((((images.length > 1) && options.counterText) || "").replace(/{x}/, activeImage + 1).replace(/{y}/, images.length));
@@ -205,8 +206,11 @@
 		if (prevImage >= 0) preloadPrev.src = images[prevImage][0];
 		if (nextImage >= 0) preloadNext.src = images[nextImage][0];
 
-		centerWidth = image.offsetWidth;
-		centerHeight = image.offsetHeight;
+		centerWidth = Math.max(image.offsetWidth,options.initialWidth);
+		centerHeight = Math.max(image.offsetHeight,options.initialHeight);
+		$(prevLink).height(centerHeight);
+		$(nextLink).height(centerHeight);
+
 		var top = Math.max(0, middle - (centerHeight / 2) - 50);
 		if (center.offsetHeight != centerHeight) {
 			$(center).animate({height: centerHeight, top: top}, options.resizeDuration, options.resizeEasing);

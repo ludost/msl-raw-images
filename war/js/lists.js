@@ -376,7 +376,7 @@ function filter(a) {
 		}
 	} else {
 		if (conf.filter_new
-				&& parseFloat(a.item.lastModified == "" ? a.item.unixTimeStamp
+				&& parseFloat((a.item.lastModified == ""||a.item.lastModified == "---") ? a.item.unixTimeStamp
 						: a.item.lastModified) < dyn.newLimit)
 			return false;
 		if (conf.filter_sol >= 0 && a.item.sol != conf.filter_sol)
@@ -495,11 +495,11 @@ var mosaic_directives = {
 		".image" : {
 			"image<-context" : {
 				"@id":"image.name",
-				"a@href":function(a){
-					return (a.item.url[1]=="$"?(a.item.url[0]=="J"?jpl:msss)+a.item.url.substring(2):a.item.url);
-				},
 				"img@src":function(a){
 					return (a.item.thumbnailUrl[1]=="$"?(a.item.thumbnailUrl[0]=="J"?jpl:msss)+a.item.thumbnailUrl.substring(2):a.item.thumbnailUrl);
+				},
+				".label" : function(a){
+					return (a.item.sol + "-" + a.item.lmst + "<br>" + a.item.camera + " ("+a.item.type+")");
 				}
 			},
 			sort : function(a, b) {
@@ -537,13 +537,15 @@ function render() {
 			);
 	
 	if (conf.display_mode=="mosaic"){
-		$('.tab-target .image').onbind("click")
+		$('.tab-target .image').unbind("click")
 			.on("click",function(){
 				$(this).toggleClass("selected");
 				toggleSelector();
 			});
+		$('.tab-target .image_container').css('max-width',($(window).width()-100)+'px');
 	}
 	$(".labels").toggle(conf.display_mode!="mosaic");
+	$(".filter .thumbnail").toggle(conf.display_mode!="mosaic");
 	
 	// Reselect selected images (if still visible):
 	selected.map(function(image_name){

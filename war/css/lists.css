@@ -138,9 +138,6 @@ pre {
 }
 input.default { padding: 0px !important }
 img { width: 64px }
-.selected {
-	border:1px solid red;	
-}
 table { 
 	text-align: left;
 	border-collapse:collapse;
@@ -251,11 +248,18 @@ div.headerDiv {
 	height:48px;
 	white-space:nowrap;
 }
-.tab-target .image{
+.tab-target .image {
 	float:left;
 	display:block;
-	width:150px;
-	height:100px;	
+	text-align:center;
+	width:10em;
+	height:100px;
+	border: 1px black solid;
+	margin: 1px;
+	padding: 2px;
+}
+.selected {
+	border:1px solid red !important;	
 }
 .headerDiv h1 {
 		margin: 8px;

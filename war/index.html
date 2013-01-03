@@ -99,7 +99,7 @@
 					<th>Camera</th>
 				</tr>
 				<tr class=filter>
-					<th>Show:<input title="Show thumbnails" class="thumbBox" type="checkbox"
+					<th class="thumbnail">Show:<input title="Show thumbnails" class="thumbBox" type="checkbox"
 						onClick="conf.show_thumbs?conf.show_thumbs=false:conf.show_thumbs=true;render();"></th>
 					<th></th>
 					<th class="listFilter">
@@ -228,8 +228,10 @@
 				</tr>
 			</tbody>
 			<tbody class="mosaic-template">
-				<tr><td colspan=9>
-					<div class="image"><a href=""><img src=""/></a></div>
+				<tr><td colspan=9 class="image_container">
+					<div class="image"><img src=""/><br><span class="label"></span>
+					<div class="popup"></div>
+					</div>
 				</td></tr>
 			</tbody>
 			</table>
