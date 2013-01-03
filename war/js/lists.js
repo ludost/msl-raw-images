@@ -511,6 +511,7 @@ var mosaic_directives = {
 		}
 };
 
+var map = {"none":"None","include":"Include","exclude":"Exclude","complete":"Full"};
 var normal_rfn = null;
 var mosaic_rfn = null;
 function render() {
@@ -521,7 +522,6 @@ function render() {
 	}
 	dyn.newLimit = new Date().getTime() - (24 * 3600 * 1000);
 	localStorage["msl-raws-conf"] = JSON.stringify(conf);
-	$('.tab-target th.name').html("Name (loading....)");
 	$('.error').html("");
 	dyn.pagecount = 0;
 	dyn.totalImages = 0;
@@ -581,7 +581,6 @@ function render() {
 		$(".listViewer").hide();
 		render();
 	});
-	var map = {"none":"None","include":"Include","exclude":"Exclude","complete":"Full"};
 	$(".tab-target .listSelectFeedback").html(map[conf.filter_list]);
 	toggleSelector();
 
@@ -656,7 +655,6 @@ function render() {
 	$(".prefixText").val(conf.wget_syntax);
 	$(".prefixBox").attr('checked', conf.useWget);
 	// Done
-
 }
 function disabled(obj){
 	return !obj.find('.ui-icon').hasClass('ui-state-disabled');

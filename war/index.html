@@ -42,15 +42,7 @@
 	<div class="list_import" style="display:none">
 		Copy list text here : <input id="list_import" tabindex="0"><input type=button name="import" value="import" onClick="list_import()">
 	</div>
-	<div class="tweetRSS"></div>
-	<div class="buttonDiv">
 <span class='st_twitterfollow_hcount' displayText='Twitter Follow' st_username='MSLRawImages'></span>
-<span class='st_fblike_hcount' displayText='Facebook Like'></span>
-<span class='st_twitter_hcount' displayText='Tweet'></span>
-<span class='st_linkedin_hcount' displayText='LinkedIn'></span>
-<span class='st_plusone_hcount' displayText='Google +1'></span>
-<span>(<a href="http://search.twitter.com/search.atom?q=from:MslRawImages&rpp=1&result_type=recent"><img class="rssFeed" alt="RSS feed" title="RSS feed" src="images/rss-icon.png"/></a></span> through Twitter)
-	</div>
 	<div class="reload"></div>
 	<div class="headerDiv">
 		<h1>&nbsp;MSL Curiosity - Raw Images Listing</h1>
@@ -306,22 +298,28 @@
 			</table>
 		</div>
 	</div>
-	<div class="footer">
-		<br>
+	<div class="footer"><br>
+	<div class="tweetRSS"></div>
+	<div class="buttonDiv">
+<span class='st_fblike_hcount' displayText='Facebook Like'></span>
+<span class='st_twitter_hcount' displayText='Tweet'></span>
+<span class='st_linkedin_hcount' displayText='LinkedIn'></span>
+<span class='st_plusone_hcount' displayText='Google +1'></span>
+<span>(<a href="http://search.twitter.com/search.atom?q=from:MslRawImages&rpp=1&result_type=recent"><img class="rssFeed" alt="RSS feed" title="RSS feed" src="images/rss-icon.png"/></a></span> through Twitter)
+	</div>
 		<div itemscope itemtype="http://data-vocabulary.org/Person">
 			This site is developed by <span itemprop="name"><a href="https://plus.google.com/105877938645351113436?rel=author" target="_blank">Ludo
 				Stellingwerff</a></span>&nbsp;(<span itemprop="role">Senior Software
 				Engineer</span> - <span itemprop="location">Rotterdam, The
-				Netherlands</span>).<br>
+				Netherlands</span>). <a
+			href="mailto:msl_site_maintainer@stwerff.xs4all.nl?subject=Website%20feedback%20and%20tips">Mailto:Site
+			Maintainer</a><br>
 		</div>
 		I don't own any images on this site, massive thanks go to NASA,
 		Caltech and Malin (MSSS) for sharing this with all of us.<br>
 		LMST and orientation data are obtained using NASA's Naif Spice Toolkit; Thanks go to Joe Knapp of <a href="http://curiositymsl.com" target="_blank">Curiositymsl.com</a> for his help in obtaining them.<br> 
 		Source images:<a href="http://mars.jpl.nasa.gov/msl/multimedia/raw/"
-			target="_blank">http://mars.jpl.nasa.gov/msl/multimedia/raw/</a>.<br>
-		<a
-			href="mailto:msl_site_maintainer@stwerff.xs4all.nl?subject=Website%20feedback%20and%20tips">Mailto:Site
-			Maintainer</a><br>
+			target="_blank">http://mars.jpl.nasa.gov/msl/multimedia/raw/</a>.
 	</div>
 	<div class="listCreate">
 		<ul>
@@ -391,11 +389,11 @@
 	</div>
 	<div class="preferences">
 		<input class="font_size"
-			onChange="conf.font_size=$(this).val();saveConf();render()"/> Font size (in pt.).<br>
+			onChange="conf.font_size=$(this).val();render()"/> Font size (in pt.).<br>
 		<input class="max_show"
-			onChange="conf.max_show=$(this).val();saveConf();render()" /> Page
+			onChange="conf.max_show=$(this).val();render()" /> Page
 		size increment.<br> <input class="render_max"
-			onChange="conf.render_max=$(this).val();saveConf();render()" />
+			onChange="conf.render_max=$(this).val();render()" />
 		Maximum render limit.<br>
 		<hr>
 		<input title="Show date in UTC timezone" class="utcBox" type="checkbox"
