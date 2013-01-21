@@ -1,7 +1,0 @@
-\begindata
- 
-   KERNELS_TO_LOAD = ( 	'msl.tls',
-                       	'msl_lmst_ops120808_v1.tsc'
-		     )
- 
-\begintext
