@@ -9,6 +9,6 @@ services:
 
 # context settings
 # the context is used by agents for storing their state.
-context:
-  class: FileContextFactory
+state:
+  class: FileStateFactory
   path: .eveagents

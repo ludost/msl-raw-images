@@ -7,22 +7,22 @@ environment:
     base_path: /tmp/jetty-0.0.0.0-8080-MSLAgents.war-_MSLAgents-any-/webapp/
 
     transport_services:
-    - class: com.almende.eve.transport.http.HttpTransportService
+    - class: com.almende.eve.transport.http.HttpService
       servlet_url: http://localhost:8080/MSLAgents/agents/
-    - class: com.almende.eve.transport.http.HttpTransportService
+    - class: com.almende.eve.transport.http.HttpService
       servlet_url: http://msl-raw-images.com/MSLAgents/agents/
-    - class: com.almende.eve.transport.http.HttpTransportService
+    - class: com.almende.eve.transport.http.HttpService
       servlet_url: http://host1.msl-raw-images.com:8080/MSLAgents/agents/
 
 
 
-# context settings (for persistency)
-context:
-  class: FileContextFactory
+# state settings (for persistency)
+state:
+  class: FileStateFactory
   path: .eveagents
 
 # scheduler settings (for tasks)
 scheduler:
-  class: RunnableScheduler
+  class: RunnableSchedulerFactory
 
   

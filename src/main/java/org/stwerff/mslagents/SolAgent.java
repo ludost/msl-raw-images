@@ -17,14 +17,14 @@ public class SolAgent extends Agent {
 	static final ObjectMapper om = new ObjectMapper();
 
 	public void setList(@Name("list") ArrayNode list) {
-		getContext().put("list", list.toString());
+		getState().put("list", list.toString());
 	}
 
 	public String getLastChange() {
-		if (getContext().containsKey("lastChange")) {
-			if (getContext().containsKey("incomplete")
-					&& !(Boolean) getContext().get("incomplete")) {
-				return (String) getContext().get("lastChange");
+		if (getState().containsKey("lastChange")) {
+			if (getState().containsKey("incomplete")
+					&& !(Boolean) getState().get("incomplete")) {
+				return (String) getState().get("lastChange");
 			} else {
 				System.err.println("Incomplete Sol!");
 			}
@@ -35,9 +35,9 @@ public class SolAgent extends Agent {
 	}
 
 	public ArrayNode getList() {
-		if (getContext().containsKey("list")) {
+		if (getState().containsKey("list")) {
 			try {
-				return (ArrayNode) om.readTree((String) getContext()
+				return (ArrayNode) om.readTree((String) getState()
 						.get("list"));
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -47,13 +47,13 @@ public class SolAgent extends Agent {
 	}
 
 	public ArrayNode updateList(@Name("reload") @Required(false) Boolean reload) {
-		int sol = new Integer(getContext().getAgentId().substring(4))
+		int sol = new Integer(getState().getAgentId().substring(4))
 				.intValue();
 		ArrayNode list = om.createArrayNode();
 		try {
 			if (reload == null || !reload) {
-				if (getContext().containsKey("list")) {
-					list = (ArrayNode) om.readTree((String) getContext().get(
+				if (getState().containsKey("list")) {
+					list = (ArrayNode) om.readTree((String) getState().get(
 							"list"));
 				}
 			}
@@ -67,7 +67,7 @@ public class SolAgent extends Agent {
 			} catch (Exception e){
 				e.printStackTrace();
 			}
-			getContext().put("list", list.toString());
+			getState().put("list", list.toString());
 //			updateHeads();
 
 			url = "http://localhost:8080/MSLAgents/agents/stats";
@@ -84,7 +84,7 @@ public class SolAgent extends Agent {
 	public void updateHeads() {
 		ArrayNode list = om.createArrayNode();
 		try {
-			list = (ArrayNode) om.readTree((String) getContext().get("list"));
+			list = (ArrayNode) om.readTree((String) getState().get("list"));
 			String url = "http://localhost:8080/MSLAgents/agents/heads";
 			ObjectNode params = om.createObjectNode();
 			params.put("list", list);
@@ -93,20 +93,20 @@ public class SolAgent extends Agent {
 				result = send(url, "updateList", params, ArrayNode.class);
 				list = ImageList.merge(list, result);
 				if (result.size() > 0
-						|| !getContext().containsKey("lastChange")) {
-					getContext().put("lastChange", DateTime.now().toString());
+						|| !getState().containsKey("lastChange")) {
+					getState().put("lastChange", DateTime.now().toString());
 				}
 			} catch (Exception e) {
 				System.err.println("UpdateList error:" + e);
 			}
 
 			if (result == null || result.size() >= HeadsAgent.MAX_PER_RUN) {
-				getContext().put("incomplete", true);
+				getState().put("incomplete", true);
 			} else {
-				getContext().put("incomplete", false);
+				getState().put("incomplete", false);
 			}
 
-			getContext().put("list", list.toString());
+			getState().put("list", list.toString());
 			url = "http://localhost:8080/MSLAgents/agents/stats";
 			params = om.createObjectNode();
 			params.put("list", list);
@@ -120,7 +120,7 @@ public class SolAgent extends Agent {
 		ArrayNode list = om.createArrayNode();
 		if(reload==null)reload=false;
 		try {
-			list = (ArrayNode) om.readTree((String) getContext().get("list"));
+			list = (ArrayNode) om.readTree((String) getState().get("list"));
 			String url = "http://localhost:8080/MSLAgents/agents/spice";
 			ObjectNode params = om.createObjectNode();
 			params.put("list", list);
@@ -130,8 +130,8 @@ public class SolAgent extends Agent {
 				result = send(url, "updateList", params, ArrayNode.class);
 				list = ImageList.merge(list, result);
 				if (result.size() > 0
-						|| !getContext().containsKey("lastChange")) {
-					getContext().put("lastChange", DateTime.now().toString());
+						|| !getState().containsKey("lastChange")) {
+					getState().put("lastChange", DateTime.now().toString());
 				}
 			} catch (Exception e) {
 				System.err.println("UpdateList error:" + e);
@@ -146,14 +146,14 @@ public class SolAgent extends Agent {
 				result = send(url, "updateList", params, ArrayNode.class);
 				list = ImageList.merge(list, result);
 				if (result.size() > 0
-						|| !getContext().containsKey("lastChange")) {
-					getContext().put("lastChange", DateTime.now().toString());
+						|| !getState().containsKey("lastChange")) {
+					getState().put("lastChange", DateTime.now().toString());
 				}
 			} catch (Exception e) {
 				System.err.println("UpdateList error:" + e);
 			}
 
-			getContext().put("list", list.toString());
+			getState().put("list", list.toString());
 			url = "http://localhost:8080/MSLAgents/agents/stats";
 			params = om.createObjectNode();
 			params.put("list", list);
@@ -168,12 +168,12 @@ public class SolAgent extends Agent {
 		ArrayNode list = om.createArrayNode();
 		ArrayNode result = om.createArrayNode();
 		try {
-			list = (ArrayNode) om.readTree((String) getContext().get("list"));
+			list = (ArrayNode) om.readTree((String) getState().get("list"));
 			for (int i=0; i<list.size(); i++){
 				Image image = om.treeToValue(list.get(i),Image.class);
 				result.add(om.valueToTree(image));
 			}
-			getContext().put("list", result.toString());
+			getState().put("list", result.toString());
 			String url = "http://localhost:8080/MSLAgents/agents/stats";
 			ObjectNode params = om.createObjectNode();
 			params.put("list", result);
@@ -186,7 +186,7 @@ public class SolAgent extends Agent {
 	@Override
 	public String getDescription() {
 		return "Collects and stores sol "
-				+ getContext().getAgentId().substring(4);
+				+ getState().getAgentId().substring(4);
 	}
 
 	@Override

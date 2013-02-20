@@ -25,8 +25,8 @@ public class StatsAgent extends Agent {
 	public List<Integer> getIncompleteSols(@Name("type") String type){
 		List<Integer> result = new ArrayList<Integer>(10);
 		synchronized(stats){
-			if (getContext().containsKey("stats")){
-				stats.putAll((Map<Integer,SolStats>)getContext().get("stats"));
+			if (getState().containsKey("stats")){
+				stats.putAll((Map<Integer,SolStats>)getState().get("stats"));
 			}
 			for (SolStats sol : stats.values()){
 				if (sol.isIncomplete(type)){
@@ -38,8 +38,8 @@ public class StatsAgent extends Agent {
 	}
 	public int getMaxSol(){
 		synchronized(stats){
-			if (getContext().containsKey("stats")){
-				stats.putAll((Map<Integer,SolStats>)getContext().get("stats"));
+			if (getState().containsKey("stats")){
+				stats.putAll((Map<Integer,SolStats>)getState().get("stats"));
 			}
 			int result=0;
 			for (int sol : stats.keySet()){
@@ -50,8 +50,8 @@ public class StatsAgent extends Agent {
 	}
 	public int getTotalCount(){
 		synchronized(stats){
-			if (getContext().containsKey("stats")){
-				stats.putAll((Map<Integer,SolStats>)getContext().get("stats"));
+			if (getState().containsKey("stats")){
+				stats.putAll((Map<Integer,SolStats>)getState().get("stats"));
 			}
 			int result=0;
 			for (SolStats sol : stats.values()){
@@ -92,8 +92,8 @@ public class StatsAgent extends Agent {
 			}
 		}
 		synchronized(stats){
-			if (getContext().containsKey("stats")){
-				stats.putAll((Map<Integer,SolStats>)getContext().get("stats"));
+			if (getState().containsKey("stats")){
+				stats.putAll((Map<Integer,SolStats>)getState().get("stats"));
 			}
 			String message = "";
 			if (stats.containsKey(sol)){
@@ -116,28 +116,28 @@ public class StatsAgent extends Agent {
 				}
 			}
 			stats.put(sol, solstats);
-			getContext().put("stats",stats);
+			getState().put("stats",stats);
 		}
 	}
 	
 	public ArrayNode getStats(){
 		synchronized(stats){
-			if (getContext().containsKey("stats")){
-				stats.putAll((Map<Integer,SolStats>)getContext().get("stats"));
+			if (getState().containsKey("stats")){
+				stats.putAll((Map<Integer,SolStats>)getState().get("stats"));
 			}
 			return om.valueToTree(stats.values());
 		}
 	}
 	public void resetIncomplete(@Name("type") String type){
 		synchronized(stats){
-			if (getContext().containsKey("stats")){
-				stats.putAll((Map<Integer,SolStats>)getContext().get("stats"));
+			if (getState().containsKey("stats")){
+				stats.putAll((Map<Integer,SolStats>)getState().get("stats"));
 			}
 			for (SolStats sol : stats.values()){
 				sol.setIncomplete(type, true);
 				stats.put(sol.getSol(), sol);
 			}
-			getContext().put("stats",stats);			
+			getState().put("stats",stats);			
 		}
 	}
 	@Override
