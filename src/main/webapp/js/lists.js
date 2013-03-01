@@ -818,29 +818,26 @@ function updateProgress(){
 	$("div.reload").progressbar({value: dyn.data.length });
 }
 function load_sol(sol,ifmodified){
+	var handle = function(result,number){
+    	if (typeof result == "string"){
+    		result = JSON.parse(result);
+		}
+		if (typeof result.responseText == "string"){
+			result = JSON.parse(result.responseText);
+		}
+		dyn.data = dyn.data.concat(result);
+		updateProgress();
+	}
 	$.ajax({
 		//url : "http://msl-raw-images.storage.googleapis.com/sol_"+sol+".json",
 		url : "json?sol="+sol,
-		ifModified:ifmodified,
+		ifModified:false,
 		cache:true,
 		dataType:"json",
-		success: function (result, textStatus, jqXHR) {
-	        // if 304, re-request the data
-	        if (typeof result == "undefined" && textStatus == 'notmodified') {
-	           load_sol(sol,false);
-	        } else {
-	        	if (result == null || typeof result == "undefined"){
-	        		return;
-	        	}
-	        	if (typeof result == "string"){
-	        		result = JSON.parse(result);
-				}
-				if (typeof result.responseText == "string"){
-					result = JSON.parse(result.responseText);
-				}
-				dyn.data = dyn.data.concat(result);
-				updateProgress();
-	        }
+		statusCode : {
+			200: function (result, textStatus, jqXHR) {
+				handle(result);
+			}
 		}
 	});
 }

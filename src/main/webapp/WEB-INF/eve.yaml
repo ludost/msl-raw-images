@@ -8,12 +8,13 @@ environment:
 
     transport_services:
     - class: com.almende.eve.transport.http.HttpService
-      servlet_url: http://localhost:8080/MSLAgents/agents/
-    - class: com.almende.eve.transport.http.HttpService
       servlet_url: http://msl-raw-images.com/MSLAgents/agents/
     - class: com.almende.eve.transport.http.HttpService
       servlet_url: http://host1.msl-raw-images.com:8080/MSLAgents/agents/
 
+transport_services:
+  - class: com.almende.eve.transport.http.HttpService
+    servlet_url: http://localhost:8080/MSLAgents/agents/
 
 
 # state settings (for persistency)
@@ -23,6 +24,4 @@ state:
 
 # scheduler settings (for tasks)
 scheduler:
-  class: RunnableSchedulerFactory
-
-  
+  class: ClockSchedulerFactory

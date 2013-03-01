@@ -37,8 +37,7 @@ public class SolAgent extends Agent {
 	public ArrayNode getList() {
 		if (getState().containsKey("list")) {
 			try {
-				return (ArrayNode) om.readTree((String) getState()
-						.get("list"));
+				return (ArrayNode) om.readTree((String) getState().get("list"));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -47,8 +46,7 @@ public class SolAgent extends Agent {
 	}
 
 	public ArrayNode updateList(@Name("reload") @Required(false) Boolean reload) {
-		int sol = new Integer(getState().getAgentId().substring(4))
-				.intValue();
+		int sol = new Integer(getState().getAgentId().substring(4)).intValue();
 		ArrayNode list = om.createArrayNode();
 		try {
 			if (reload == null || !reload) {
@@ -64,11 +62,11 @@ public class SolAgent extends Agent {
 			try {
 				ArrayNode result = send(url, method, params, ArrayNode.class);
 				list = ImageList.merge(result, list);
-			} catch (Exception e){
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			getState().put("list", list.toString());
-//			updateHeads();
+			// updateHeads();
 
 			url = "http://localhost:8080/MSLAgents/agents/stats";
 			params = om.createObjectNode();
@@ -92,8 +90,7 @@ public class SolAgent extends Agent {
 			try {
 				result = send(url, "updateList", params, ArrayNode.class);
 				list = ImageList.merge(list, result);
-				if (result.size() > 0
-						|| !getState().containsKey("lastChange")) {
+				if (result.size() > 0 || !getState().containsKey("lastChange")) {
 					getState().put("lastChange", DateTime.now().toString());
 				}
 			} catch (Exception e) {
@@ -116,9 +113,11 @@ public class SolAgent extends Agent {
 		}
 
 	}
+
 	public void updateSpice(@Name("reload") @Required(false) Boolean reload) {
 		ArrayNode list = om.createArrayNode();
-		if(reload==null)reload=false;
+		if (reload == null)
+			reload = false;
 		try {
 			list = (ArrayNode) om.readTree((String) getState().get("list"));
 			String url = "http://localhost:8080/MSLAgents/agents/spice";
@@ -129,8 +128,7 @@ public class SolAgent extends Agent {
 			try {
 				result = send(url, "updateList", params, ArrayNode.class);
 				list = ImageList.merge(list, result);
-				if (result.size() > 0
-						|| !getState().containsKey("lastChange")) {
+				if (result.size() > 0 || !getState().containsKey("lastChange")) {
 					getState().put("lastChange", DateTime.now().toString());
 				}
 			} catch (Exception e) {
@@ -145,8 +143,7 @@ public class SolAgent extends Agent {
 			try {
 				result = send(url, "updateList", params, ArrayNode.class);
 				list = ImageList.merge(list, result);
-				if (result.size() > 0
-						|| !getState().containsKey("lastChange")) {
+				if (result.size() > 0 || !getState().containsKey("lastChange")) {
 					getState().put("lastChange", DateTime.now().toString());
 				}
 			} catch (Exception e) {
@@ -163,14 +160,14 @@ public class SolAgent extends Agent {
 		}
 	}
 
-	//Reload list, redetermining image type and reloading stats.
-	public void reloadList(){
+	// Reload list, redetermining image type and reloading stats.
+	public void reloadList() {
 		ArrayNode list = om.createArrayNode();
 		ArrayNode result = om.createArrayNode();
 		try {
 			list = (ArrayNode) om.readTree((String) getState().get("list"));
-			for (int i=0; i<list.size(); i++){
-				Image image = om.treeToValue(list.get(i),Image.class);
+			for (int i = 0; i < list.size(); i++) {
+				Image image = om.treeToValue(list.get(i), Image.class);
 				result.add(om.valueToTree(image));
 			}
 			getState().put("list", result.toString());
@@ -178,11 +175,11 @@ public class SolAgent extends Agent {
 			ObjectNode params = om.createObjectNode();
 			params.put("list", result);
 			send(url, "updateSol", params, void.class);
-		}catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public String getDescription() {
 		return "Collects and stores sol "

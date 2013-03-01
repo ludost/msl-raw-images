@@ -24,23 +24,30 @@ public class InitListener implements ServletContextListener {
 		Config config = new Config(is);
 		try {
 			AgentFactory factory = new AgentFactory(config);
-			if (factory.hasAgent("clock")){
-				ClockAgent clock = (ClockAgent) factory.getAgent("clock");
-				
-				ObjectNode params = JOM.createObjectNode();
-				JSONRequest request = new JSONRequest("updateHeads",params);
-				long delay = 12000; // milliseconds
-				clock.getScheduler().createTask(request, delay);
-
-				request = new JSONRequest("updateSpice",params);
-				clock.getScheduler().createTask(request, delay);
-
-				params.put("reload", new Boolean(false));
-				delay = 2000;
-				request = new JSONRequest("updateSols", params);
-				clock.getScheduler().createTask(request, delay);
+			if (!factory.hasAgent("clock")) {
+				factory.createAgent(ClockAgent.class, "clock");
 			}
-		} catch (Exception e){
+			ClockAgent clock = (ClockAgent) factory.getAgent("clock");
+
+			/*
+			 * for (String taskId : clock.getScheduler().getTasks()){
+			 * clock.getScheduler().cancelTask(taskId); }
+			 */
+
+			ObjectNode params = JOM.createObjectNode();
+			JSONRequest request = new JSONRequest("updateHeads", params);
+			long delay = 12000; // milliseconds
+			clock.getScheduler().createTask(request, delay);
+
+			request = new JSONRequest("updateSpice", params);
+			clock.getScheduler().createTask(request, delay);
+
+			params.put("reload", new Boolean(false));
+			delay = 2000;
+			request = new JSONRequest("updateSols", params);
+			clock.getScheduler().createTask(request, delay);
+
+		} catch (Exception e) {
 			System.err.println("ERROR initializing agents");
 			e.printStackTrace();
 		}

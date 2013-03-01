@@ -6,6 +6,7 @@ import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.ThreadSafe;
 
@@ -27,8 +28,9 @@ public class TwitterAgent extends Agent {
 
 	public void sendMessage(@Name("tweet") String tweet){
 		try {
+			getAgentFactory();
 			//Don't actually send anything from development.
-			if ("Development".equals(getAgentFactory().getEnvironment())){
+			if ("Development".equals(AgentFactory.getEnvironment())){
 				System.err.println("Suppressing sending of tweet:"+tweet);
 				return;
 			}
