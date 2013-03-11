@@ -1037,13 +1037,13 @@ $(document).ready(function() {
 	reload();
 	updateSubscriptions();
 	
-	$(window).scroll(function() {
+	/*$(window).scroll(function() {
 		   if($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
 		       console.log("adding more images");
 //		       conf.show_count+=conf.max_show;
 //		       render();
 		   }
-	});
+	});*/
 	
 	
 	!function(d,s,id){

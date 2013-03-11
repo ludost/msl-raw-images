@@ -42,7 +42,7 @@ public class Image {
 			if (cmp == '_') {
 				cmp = filename.charAt(17);
 			}
-			if (cmp == 'U' || cmp == 'I' || cmp == 'T' || cmp == 'Q') {
+			if (cmp == 'U' || cmp == 'I' || cmp == 'T' || cmp == 'Q' || cmp == 'G' || cmp == 'H' || cmp == 'N' || cmp == 'P' || cmp == 'O' || cmp == 'J') {
 				return "thumbnail";
 			}
 			if (cmp == 'D') {
