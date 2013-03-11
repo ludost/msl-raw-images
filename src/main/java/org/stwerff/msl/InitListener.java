@@ -29,10 +29,9 @@ public class InitListener implements ServletContextListener {
 			}
 			ClockAgent clock = (ClockAgent) factory.getAgent("clock");
 
-			/*
-			 * for (String taskId : clock.getScheduler().getTasks()){
-			 * clock.getScheduler().cancelTask(taskId); }
-			 */
+			for (String taskId : clock.getScheduler().getTasks()) {
+				clock.getScheduler().cancelTask(taskId);
+			}
 
 			ObjectNode params = JOM.createObjectNode();
 			JSONRequest request = new JSONRequest("updateHeads", params);

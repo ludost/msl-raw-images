@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>com.msl-raw-images</groupId>
 	<artifactId>MSLAgents</artifactId>
 	<name>MSL-raw-images website</name>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
-
 
 	<url>http://msl-raw-images.com</url>
 
@@ -36,8 +36,7 @@
 		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>
 		<eve.version>1.1.0-SNAPSHOT</eve.version>
 		<exec-maven-plugin.version>1.2.1</exec-maven-plugin.version>
-<!--		<jetty.version>8.1.8.v20130131</jetty.version> -->
-		<jetty.version>8.1.7.v20120910</jetty.version>
+		<jetty.version>8.1.9.v20130131</jetty.version>
 		<joda-time.version>2.1</joda-time.version>
 		<twitter4j.version>[3.0,)</twitter4j.version>
 		<httpcore.version>4.2.3</httpcore.version>
@@ -45,12 +44,6 @@
 		<cors-filter.version>1.3.2</cors-filter.version>
 		<guava.version>r09</guava.version>
 	</properties>
-	<repositories>
-		<repository>
-			<id>eve</id>
-			<url>https://raw.github.com/almende/maven/master/</url>
-		</repository>
-	</repositories>
 
 	<dependencies>
 		<dependency>
@@ -58,6 +51,7 @@
 			<artifactId>httpcore</artifactId>
 			<version>${httpcore.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.ccil.cowan.tagsoup</groupId>
 			<artifactId>tagsoup</artifactId>
@@ -69,6 +63,7 @@
 			<artifactId>twitter4j-core</artifactId>
 			<version>${twitter4j.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
@@ -80,32 +75,38 @@
 			<artifactId>eve-core</artifactId>
 			<version>${eve.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
 			<version>${joda-time.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>${javax.servlet-api.version}</version>
 			<scope>provided</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>com.thetransactioncompany</groupId>
 			<artifactId>cors-filter</artifactId>
 			<version>${cors-filter.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>${guava.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.mortbay.jetty</groupId>
 			<artifactId>jetty-maven-plugin</artifactId>
 			<version>${jetty.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -116,39 +117,7 @@
 	</dependencies>
 
 	<build>
-		<pluginManagement>
-			<plugins>
-				<!-- Configure the Maven2 Eclipse IDE Integration (m2e) for non-standard 
-					plug-in executions during the compile-test-run life-cycles by the IDE -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<!-- or install the buildhelper in Eclipse :: Window :: Preferences 
-									:: Maven :: Discovery :: Open Catalog -->
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-eclipse-plugin</artifactId>
-					<version>${maven-eclipse-plugin.version}</version>
-				</plugin>
-
-				<plugin>
-					<groupId>org.apache.tomcat.maven</groupId>
-					<artifactId>tomcat7-maven-plugin</artifactId>
-					<version>${tomcat-maven-plugin.version}</version>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-
 		<plugins>
-
 			<!-- Make compiler UTF-8/ISO-8859-1 aware, set JVM to 1.6+ -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -219,53 +188,83 @@
 					<includePluginDependencies>true</includePluginDependencies>
 				</configuration>
 			</plugin>
-
-			<!-- setup jetty plugin -->
-			<plugin>
-				<groupId>org.mortbay.jetty</groupId>
-				<artifactId>jetty-maven-plugin</artifactId>
-				<version>${jetty.version}</version>
-				<configuration>
-					<scanIntervalSeconds>10</scanIntervalSeconds>
-					<scanTargets>
-						<scanTarget>src/main/webapp</scanTarget>
-					</scanTargets>
-					<webAppSourceDirectory>${basedir}/src/main/webapp</webAppSourceDirectory>
-					<webApp>
-						<contextPath>/MSLAgents</contextPath>
-						<descriptor>src/main/webapp/WEB-INF/web.xml</descriptor>
-					</webApp>
-					<systemProperties>
-						<systemProperty>
-							<name>com.almende.eve.runtime.environment</name>
-							<value>Development</value>
-						</systemProperty>
-					</systemProperties>
-					<stopKey>myAgents</stopKey>
-					<stopPort>9999</stopPort>
-				</configuration>
-
-				<executions>
-					<execution>
-						<id>start-jetty</id>
-						<phase>pre-integration-test</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<scanIntervalSeconds>0</scanIntervalSeconds>
-							<daemon>true</daemon>
-						</configuration>
-					</execution>
-					<execution>
-						<id>stop-jetty</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>stop</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<!-- Configure the Maven2 Eclipse IDE Integration (m2e) for non-standard 
+					plug-in executions during the compile-test-run life-cycles by the IDE -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<!-- or install the buildhelper in Eclipse :: Window :: Preferences 
+									:: Maven :: Discovery :: Open Catalog -->
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-eclipse-plugin</artifactId>
+					<version>${maven-eclipse-plugin.version}</version>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.tomcat.maven</groupId>
+					<artifactId>tomcat7-maven-plugin</artifactId>
+					<version>${tomcat-maven-plugin.version}</version>
+				</plugin>
+				<!-- setup jetty plugin -->
+				<plugin>
+					<groupId>org.mortbay.jetty</groupId>
+					<artifactId>jetty-maven-plugin</artifactId>
+					<version>${jetty.version}</version>
+					<configuration>
+						<scanIntervalSeconds>10</scanIntervalSeconds>
+						<scanTargets>
+							<scanTarget>src/main/webapp</scanTarget>
+						</scanTargets>
+						<webAppSourceDirectory>${basedir}/src/main/webapp</webAppSourceDirectory>
+						<webApp>
+							<contextPath>/MSLAgents</contextPath>
+							<descriptor>src/main/webapp/WEB-INF/web.xml</descriptor>
+						</webApp>
+						<systemProperties>
+							<systemProperty>
+								<name>com.almende.eve.runtime.environment</name>
+								<value>Development</value>
+							</systemProperty>
+						</systemProperties>
+						<stopKey>myAgents</stopKey>
+						<stopPort>9999</stopPort>
+					</configuration>
+
+					<executions>
+						<execution>
+							<id>start-jetty</id>
+							<phase>pre-integration-test</phase>
+							<goals>
+								<goal>run</goal>
+							</goals>
+							<configuration>
+								<scanIntervalSeconds>0</scanIntervalSeconds>
+								<daemon>true</daemon>
+							</configuration>
+						</execution>
+						<execution>
+							<id>stop-jetty</id>
+							<phase>post-integration-test</phase>
+							<goals>
+								<goal>stop</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 </project>

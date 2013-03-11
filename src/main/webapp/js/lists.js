@@ -27,6 +27,7 @@ var settings = {
 	filter_list : "none",
 	current_list : {},
 	localList: true,
+	useJSON : false,
 	useWget : true,
 	wget_syntax : "wget -i -",
 	max_show:20,
@@ -796,7 +797,20 @@ function selectedImagesArray(){
 	});
 	return result;
 }
-function outputList() {
+function outputListJSON(){
+	var imagesArray = selectedImagesArray().map(function(image){
+		var url = image.url;
+		image.url = (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2);
+		url = image.thumbnailUrl;
+		image.thumbnailUrl = (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2);
+		return image;
+	});	
+	var p = window.open('');
+	p.document.open("application/json");
+	p.document.write(JSON.stringify(imagesArray));
+	p.document.close();	
+}
+function outputListNormal(){
 	var newPage = "";
 	var html = $.inArray(BrowserDetect.browser, [ "Safari", "Chrome" ]) >= 0;
 	if (conf.useWget) {
@@ -812,6 +826,13 @@ function outputList() {
 	p.document.open("text/plain");
 	p.document.write(newPage);
 	p.document.close();
+}
+function outputList() {
+	if (conf.useJSON){
+		outputListJSON();	
+	} else {
+		outputListNormal();
+	}
 }
 
 function updateProgress(){
