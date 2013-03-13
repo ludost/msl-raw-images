@@ -712,6 +712,7 @@ function render() {
 	$(".font_size").val(conf.font_size);
 	$(".prefixText").val(conf.wget_syntax);
 	$(".prefixBox").attr('checked', conf.useWget);
+	$(".jsonBox").attr('checked', conf.useJSON);
 	// Done
 }
 function disabled(obj){

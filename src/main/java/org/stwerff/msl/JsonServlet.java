@@ -33,6 +33,8 @@ public class JsonServlet extends HttpServlet {
 			.withLocale(java.util.Locale.ENGLISH)
 			.withZone(DateTimeZone.forID("GMT"));
 
+	static int maxSol = -1;
+
 	public void doPost(HttpServletRequest req, HttpServletResponse res) {
 		handle(req, res);
 	}
@@ -54,24 +56,35 @@ public class JsonServlet extends HttpServlet {
 				sol = Integer.parseInt(req.getParameter("sol"));
 			} catch (Exception e) {
 			}
-			if (sol == -1){
+			if (maxSol == -1 || sol == -1) {
 				MaxSolAgent maxsol = (MaxSolAgent) factory.getAgent("max");
-				StatsAgent stats = (StatsAgent) factory.getAgent("stats");
-				res.setHeader("Cache-Control", "max-age=0,public,must-revalidate,proxy-revalidate");
-				res.getWriter().println("{\"sol\":"+maxsol.getMaxSol()+",\"count\":"+stats.getTotalCount()+"}");
+				maxSol = maxsol.getMaxSol();
+
+				if (sol == -1) {
+					StatsAgent stats = (StatsAgent) factory.getAgent("stats");
+					res.setHeader("Cache-Control",
+							"max-age=0,public,must-revalidate,proxy-revalidate");
+					res.getWriter().println(
+							"{\"sol\":" + maxSol + ",\"count\":"
+									+ stats.getTotalCount() + "}");
+					return;
+				}
+			}
+
+			if (sol > maxSol) {
+				System.err.println("Strange, too large sol requested!");
 				return;
 			}
-			
 			if (!factory.hasAgent("sol_" + sol)) {
 				agent = (SolAgent) factory.createAgent(
 						org.stwerff.mslagents.SolAgent.class, "sol_" + sol);
 			} else {
 				try {
 					agent = (SolAgent) factory.getAgent("sol_" + sol);
-				} catch (Exception e){
-					factory.deleteAgent("sol_"+sol);
+				} catch (Exception e) {
+					factory.deleteAgent("sol_" + sol);
 					agent = (SolAgent) factory.createAgent(
-							org.stwerff.mslagents.SolAgent.class, "sol_" + sol);					
+							org.stwerff.mslagents.SolAgent.class, "sol_" + sol);
 				}
 			}
 			String lastChange = DateTime.parse(agent.getLastChange()).toString(
@@ -80,8 +93,8 @@ public class JsonServlet extends HttpServlet {
 				// Sun, 06 Nov 1994 08:49:37 GMT
 				if (req.getHeader("If-Modified-Since") != null) {
 					DateTime ifmod = DateTime.parse(
-							req.getHeader("If-Modified-Since").replace(" GMT",""),
-							READ_HTTPDATE);
+							req.getHeader("If-Modified-Since").replace(" GMT",
+									""), READ_HTTPDATE);
 					if (!ifmod.isBefore(DateTime.parse(lastChange,
 							WRITE_HTTPDATE))) {
 						res.setHeader("Last-Modified", lastChange);
@@ -98,7 +111,8 @@ public class JsonServlet extends HttpServlet {
 					WRITE_HTTPDATE);
 			res.setHeader("Last-Modified", lastChange);
 			res.setContentLength(list.toString().length());
-			res.setHeader("Cache-Control", "max-age=60,public,must-revalidate,proxy-revalidate");
+			res.setHeader("Cache-Control",
+					"max-age=60,public,must-revalidate,proxy-revalidate");
 			res.getWriter().write(list.toString());
 		} catch (Exception e) {
 			e.printStackTrace();

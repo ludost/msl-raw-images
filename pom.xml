@@ -117,6 +117,8 @@
 	</dependencies>
 
 	<build>
+		<finalName>${project.artifactId}</finalName>
+
 		<plugins>
 			<!-- Make compiler UTF-8/ISO-8859-1 aware, set JVM to 1.6+ -->
 			<plugin>
