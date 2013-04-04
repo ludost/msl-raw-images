@@ -49,7 +49,10 @@ public class JsonServlet extends HttpServlet {
 				"/WEB-INF/eve.yaml");
 		Config config = new Config(is);
 		try {
-			AgentFactory factory = new AgentFactory(config);
+			AgentFactory factory = AgentFactory.getInstance();
+			if (factory == null) {
+				factory = AgentFactory.createInstance(config);
+			}
 			SolAgent agent = null;
 			int sol = -1;
 			try {
@@ -59,7 +62,6 @@ public class JsonServlet extends HttpServlet {
 			if (maxSol == -1 || sol == -1) {
 				MaxSolAgent maxsol = (MaxSolAgent) factory.getAgent("max");
 				maxSol = maxsol.getMaxSol();
-
 				if (sol == -1) {
 					StatsAgent stats = (StatsAgent) factory.getAgent("stats");
 					res.setHeader("Cache-Control",

@@ -215,11 +215,6 @@
 					<version>${maven-eclipse-plugin.version}</version>
 				</plugin>
 
-				<plugin>
-					<groupId>org.apache.tomcat.maven</groupId>
-					<artifactId>tomcat7-maven-plugin</artifactId>
-					<version>${tomcat-maven-plugin.version}</version>
-				</plugin>
 				<!-- setup jetty plugin -->
 				<plugin>
 					<groupId>org.mortbay.jetty</groupId>

@@ -801,9 +801,9 @@ function selectedImagesArray(){
 function outputListJSON(){
 	var imagesArray = selectedImagesArray().map(function(image){
 		var url = image.url;
-		image.url = (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2);
+		image.url = (url[1]=="$"?(url[0]=="J"?jpl:msss)+url.substring(2):url);
 		url = image.thumbnailUrl;
-		image.thumbnailUrl = (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2);
+		image.thumbnailUrl = (url[1]=="$"?(url[0]=="J"?jpl:msss)+url.substring(2):url);
 		return image;
 	});	
 	var p = window.open('');
@@ -819,7 +819,7 @@ function outputListNormal(){
 	}
 	selectedImagesArray().map(function(image){
 		var url = image.url;
-		newPage += (url[1]=="$"?(url[0]=="J"?jpl:msss):"")+url.substring(2) + (html ? "<br>" : "\n");
+		newPage += (url[1]=="$"?(url[0]=="J"?jpl:msss)+url.substring(2):url) + (html ? "<br>" : "\n");
 	});
 	if (conf.useWget)
 		newPage += "ENDOFURLS" + (html ? "<br>" : "\n");

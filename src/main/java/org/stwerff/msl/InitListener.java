@@ -23,7 +23,7 @@ public class InitListener implements ServletContextListener {
 				"/WEB-INF/eve.yaml");
 		Config config = new Config(is);
 		try {
-			AgentFactory factory = new AgentFactory(config);
+			AgentFactory factory = AgentFactory.createInstance(config);
 			if (!factory.hasAgent("clock")) {
 				factory.createAgent(ClockAgent.class, "clock");
 			}

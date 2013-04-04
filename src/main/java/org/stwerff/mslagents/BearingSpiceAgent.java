@@ -14,7 +14,6 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.stwerff.mslagents.data.Image;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.agent.annotation.ThreadSafe;
@@ -37,7 +36,7 @@ public class BearingSpiceAgent extends Agent {
 	 
 	
 	public String getBasePath(){
-		String path = getAgentFactory().getConfig().get("environment",AgentFactory.getEnvironment(),"base_path");
+		String path = getAgentFactory().getConfig().get("base_path");
 		path+="c_bin/";
 		return path;
 	}
@@ -46,7 +45,7 @@ public class BearingSpiceAgent extends Agent {
 		ArrayNode result = om.createArrayNode();
 		if (reload == null) reload=false;
 		try {
-			String path = getAgentFactory().getConfig().get("environment",AgentFactory.getEnvironment(),"base_path");
+			String path = getAgentFactory().getConfig().get("base_path");
 			path+="c_bin/";
 			File pathFile = new File(path);
 			File test = new File(path+"msl_pointing");

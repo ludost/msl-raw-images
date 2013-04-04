@@ -55,7 +55,7 @@ public class SolAgent extends Agent {
 							"list"));
 				}
 			}
-			String url = "http://localhost:8080/MSLAgents/agents/collector";
+			String url = "local://collector";
 			String method = "getSol";
 			ObjectNode params = om.createObjectNode();
 			params.put("sol", sol);
@@ -68,7 +68,7 @@ public class SolAgent extends Agent {
 			getState().put("list", list.toString());
 			// updateHeads();
 
-			url = "http://localhost:8080/MSLAgents/agents/stats";
+			url = "local://stats";
 			params = om.createObjectNode();
 			params.put("list", list);
 			send(url, "updateSol", params, void.class);
@@ -83,7 +83,7 @@ public class SolAgent extends Agent {
 		ArrayNode list = om.createArrayNode();
 		try {
 			list = (ArrayNode) om.readTree((String) getState().get("list"));
-			String url = "http://localhost:8080/MSLAgents/agents/heads";
+			String url = "local://heads";
 			ObjectNode params = om.createObjectNode();
 			params.put("list", list);
 			ArrayNode result = om.createArrayNode();
@@ -104,7 +104,7 @@ public class SolAgent extends Agent {
 			}
 
 			getState().put("list", list.toString());
-			url = "http://localhost:8080/MSLAgents/agents/stats";
+			url = "local://stats";
 			params = om.createObjectNode();
 			params.put("list", list);
 			send(url, "updateSol", params, void.class);
@@ -120,7 +120,7 @@ public class SolAgent extends Agent {
 			reload = false;
 		try {
 			list = (ArrayNode) om.readTree((String) getState().get("list"));
-			String url = "http://localhost:8080/MSLAgents/agents/spice";
+			String url = "local://spice";
 			ObjectNode params = om.createObjectNode();
 			params.put("list", list);
 			params.put("reload", reload);
@@ -135,7 +135,7 @@ public class SolAgent extends Agent {
 				System.err.println("UpdateList error:" + e);
 			}
 
-			url = "http://localhost:8080/MSLAgents/agents/bearing";
+			url = "local://bearing";
 			params = om.createObjectNode();
 			params.put("list", list);
 			params.put("reload", reload);
@@ -151,7 +151,7 @@ public class SolAgent extends Agent {
 			}
 
 			getState().put("list", list.toString());
-			url = "http://localhost:8080/MSLAgents/agents/stats";
+			url = "local://stats";
 			params = om.createObjectNode();
 			params.put("list", list);
 			send(url, "updateSol", params, void.class);
@@ -171,7 +171,7 @@ public class SolAgent extends Agent {
 				result.add(om.valueToTree(image));
 			}
 			getState().put("list", result.toString());
-			String url = "http://localhost:8080/MSLAgents/agents/stats";
+			String url = "local://stats";
 			ObjectNode params = om.createObjectNode();
 			params.put("list", result);
 			send(url, "updateSol", params, void.class);
