@@ -28,25 +28,25 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 @ThreadSafe(true)
 public class CollectorAgent extends Agent {
-	static final ObjectMapper om = new ObjectMapper();
-	static final String NEWURL = "http://mars.jpl.nasa.gov/msl/admin/modules/multimedia/module/inc_ListImages_Raw.cfm";
-	static final String MOBILEURL = "http://mars.jpl.nasa.gov/msl/multimedia/raw/";
-	static final String SITEURL = "http://mars.jpl.nasa.gov/msl/multimedia/raw/";
-	static final String BASEURL = NEWURL;
-
+	static final ObjectMapper	om			= new ObjectMapper();
+	static final String			NEWURL		= "http://mars.jpl.nasa.gov/msl/admin/modules/multimedia/module/inc_ListImages_Raw.cfm";
+	static final String			MOBILEURL	= "http://mars.jpl.nasa.gov/msl/multimedia/raw/";
+	static final String			SITEURL		= "http://mars.jpl.nasa.gov/msl/multimedia/raw/";
+	static final String			BASEURL		= SITEURL;
+	
 	public ArrayNode getSol(@Name("sol") int sol) {
 		ArrayNode result = _getSol(sol, true);
 		result = ImageList.merge(result, _getSol(sol, false));
 		return result;
 	}
-
+	
 	public ArrayNode _getSol(int sol, boolean camera) {
 		ArrayNode result = om.createArrayNode();
 		URL url;
 		try {
 			url = new URL(BASEURL + "?" + (new Random().nextInt())
 					+ (camera ? "&camera=" : "") + "&s=" + sol);
-
+			
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			synchronized (con) {
 				con.setRequestProperty("Cache-Control", "no-cache");
@@ -66,22 +66,22 @@ public class CollectorAgent extends Agent {
 				con.setReadTimeout(40000);
 				con.setUseCaches(false);
 				con.connect();
-
+				
 				XMLReader reader = new Parser();
 				reader.setFeature(Parser.namespacesFeature, false);
 				reader.setFeature(Parser.namespacePrefixesFeature, false);
-
+				
 				InputStream input = con.getInputStream();
 				if ("gzip".equals(con.getContentEncoding())) {
 					input = new GZIPInputStream(input);
 				}
-
+				
 				MyHandler handler = new MyHandler(sol);
 				reader.setContentHandler(handler);
 				reader.parse(new InputSource(input));
-
+				
 				sol = handler.sol;
-
+				
 				if (handler.getImageCount() > 0) {
 					result = om.valueToTree(handler.getResult());
 				}
@@ -91,12 +91,12 @@ public class CollectorAgent extends Agent {
 		}
 		return result;
 	}
-
+	
 	@Override
 	public String getDescription() {
 		return "Parser agent for MSL website website";
 	}
-
+	
 	@Override
 	public String getVersion() {
 		return "1.0";
@@ -104,26 +104,29 @@ public class CollectorAgent extends Agent {
 }
 
 class MyHandler extends DefaultHandler {
-	static final String jpl = "http://mars.jpl.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol";
-	static final String msss = "http://mars.jpl.nasa.gov/msl-raw-images/msss";
+	static final String		jpl		= "http://mars.jpl.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol";
+	static final String		msss	= "http://mars.jpl.nasa.gov/msl-raw-images/msss";
 	// private static final Logger log = Logger.getLogger("msl-raw-images");
-
-	public int sol;
-
+	final DateTimeFormatter	fmt		= DateTimeFormat.forPattern(
+											"yyyy-MM-dd HH:mm:ss")
+											.withZoneUTC();
+	
+	public int				sol;
+	
 	public MyHandler(int sol) {
 		this.sol = sol;
 	}
-
-	ArrayList<Image> images = new ArrayList<Image>(100);
-
-	Image current = null;
-	boolean doDate = false;
-	String dateString = "";
-
+	
+	ArrayList<Image>	images		= new ArrayList<Image>(100);
+	
+	Image				current		= null;
+	boolean				doDate		= false;
+	String				dateString	= "";
+	
 	public int getImageCount() {
 		return this.images.size();
 	}
-
+	
 	public static String getCamera(String filename) {
 		String start = filename.substring(0, 3);
 		if (start.matches("[0-9]+")) {
@@ -133,7 +136,7 @@ class MyHandler extends DefaultHandler {
 			return start;
 		}
 	}
-
+	
 	public void startElement(String uri, String localName, String qName,
 			Attributes attributes) throws SAXException {
 		if (current != null && "a".equals(qName)) {
@@ -141,14 +144,15 @@ class MyHandler extends DefaultHandler {
 		}
 		if ("a".equals(qName)) {
 			String name = attributes.getValue("href");
+			String title = attributes.getValue("title");
 			if (name != null && name.startsWith("./?rawid=")) {
 				current = new Image();
 				name = name.substring(9, name.indexOf("&s"));
 				current.setName(name);
 				current.setCamera(getCamera(name));
 				current.setSol(sol);
-				doDate = false;
-				dateString = "";
+			} else if (title != null && title.startsWith("Download Full Resolution")) {
+				current.setUrl(name.replace(jpl, "J$").replace(msss, "M$"));
 			} else {
 				current = null;
 			}
@@ -156,26 +160,19 @@ class MyHandler extends DefaultHandler {
 		if (current != null && "img".equals(qName)) {
 			current.setThumbnailUrl(attributes.getValue("src")
 					.replace(jpl, "J$").replace(msss, "M$"));
-			String url = current.getThumbnailUrl().replaceFirst("-thm", "");
-			if (current.getCamera().length() > 2 && url.endsWith(".jpg"))
-				url = url.replace(".jpg", ".JPG");
-			current.setUrl(url);
 		}
-		if (current != null && "div".equals(qName)) {
-			if ("RawImageUTC".equals(attributes.getValue("class"))) {
-				doDate = true;
-				dateString = "";
-			}
+		if (current != null && "div".equals(qName)
+				&& "RawImageUTC".equals(attributes.getValue("class"))) {
+			doDate = true;
+			dateString = "";
 		}
 	}
-
+	
 	public void endElement(String uri, String localName, String qName)
 			throws SAXException {
 		if (doDate && "div".equals(qName)) {
 			doDate = false;
 			if (current != null && dateString.length() > 0) {
-				DateTimeFormatter fmt = DateTimeFormat.forPattern(
-						"yyyy-MM-dd HH:mm:ss").withZoneUTC();
 				try {
 					DateTime date = fmt.parseDateTime(dateString.substring(0,
 							19));
@@ -188,20 +185,19 @@ class MyHandler extends DefaultHandler {
 			}
 		}
 		if ("body".equals(qName)) {
-			if (current != null)
-				images.add(current);
+			if (current != null) images.add(current);
 		}
 	}
-
+	
 	public void characters(char ch[], int start, int length)
 			throws SAXException {
 		if (current != null && doDate) {
 			dateString += new String(ch, start, length);
 		}
 	}
-
+	
 	public List<Image> getResult() {
 		return images;
 	}
-
+	
 };

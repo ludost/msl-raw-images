@@ -35,16 +35,16 @@ public class InitListener implements ServletContextListener {
 
 			ObjectNode params = JOM.createObjectNode();
 			JSONRequest request = new JSONRequest("updateHeads", params);
-			long delay = 12000; // milliseconds
-			clock.getScheduler().createTask(request, delay);
+			long delay = 60000; // milliseconds
+			clock.getScheduler().createTask(request, delay,true,true);
 
 			request = new JSONRequest("updateSpice", params);
-			clock.getScheduler().createTask(request, delay);
+			clock.getScheduler().createTask(request, delay,true,true);
 
 			params.put("reload", new Boolean(false));
-			delay = 2000;
+			delay = 300000;
 			request = new JSONRequest("updateSols", params);
-			clock.getScheduler().createTask(request, delay);
+			clock.getScheduler().createTask(request, delay,true,true);
 
 		} catch (Exception e) {
 			System.err.println("ERROR initializing agents");

@@ -118,16 +118,16 @@ int main(int argc, char **argv)
 	furnsh_c(KFILE) ;
 	getCamFrame(argv[1],cameraFrame);
 
-	ckobj_c ( "msl_surf_rsm_tlmenc.bc", &ids );
+	ckobj_c ( "kernels/msl_surf_rsm_tlmenc.bc", &ids );
 	scard_c ( 0,  &cover ); 
-	ckcov_c("msl_surf_rsm_tlmres.bc",SPICE_CELL_ELEM_I( &ids, 0 ),SPICEFALSE,"SEGMENT",10.0,"TDB",&cover);
+	ckcov_c("kernels/msl_surf_rsm_tlmres.bc",SPICE_CELL_ELEM_I( &ids, 0 ),SPICEFALSE,"SEGMENT",10.0,"TDB",&cover);
 	niv = wncard_c( &cover );
 	wnfetd_c ( &cover, niv-1, &b, &e );
 	int i=2;
 	for (i; i<argc; i++){
    	    str2et_c( ( ConstSpiceChar * ) argv[i], &et );
-	    if (et>e){
-		printf("%d:%f:%s\n",i-2,et,"---");
+	    if (et>e || et < 0){
+	    	printf("%d:%f:%s\n",i-2,et,"---");
 	    } else {
 	    	forTime(i-2, et, cameraFrame);
 	    }

@@ -1,7 +1,7 @@
 # Eve settings
 environment:
   Development:
-    base_path: /home/ludo/workspace/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/MSLAgents/
+    base_path: target/MSLAgents/
 
   Production:
     base_path: /tmp/jetty-0.0.0.0-8080-MSLAgents.war-_MSLAgents-any-/webapp/
@@ -25,3 +25,17 @@ state:
 # scheduler settings (for tasks)
 scheduler:
   class: ClockSchedulerFactory
+  
+bootstrap:
+  agents:
+    stats: org.stwerff.mslagents.StatsAgent
+    max: org.stwerff.mslagents.MaxSolAgent
+    bearing: org.stwerff.mslagents.BearingSpiceAgent
+    spice: org.stwerff.mslagents.SpiceAgent
+    twitter: org.stwerff.mslagents.TwitterAgent
+    clock: org.stwerff.mslagents.ClockAgent
+    collector: org.stwerff.mslagents.CollectorAgent
+    count: org.stwerff.mslagents.ServerCountAgent
+    heads: org.stwerff.mslagents.HeadsAgent
+
+    

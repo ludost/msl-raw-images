@@ -30,7 +30,7 @@ public class ServerCountAgent extends Agent {
 		int result = 0;
 
 		ObjectNode params = om.createObjectNode();
-		String statsUrl = "http://localhost:8080/MSLAgents/agents/stats";
+		String statsUrl = "local://stats";
 		try {
 			result = send(statsUrl, "getMaxSol", params, Integer.class);
 		} catch (Exception e1) {

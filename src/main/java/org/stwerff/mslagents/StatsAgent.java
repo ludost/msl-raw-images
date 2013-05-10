@@ -1,7 +1,6 @@
 package org.stwerff.mslagents;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,8 +19,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @ThreadSafe(true)
 public class StatsAgent extends Agent {
 	final static ObjectMapper om = new ObjectMapper();
-	Map<Integer, SolStats> stats = Collections
-			.synchronizedMap(new HashMap<Integer, SolStats>());
+	HashMap<Integer, SolStats> stats = new HashMap<Integer, SolStats>();
 
 	public List<Integer> getIncompleteSols(@Name("type") String type) {
 		List<Integer> result = new ArrayList<Integer>(10);
